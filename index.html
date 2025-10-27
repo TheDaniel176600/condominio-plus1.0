@@ -1455,14 +1455,15 @@
 
         // Módulos do sistema - ADICIONADO MÓDULO MORADORES
         const modules = [
-            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
-            { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
-            { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
-            { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
-            { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
-            { id: 'contas', name: 'Contas a Pagar', icon: 'fas fa-file-invoice-dollar' },
-            { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' }
-        ];
+    { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
+    { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
+    { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
+    { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
+    { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
+    { id: 'contas', name: 'Contas a Pagar', icon: 'fas fa-file-invoice-dollar' },
+    { id: 'lembretes', name: 'Lembretes', icon: 'fas fa-bell' }, // <<<<< ADICIONADO
+    { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' }
+];
 
         // Estado da aplicação
         let currentUser = null;
@@ -1486,25 +1487,27 @@
         });
 
         // Função para inicializar a aplicação
-        async function initializeApp() {
-            try {
-                // CORREÇÃO: Verificar conexão com Firebase
-                checkFirebaseConnection();
-                
-                // Verificar se há usuário logado
-                const savedUser = localStorage.getItem('currentUser');
-                if (savedUser) {
-                    currentUser = JSON.parse(savedUser);
-                    await loadSystemData();
-                    showMainSystem();
-                } else {
-                    showLoginPage();
-                }
-            } catch (error) {
-                console.error('Erro ao inicializar aplicação:', error);
-                showLoginPage();
+        // Função para inicializar a aplicação
+async function initializeApp() {
+    try {
+        checkFirebaseConnection();
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            // Verificar se o usuário ainda existe no banco
+            const userDoc = await db.collection('usuarios').doc(currentUser.id).get();
+            if (userDoc.exists) {
+                await loadSystemData();
+                showMainSystem();
+                return;
             }
         }
+        showLoginPage();
+    } catch (error) {
+        console.error('Erro ao inicializar aplicação:', error);
+        showLoginPage();
+    }
+}
 
         // CORREÇÃO: Função para verificar conexão com Firebase
         function checkFirebaseConnection() {
@@ -1601,28 +1604,31 @@
             const moduleContent = document.getElementById('moduleContent');
             
             switch(moduleId) {
-                case 'dashboard':
-                    loadDashboardContent();
-                    break;
-                case 'condominios':
-                    loadCondominiosContent();
-                    break;
-                case 'usuarios':
-                    loadUsuariosContent();
-                    break;
-                case 'moradores': // NOVO MÓDULO
-                    loadMoradoresContent();
-                    break;
-                case 'agendamentos':
-                    loadAgendamentosContent();
-                    break;
-                case 'contas':
-                    loadContasContent();
-                    break;
-                case 'relatorios':
-                    loadRelatoriosContent();
-                    break;
-            }
+    case 'dashboard':
+        loadDashboardContent();
+        break;
+    case 'condominios':
+        loadCondominiosContent();
+        break;
+    case 'usuarios':
+        loadUsuariosContent();
+        break;
+    case 'moradores':
+        loadMoradoresContent();
+        break;
+    case 'agendamentos':
+        loadAgendamentosContent();
+        break;
+    case 'contas':
+        loadContasContent();
+        break;
+    case 'lembretes':          // <<<<< ADICIONADO
+        loadLembretesContent(); // <<<<< ADICIONADO
+        break;                 // <<<<< ADICIONADO
+    case 'relatorios':
+        loadRelatoriosContent();
+        break;
+}
         }
 
         // Mudar módulo
@@ -1708,47 +1714,44 @@
             }
         }
 
-        // Carregar conteúdo do letreiro
-        function loadTickerContent() {
-            const tickerContent = document.getElementById('tickerContent');
-            tickerContent.innerHTML = '';
-            
-            // Filtrar lembretes para o condomínio atual
-            const lembretesFiltrados = currentCondominio ? 
-                lembretes.filter(l => l.condominioId === currentCondominio.id) : 
-                lembretes;
-            
-            // Adicionar lembretes ao letreiro
-            lembretesFiltrados.forEach(lembrete => {
-                const item = document.createElement('div');
-                item.className = 'ticker-item';
-                
-                let icon = 'fas fa-bell';
-                if (lembrete.prioridade === 'alta') {
-                    icon = 'fas fa-exclamation-circle';
-                } else if (lembrete.prioridade === 'media') {
-                    icon = 'fas fa-info-circle';
-                }
-                
-                item.innerHTML = `
-                    <i class="${icon}"></i>
-                    <strong>${lembrete.titulo}</strong> - ${formatDate(lembrete.data)}: ${lembrete.descricao}
-                `;
-                
-                tickerContent.appendChild(item);
-            });
-            
-            // Se não há lembretes, mostrar mensagem padrão
-            if (lembretesFiltrados.length === 0) {
-                const item = document.createElement('div');
-                item.className = 'ticker-item';
-                item.innerHTML = `
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Bem-vindo ao Sistema Multi Condomínios</strong> - Nenhum lembrete ativo no momento
-                `;
-                tickerContent.appendChild(item);
+        // Carregar conteúdo do letreiro — APENAS lembretes do DIA ATUAL
+function loadTickerContent() {
+    const tickerContent = document.getElementById('tickerContent');
+    tickerContent.innerHTML = '';
+
+    const hoje = getCurrentDate(); // Formato YYYY-MM-DD
+
+    // Filtrar lembretes do condomínio atual E do dia de hoje
+    const lembretesHoje = currentCondominio ? 
+        lembretes.filter(l => l.condominioId === currentCondominio.id && l.data === hoje) : 
+        lembretes.filter(l => l.data === hoje);
+
+    if (lembretesHoje.length > 0) {
+        lembretesHoje.forEach(lembrete => {
+            const item = document.createElement('div');
+            item.className = 'ticker-item';
+            let icon = 'fas fa-bell';
+            if (lembrete.prioridade === 'alta') {
+                icon = 'fas fa-exclamation-circle';
+            } else if (lembrete.prioridade === 'media') {
+                icon = 'fas fa-info-circle';
             }
-        }
+            item.innerHTML = `
+                <i class="${icon}"></i>
+                <strong>${lembrete.titulo}</strong> - ${lembrete.descricao || 'Sem descrição'}
+            `;
+            tickerContent.appendChild(item);
+        });
+    } else {
+        const item = document.createElement('div');
+        item.className = 'ticker-item';
+        item.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <strong>Sem lembretes para hoje</strong>
+        `;
+        tickerContent.appendChild(item);
+    }
+}
 
         // Criar usuário Douglas com acesso total
         async function createDouglasUser() {
@@ -2283,7 +2286,78 @@ if (currentUser.condominios && currentUser.condominios.includes('*')) {
                 </div>
             `;
         }
-
+// ========== MÓDULO LEMBRETES ==========
+function loadLembretesContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    // Verificar se o usuário tem permissão
+    if (currentUser.permissoes && 
+        !currentUser.permissoes.includes('*') && 
+        !currentUser.permissoes.includes('lembretes')) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+            </div>
+        `;
+        return;
+    }
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de lembretes.
+            </div>
+        `;
+        return;
+    }
+    // Filtrar lembretes do condomínio selecionado
+    const filteredLembretes = lembretes.filter(l => l.condominioId === currentCondominio.id);
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Lembretes - ${currentCondominio.nome}</h3>
+                <button class="btn btn-primary" onclick="openLembreteModal()">
+                    <i class="fas fa-plus"></i> Novo Lembrete
+                </button>
+            </div>
+            <div class="card-body">
+                ${filteredLembretes.length > 0 ? `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Descrição</th>
+                            <th>Data</th>
+                            <th>Prioridade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredLembretes.map(lembrete => `
+                            <tr>
+                                <td>${lembrete.titulo}</td>
+                                <td>${lembrete.descricao || '-'}</td>
+                                <td>${formatDate(lembrete.data)}</td>
+                                <td>
+                                    <span class="badge ${lembrete.prioridade === 'alta' ? 'badge-danger' : lembrete.prioridade === 'media' ? 'badge-warning' : 'badge-info'}">
+                                        ${lembrete.prioridade === 'alta' ? 'Alta' : lembrete.prioridade === 'media' ? 'Média' : 'Baixa'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="editLembrete('${lembrete.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteLembrete('${lembrete.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ` : '<p>Nenhum lembrete cadastrado para este condomínio.</p>'}
+            </div>
+        </div>
+    `;
+}
         // ========== MÓDULO AGENDAMENTOS ==========
         function loadAgendamentosContent() {
             const moduleContent = document.getElementById('moduleContent');
@@ -2629,6 +2703,14 @@ if (currentUser.condominios && currentUser.condominios.includes('*')) {
             const date = new Date(dateString + 'T00:00:00'); // Adicionar horário para evitar problemas de fuso
             return date.toLocaleDateString('pt-BR');
         }
+// Função para obter a data atual no formato YYYY-MM-DD (respeitando o fuso do Brasil)
+function getCurrentDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
         function formatUserType(userType) {
             const types = {
@@ -2981,7 +3063,7 @@ if (currentUser.condominios && currentUser.condominios.includes('*')) {
             document.getElementById('editingAgendamentoId').value = '';
             document.getElementById('agendamentoForm').reset();
             document.getElementById('agendamentoData').value = '';
-            document.getElementById('agendamentoDataInput').valueAsDate = new Date();
+            document.getElementById('agendamentoDataInput').value = getCurrentDate();
             document.getElementById('agendamentoStatus').value = 'agendado';
             
             document.getElementById('agendamentoModal').style.display = 'flex';
@@ -3247,11 +3329,40 @@ if (currentUser.condominios && currentUser.condominios.includes('*')) {
             document.getElementById('lembreteForm').reset();
             
             // Data padrão: hoje
-            document.getElementById('lembreteData').value = new Date().toISOString().split('T')[0];
+            document.getElementById('lembreteData').value = getCurrentDate();
             document.getElementById('lembretePrioridade').value = 'media';
             
             document.getElementById('lembreteModal').style.display = 'flex';
         }
+async function deleteLembrete(id) {
+    if (!confirm('Tem certeza que deseja excluir este lembrete?')) return;
+    try {
+        await db.collection('lembretes').doc(id).delete();
+        // Recarregar dados
+        await loadSystemData();
+        // Atualizar dashboard ou módulo atual
+        if (currentModule === 'dashboard') {
+            loadDashboardContent();
+        }
+        // Atualizar letreiro
+        loadTickerContent();
+        alert('Lembrete excluído com sucesso!');
+    } catch (error) {
+        console.error('Erro ao excluir lembrete:', error);
+        alert('Erro ao excluir lembrete. Tente novamente.');
+    }
+}
+function editLembrete(id) {
+    const lembrete = lembretes.find(l => l.id === id);
+    if (!lembrete) return;
+    document.getElementById('lembreteModalTitle').textContent = 'Editar Lembrete';
+    document.getElementById('editingLembreteId').value = lembrete.id;
+    document.getElementById('lembreteTitulo').value = lembrete.titulo;
+    document.getElementById('lembreteDescricao').value = lembrete.descricao || '';
+    document.getElementById('lembreteData').value = lembrete.data;
+    document.getElementById('lembretePrioridade').value = lembrete.prioridade || 'media';
+    document.getElementById('lembreteModal').style.display = 'flex';
+}
 
         function closeLembreteModal() {
             document.getElementById('lembreteModal').style.display = 'none';
