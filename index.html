@@ -1034,6 +1034,10 @@
                     <img src="https://ui-avatars.com/api/?name=Admin&background=3498db&color=fff" alt="Usuário" id="userAvatar">
                     <span id="userName">Administrador</span>
                     <span class="condominio-badge" id="currentCondominioBadge"></span>
+<div class="online-indicator" style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #2ecc71; font-weight: 600; margin-left: 12px;">
+    <div class="online-dot" style="width: 10px; height: 10px; border-radius: 50%; background-color: #2ecc71; box-shadow: 0 0 6px #2ecc71;"></div>
+    <span id="onlineCount">1</span> online
+</div>
                     <button class="btn" id="logoutBtn" style="margin-left: 15px;">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -1841,10 +1845,20 @@
             const filteredMoradores = currentCondominio ? 
                 moradores.filter(m => m.condominioId === currentCondominio.id) : [];
             
-            // Estatísticas básicas
-            const totalCondominios = currentUser.condominios && currentUser.condominios.includes('*') ? 
-                condominios.length : 
-                (currentUser.condominios ? currentUser.condominios.length : condominios.length);
+            // Estatísticas básicas - CORREÇÃO: Contar apenas condomínios existentes e permitidos
+let totalCondominios;
+if (currentUser.condominios && currentUser.condominios.includes('*')) {
+    // Acesso total: conta todos os condomínios carregados
+    totalCondominios = condominios.length;
+} else if (currentUser.condominios) {
+    // Acesso restrito: conta apenas os que existem e estão na lista de permissão
+    totalCondominios = condominios.filter(cond => 
+        currentUser.condominios.includes(cond.id)
+    ).length;
+} else {
+    // Sem permissões definidas: mostra todos (fallback)
+    totalCondominios = condominios.length;
+}
                 
             const totalUsuarios = usuarios.length;
             const totalMoradores = filteredMoradores.length; // NOVA ESTATÍSTICA
@@ -4022,6 +4036,105 @@
             else if (strength === 3) strengthBar.className += 'strength-good';
             else if (strength >= 4) strengthBar.className += 'strength-strong';
         });
+// ========== PRESENCE SYSTEM (USUÁRIOS ONLINE) ==========
+let presenceRef = null;
+
+function setupPresence() {
+    if (!currentUser) return;
+    const userPresenceRef = db.collection('presence').doc(currentUser.id);
+    presenceRef = userPresenceRef;
+
+    userPresenceRef.set({
+        userId: currentUser.id,
+        nome: currentUser.nome || currentUser.usuario,
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        online: true
+    }, { merge: true });
+
+    setInterval(() => {
+        if (presenceRef) {
+            presenceRef.update({
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    }, 30000);
+
+    window.addEventListener('beforeunload', () => {
+        if (presenceRef) {
+            presenceRef.update({ online: false });
+        }
+    });
+}
+
+async function updateOnlineCount() {
+    const cutoff = new Date(Date.now() - 60000);
+    const snapshot = await db.collection('presence')
+        .where('lastSeen', '>=', cutoff)
+        .get();
+    const count = snapshot.size || 1;
+    document.getElementById('onlineCount').textContent = count;
+}
+
+// ========== REALTIME LISTENERS (SINCRONIZAÇÃO AUTOMÁTICA) ==========
+function setupRealtimeListeners() {
+    const collections = ['agendamentos', 'contas', 'lembretes', 'moradores', 'usuarios', 'condominios'];
+    collections.forEach(collection => {
+        db.collection(collection).onSnapshot(() => {
+            if (document.getElementById('mainSystem').style.display !== 'none') {
+                loadSystemData().then(() => {
+                    if (currentModule) loadModuleContent(currentModule);
+                    loadTickerContent();
+                });
+            }
+        });
+    });
+
+    db.collection('presence').onSnapshot(() => {
+        updateOnlineCount();
+    });
+}
+
+// ========== MODIFICAR A FUNÇÃO DE LOGIN PARA ATIVAR PRESENÇA ==========
+// Substitua sua função de login atual pela abaixo:
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    document.getElementById('loginBtnText').style.display = 'none';
+    document.getElementById('loginLoading').style.display = 'inline-block';
+    document.getElementById('loginBtn').disabled = true;
+
+    try {
+        const usuariosSnapshot = await db.collection('usuarios').where('usuario', '==', username).get();
+        if (usuariosSnapshot.empty) throw new Error('Usuário não encontrado');
+        let userFound = null;
+        usuariosSnapshot.forEach(doc => {
+            const userData = doc.data();
+            if (userData.senha === password) userFound = { id: doc.id, ...userData };
+        });
+        if (!userFound) throw new Error('Senha incorreta');
+
+        currentUser = userFound;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        if (password === 'admin123' || password === '0000') {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+        } else {
+            await loadSystemData();
+            showMainSystem();
+            setupPresence();
+            setupRealtimeListeners();
+            setInterval(updateOnlineCount, 10000);
+        }
+    } catch (error) {
+        document.getElementById('loginStatus').textContent = error.message || 'Erro ao fazer login';
+        document.getElementById('loginStatus').style.color = 'red';
+    } finally {
+        document.getElementById('loginBtnText').style.display = 'inline';
+        document.getElementById('loginLoading').style.display = 'none';
+        document.getElementById('loginBtn').disabled = false;
+    }
+});
     </script>
 </body>
 </html>
