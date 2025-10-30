@@ -69,7 +69,7 @@
             display: inline-block;
             white-space: nowrap;
             padding-left: 100%;
-            animation: ticker 34.65s linear infinite;
+            animation: ticker 60s linear infinite;
         }
         @keyframes ticker {
             0% { transform: translateX(0); }
@@ -966,6 +966,15 @@
                     <label>Confirmar Nova Senha</label>
                     <input type="password" class="form-control" id="confirmPassword" required>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
                 </div>
@@ -1032,6 +1041,15 @@
                         <!-- Permissões serão carregadas aqui -->
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Usuário</button>
                     <button type="button" class="btn" onclick="closeUserModal()">Cancelar</button>
@@ -1089,6 +1107,15 @@
                         <option value="inativo">Inativo</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Condomínio</button>
                     <button type="button" class="btn" onclick="closeCondominioModal()">Cancelar</button>
@@ -1151,6 +1178,15 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="agendamentoObservacoes" rows="3"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
                     <button type="button" class="btn" onclick="closeAgendamentoModal()">Cancelar</button>
@@ -1209,6 +1245,15 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="contaObservacoes" rows="3"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Conta</button>
                     <button type="button" class="btn" onclick="closeContaModal()">Cancelar</button>
@@ -1253,6 +1298,15 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Lembrete</button>
                     <button type="button" class="btn" onclick="closeLembreteModal()">Cancelar</button>
@@ -1301,6 +1355,15 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="moradorObservacoes" rows="3"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Morador</button>
                     <button type="button" class="btn" onclick="closeMoradorModal()">Cancelar</button>
@@ -1364,6 +1427,15 @@
                         <option value="concluido">Concluído</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar</button>
                     <button type="button" class="btn btn-success" id="btnConcluirLimpeza" onclick="concluirLimpeza()" style="display: none;">Concluir Limpeza</button>
@@ -1422,6 +1494,15 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="saunaObservacoes" rows="3"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissão de Exclusão</label>
+                    <div class="permission-item" style="margin-top:8px;">
+                        <input type="checkbox" id="userPodeExcluir" />
+                        <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar</button>
                     <button type="button" class="btn btn-success" id="btnConcluirSauna" onclick="concluirSauna()" style="display: none;">Concluir Uso</button>
@@ -1456,7 +1537,9 @@
             { id: 'sauna', name: 'Sauna', icon: 'fas fa-hot-tub' },
             { id: 'contas', name: 'Contas a Pagar', icon: 'fas fa-file-invoice-dollar' },
             { id: 'lembretes', name: 'Lembretes', icon: 'fas fa-bell' },
-            { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' }
+            { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' },
+            { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
+            { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
         ];
         // Estado da aplicação
         let currentUser = null;
@@ -1609,6 +1692,12 @@
                     break;
                 case 'relatorios':
                     loadRelatoriosContent();
+                    break;
+                case 'ocorrencias':
+                    loadOcorrenciasContent();
+                    break;
+                case 'prestadores':
+                    loadPrestadoresContent();
                     break;
             }
         }
@@ -1768,7 +1857,7 @@
                 const content = document.getElementById('tickerContent');
                 content.style.animation = 'none';
                 setTimeout(() => {
-                    content.style.animation = 'ticker 34.65s linear infinite';
+                    content.style.animation = 'ticker 60s linear infinite';
                 }, 10);
             }, 100);
         }
@@ -4646,6 +4735,407 @@ ${onlineUsers.join('\n')}`);
             else if (strength === 3) strengthBar.className += 'strength-good';
             else if (strength >= 4) strengthBar.className += 'strength-strong';
         });
-    </script>
+    
+        // --- INJEÇÃO: Controle global de permissão "Pode Excluir" ---
+        // Intercepta cliques em botões de exclusão (btn-danger ou que contenham "Excluir"/"Remover")
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('button, a');
+            if (!btn) return;
+            const text = (btn.textContent || '').toLowerCase();
+            const isDelete = btn.classList.contains('btn-danger') || /excluir|remover|delete|deletar/.test(text);
+            if (isDelete) {
+                // Se usuário não tiver permissão, bloqueia ação e mostra alerta
+                if (!currentUser || !currentUser.podeExcluir) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Você não tem permissão para excluir registros.');
+                    return false;
+                }
+            }
+        }, true);
+
+        // Função para atualizar estado (habilitado/desabilitado) de botões de excluir na DOM
+        function updateDeleteButtonsState() {
+            // aguarda que currentUser esteja definido
+            const canDelete = currentUser && currentUser.podeExcluir;
+            document.querySelectorAll('button.btn-danger, a.btn-danger').forEach(btn => {
+                try {
+                    btn.disabled = !canDelete;
+                    if (!canDelete) {
+                        btn.classList.add('disabled');
+                        btn.style.opacity = '0.6';
+                        btn.style.pointerEvents = 'auto'; // ainda permite que o click seja capturado pelo listener global acima
+                    } else {
+                        btn.classList.remove('disabled');
+                        btn.style.opacity = '';
+                    }
+                } catch (err) {}
+            });
+        }
+
+        // Chamar updateDeleteButtonsState sempre que o layout mudar ou o usuário fizer login
+        const observer = new MutationObserver(function() {
+            updateDeleteButtonsState();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Quando exibimos o sistema principal, atualizamos os botões
+        const originalShowMainSystem = showMainSystem;
+        showMainSystem = function() {
+            originalShowMainSystem.apply(this, arguments);
+            // garantir default do campo podeExcluir se não existir
+            if (!currentUser.hasOwnProperty('podeExcluir')) currentUser.podeExcluir = false;
+            // preencher o checkbox no modal de usuário
+            const chk = document.getElementById('userPodeExcluir');
+            if (chk) chk.checked = !!currentUser.podeExcluir;
+            updateDeleteButtonsState();
+        };
+
+        // Adiciona persistência do campo 'podeExcluir' ao salvar usuário (substitui/sobrepõe)
+        const userForm = document.getElementById('userForm');
+        if (userForm) {
+            userForm.addEventListener('submit', async function(ev) {
+                ev.preventDefault();
+                try {
+                    const editingId = document.getElementById('editingUserId').value || null;
+                    const nome = document.getElementById('userNome').value.trim();
+                    const usuario = document.getElementById('userUsuario').value.trim();
+                    const email = document.getElementById('userEmail').value.trim();
+                    const telefone = document.getElementById('userTelefone').value.trim();
+                    const tipo = document.getElementById('userTipo').value;
+                    const senha = document.getElementById('userSenha').value;
+                    // coletar condomínios permitidos (checkboxes dentro #condominiosPermitidos)
+                    const condominiosEls = Array.from(document.querySelectorAll('#condominiosPermitidos input[type="checkbox"]'));
+                    const condominiosPermitidos = condominiosEls.filter(i=>i.checked).map(i=>i.value);
+                    // coletar permissoes de módulos (inputs em #permissoesUsuario)
+                    const permissoesEls = Array.from(document.querySelectorAll('#permissoesUsuario input[type="checkbox"]'));
+                    const permissoes = permissoesEls.filter(i=>i.checked).map(i=>i.value);
+                    const podeExcluir = !!document.getElementById('userPodeExcluir').checked;
+                    const userData = {
+                        nome, usuario, email, telefone, tipo, ativo: true,
+                        condominios: condominiosPermitidos.length ? condominiosPermitidos : ['*'],
+                        permissoes: permissoes.length ? permissoes : ['*'],
+                        podeExcluir: !!podeExcluir,
+                        dataAtualizacao: new Date()
+                    };
+                    if (senha && senha.length >= 4) {
+                        userData.senha = senha;
+                    }
+                    if (editingId) {
+                        await db.collection('usuarios').doc(editingId).update(userData);
+                        alert('Usuário atualizado com sucesso.');
+                    } else {
+                        userData.dataCriacao = new Date();
+                        await db.collection('usuarios').add(userData);
+                        alert('Usuário criado com sucesso.');
+                    }
+                    // fechar modal e recarregar usuários
+                    closeUserModal();
+                    await loadSystemData();
+                    loadUsuariosContent();
+                } catch (err) {
+                    console.error(err);
+                    alert('Erro ao salvar usuário: ' + (err.message || err));
+                }
+            });
+        }
+
+        // --- Módulo: Ocorrências (básico) ---
+        async function loadOcorrenciasContent() {
+            currentModule = 'ocorrencias';
+            document.querySelectorAll('.sidebar-menu a').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`.sidebar-menu a[onclick="changeModule('ocorrencias')"]`);
+            if (activeItem) activeItem.classList.add('active');
+            const moduleContent = document.getElementById('moduleContent');
+            moduleContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <span>Ocorrências</span>
+                        <div>
+                            <button class="btn btn-primary" onclick="openOcorrenciaModal()">Nova Ocorrência</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="ocorrenciasTable">
+                            <thead><tr><th>Morador</th><th>Apto</th><th>Data/Hora</th><th>Descrição</th><th>Status</th><th>Ações</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal Ocorrência -->
+                <div id="ocorrenciaModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Ocorrência</h3>
+                            <button type="button" onclick="closeOcorrenciaModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <form id="ocorrenciaForm">
+                            <input type="hidden" id="editingOcorrenciaId" />
+                            <div class="form-group"><label>Morador</label><input type="text" id="ocorrenciaMorador" class="form-control" required></div>
+                            <div class="form-group"><label>Apartamento</label><input type="text" id="ocorrenciaApto" class="form-control" required></div>
+                            <div class="form-group"><label>Descrição</label><textarea id="ocorrenciaDescricao" class="form-control" rows="3"></textarea></div>
+                            <div class="form-group"><label>Status</label>
+                                <select id="ocorrenciaStatus" class="form-control">
+                                    <option value="aberta">Aberta</option>
+                                    <option value="andamento">Em andamento</option>
+                                    <option value="resolvida">Resolvida</option>
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Salvar</button>
+                                <button type="button" class="btn" onclick="closeOcorrenciaModal()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            // carregar ocorrências do firestore
+            const tbody = document.querySelector('#ocorrenciasTable tbody');
+            tbody.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
+            try {
+                const snapshot = await db.collection('ocorrencias').get();
+                const docs = [];
+                snapshot.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
+                tbody.innerHTML = '';
+                docs.forEach(doc => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${doc.morador || ''}</td>
+                        <td>${doc.apto || ''}</td>
+                        <td>${doc.dataHora ? new Date(doc.dataHora.seconds ? doc.dataHora.toDate() : doc.dataHora).toLocaleString() : ''}</td>
+                        <td>${(doc.descricao||'').substring(0,120)}</td>
+                        <td>${doc.status || ''}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="editOcorrencia('${doc.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="safeDeleteOcorrencia('${doc.id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6">Erro ao carregar ocorrências.</td></tr>';
+                console.error(err);
+            }
+        }
+        function openOcorrenciaModal() {
+            document.getElementById('ocorrenciaModal').style.display = 'flex';
+            document.getElementById('editingOcorrenciaId').value = '';
+            document.getElementById('ocorrenciaMorador').value = '';
+            document.getElementById('ocorrenciaApto').value = '';
+            document.getElementById('ocorrenciaDescricao').value = '';
+            document.getElementById('ocorrenciaStatus').value = 'aberta';
+        }
+        function closeOcorrenciaModal() { document.getElementById('ocorrenciaModal').style.display = 'none'; }
+        document.addEventListener('submit', async function(e) {
+            if (e.target && e.target.id === 'ocorrenciaForm') {
+                e.preventDefault();
+                const id = document.getElementById('editingOcorrenciaId').value;
+                const doc = {
+                    morador: document.getElementById('ocorrenciaMorador').value,
+                    apto: document.getElementById('ocorrenciaApto').value,
+                    descricao: document.getElementById('ocorrenciaDescricao').value,
+                    status: document.getElementById('ocorrenciaStatus').value,
+                    dataHora: new Date()
+                };
+                try {
+                    if (id) {
+                        await db.collection('ocorrencias').doc(id).update(doc);
+                    } else {
+                        await db.collection('ocorrencias').add(doc);
+                    }
+                    closeOcorrenciaModal();
+                    await loadOcorrenciasContent();
+                } catch (err) {
+                    alert('Erro ao salvar ocorrência: ' + err.message);
+                }
+            }
+            if (e.target && e.target.id === 'prestadorForm') {
+    e.preventDefault();
+    const id = document.getElementById('editingPrestadorId').value;
+    const doc = {
+        nome: document.getElementById('prestadorNome').value,
+        data: document.getElementById('prestadorData').value,
+        entrada: document.getElementById('prestadorEntrada').value,
+        saida: document.getElementById('prestadorSaida').value,
+        observacoes: document.getElementById('prestadorObservacoes').value,
+        status: document.getElementById('prestadorStatus').value,
+        dataAtualizacao: new Date()
+    };
+    try {
+        if (id) {
+            await db.collection('prestadores').doc(id).update(doc);
+        } else {
+            await db.collection('prestadores').add(doc);
+        }
+        closePrestadorModal();
+        await loadPrestadoresContent();
+    } catch (err) {
+        alert('Erro ao salvar prestador: ' + (err.message || err));
+    }
+}
+        });
+
+        function editOcorrencia(id) {
+            db.collection('ocorrencias').doc(id).get().then(doc => {
+                if (!doc.exists) return alert('Registro não encontrado');
+                const data = doc.data();
+                document.getElementById('editingOcorrenciaId').value = id;
+                document.getElementById('ocorrenciaMorador').value = data.morador || '';
+                document.getElementById('ocorrenciaApto').value = data.apto || '';
+                document.getElementById('ocorrenciaDescricao').value = data.descricao || '';
+                document.getElementById('ocorrenciaStatus').value = data.status || 'aberta';
+                document.getElementById('ocorrenciaModal').style.display = 'flex';
+            });
+        }
+        async function safeDeleteOcorrencia(id) {
+            if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
+            if (!confirm('Confirma exclusão?')) return;
+            await db.collection('ocorrencias').doc(id).delete();
+            await loadOcorrenciasContent();
+        }
+
+        // --- Módulo: Prestadores de Serviço (básico) ---
+        async function loadPrestadoresContent() {
+            currentModule = 'prestadores';
+            document.querySelectorAll('.sidebar-menu a').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`.sidebar-menu a[onclick="changeModule('prestadores')"]`);
+            if (activeItem) activeItem.classList.add('active');
+            const moduleContent = document.getElementById('moduleContent');
+            moduleContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <span>Prestadores de Serviço</span>
+                        <div>
+                            <button class="btn btn-primary" onclick="openPrestadorModal()">Novo Prestador</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="prestadoresTable">
+                            <thead><tr><th>Nome</th><th>Data</th><th>Entrada</th><th>Saída</th><th>Observações</th><th>Status</th><th>Ações</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal Prestador -->
+                <div id="prestadorModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Prestador de Serviço</h3>
+                            <button type="button" onclick="closePrestadorModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <form id="prestadorForm">
+                            <input type="hidden" id="editingPrestadorId" />
+                            <div class="form-group"><label>Nome</label><input type="text" id="prestadorNome" class="form-control" required></div>
+                            <div class="form-group"><label>Data</label><input type="date" id="prestadorData" class="form-control" required readonly></div>
+                            <div class="form-row"><div class="form-group"><label>Entrada</label><input type="time" id="prestadorEntrada" class="form-control"></div>
+                            <div class="form-group"><label>Saída</label><input type="time" id="prestadorSaida" class="form-control"></div></div>
+                            <div class="form-group"><label>Observações</label><textarea id="prestadorObservacoes" class="form-control" rows="3"></textarea></div>
+                            <div class="form-group"><label>Status</label>
+                                <select id="prestadorStatus" class="form-control">
+                                    <option value="adiado">Adiado</option>
+                                    <option value="concluido">Concluído</option>
+                                    <option value="andamento">Em andamento</option>
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Salvar</button>
+                                <button type="button" class="btn" onclick="closePrestadorModal()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            const tbody = document.querySelector('#prestadoresTable tbody');
+            tbody.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
+            try {
+                const snapshot = await db.collection('prestadores').get();
+                const docs = [];
+                snapshot.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
+                tbody.innerHTML = '';
+                docs.forEach(doc => {
+                    const tr = document.createElement('tr');
+                    const dataStr = doc.data ? (doc.data.seconds ? new Date(doc.data.toDate()).toLocaleDateString() : new Date(doc.data).toLocaleDateString()) : '';
+                    tr.innerHTML = `
+                        <td>${doc.nome || ''}</td>
+                        <td>${dataStr}</td>
+                        <td>${doc.entrada || ''}</td>
+                        <td>${doc.saida || ''}</td>
+                        <td>${(doc.observacoes||'').substring(0,120)}</td>
+                        <td>${doc.status || ''}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="editPrestador('${doc.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="safeDeletePrestador('${doc.id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7">Erro ao carregar prestadores.</td></tr>';
+                console.error(err);
+            }
+        }
+
+        function openPrestadorModal() {
+            document.getElementById('prestadorModal').style.display = 'flex';
+            document.getElementById('editingPrestadorId').value = '';
+            document.getElementById('prestadorNome').value = '';
+            // set automatic date to today (yyyy-mm-dd)
+            const hoje = new Date();
+            const yyyy = hoje.getFullYear();
+            const mm = String(hoje.getMonth()+1).padStart(2,'0');
+            const dd = String(hoje.getDate()).padStart(2,'0');
+            document.getElementById('prestadorData').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('prestadorEntrada').value = '';
+            document.getElementById('prestadorSaida').value = '';
+            document.getElementById('prestadorObservacoes').value = '';
+            document.getElementById('prestadorStatus').value = 'andamento';
+        }
+        function closePrestadorModal() { document.getElementById('prestadorModal').style.display = 'none'; }
+        function editPrestador(id) {
+            db.collection('prestadores').doc(id).get().then(doc => {
+                if (!doc.exists) return alert('Registro não encontrado');
+                const data = doc.data();
+                document.getElementById('editingPrestadorId').value = id;
+                document.getElementById('prestadorNome').value = data.nome || '';
+                // set data field if present
+                if (data.data) {
+                    const d = data.data.seconds ? data.data.toDate() : new Date(data.data);
+                    const yyyy = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+                    document.getElementById('prestadorData').value = `${yyyy}-${mm}-${dd}`;
+                } else {
+                    const hoje = new Date(); document.getElementById('prestadorData').value = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+                }
+                document.getElementById('prestadorEntrada').value = data.entrada || '';
+                document.getElementById('prestadorSaida').value = data.saida || '';
+                document.getElementById('prestadorObservacoes').value = data.observacoes || '';
+                document.getElementById('prestadorStatus').value = data.status || 'andamento';
+                document.getElementById('prestadorModal').style.display = 'flex';
+            });
+        }
+        async function safeDeletePrestador(id) {
+            if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
+            if (!confirm('Confirma exclusão?')) return;
+            await db.collection('prestadores').doc(id).delete();
+            await loadPrestadoresContent();
+        }
+
+                
+       
+        async function safeDeletePrestador(id) {
+            if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
+            if (!confirm('Confirma exclusão?')) return;
+            await db.collection('prestadores').doc(id).delete();
+            await loadPrestadoresContent();
+        }
+
+        // garantir que os botões sejam atualizados após carregar módulos
+        const originalLoadModuleContent = loadModuleContent;
+        loadModuleContent = function(moduleId) {
+            originalLoadModuleContent.apply(this, arguments);
+            setTimeout(()=> updateDeleteButtonsState(), 100);
+        };
+</script>
 </body>
 </html>
