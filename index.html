@@ -330,25 +330,195 @@
         .permission-item input {
             margin-right: 8px;
         }
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-                text-align: center;
-            }
-            .sidebar-header h3, .sidebar-menu a span {
-                display: none;
-            }
-            .sidebar-menu a i {
-                margin-right: 0;
-                font-size: 20px;
-            }
-            .main-content {
-                margin-left: 70px;
-            }
-            .ticker-container {
-                font-size: 12px;
-            }
+        /* Responsive - Melhorado para Celulares */
+@media (max-width: 768px) {
+    /* Sidebar compacta */
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Esconder sidebar por padrão em mobile */
+    .main-content {
+        margin-left: 0;
+        margin-top: 60px; /* Compensar a altura da navbar fixa */
+    }
+
+    /* Navbar superior adaptada */
+    .top-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 5000;
+        padding: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+        background-color: white;
+    }
+
+    .toggle-btn {
+        order: -1;
+        font-size: 24px;
+    }
+
+    .user-info {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .user-info img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .condominio-selector-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .condominio-selector-top select {
+        width: 100%;
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+
+    .condominio-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+        margin-left: 0 !important;
+    }
+
+    .online-indicator {
+        font-size: 12px;
+        margin-left: 0;
+    }
+
+    #logoutBtn {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    /* Conteúdo principal */
+    .content {
+        padding: 15px;
+    }
+
+    /* Cards e cabeçalhos */
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .card-header h3 {
+        font-size: 18px;
+    }
+
+    /* Tabelas responsivas */
+    .table {
+        font-size: 14px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 6px;
+    }
+
+    /* Stats cards */
+    .stat-card {
+        min-width: 140px;
+        padding: 12px;
+    }
+
+    .stat-card h3 {
+        font-size: 12px;
+    }
+
+    .stat-card .value {
+        font-size: 20px;
+    }
+
+    /* Formulários */
+    .form-control {
+        font-size: 16px; /* Evita zoom no iOS */
+        padding: 12px;
+    }
+
+    .btn {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    /* Modais */
+    .modal-content {
+        width: 95%;
+        padding: 20px 15px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header h3 {
+        font-size: 20px;
+    }
+
+    /* Login */
+    .login-box {
+        width: 95%;
+        padding: 20px;
+    }
+
+    /* Calendário */
+    .calendar-day {
+        min-height: 80px;
+        padding: 6px 4px;
+        font-size: 12px;
+    }
+
+    .day-number {
+        font-size: 14px;
+    }
+
+    .event-item {
+        font-size: 10px;
+        padding: 1px 4px;
+    }
+
+    /* Letreiro */
+    .ticker-container {
+        font-size: 12px;
+        padding: 6px 0;
+    }
+
+    .ticker-item {
+        margin-right: 20px;
+    }
+
+    /* Espaçamento geral */
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    /* Garantir que botões de ação não fiquem muito pequenos */
+    button, .btn {
+        min-height: 44px; /* Padrão de toque móvel */
+    }
+}
         }
         /* Module-specific styles */
         .module-content {
