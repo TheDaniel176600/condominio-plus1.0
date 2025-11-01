@@ -106,16 +106,6 @@
             position: relative;
             border-bottom: 2px solid var(--secondary-color);
         }
-        .condominio-selector {
-            margin-top: 15px;
-        }
-        .condominio-selector select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background: white;
-        }
         .connection-status {
             position: absolute;
             top: 10px;
@@ -346,7 +336,7 @@
                 width: 70px;
                 text-align: center;
             }
-            .sidebar-header h3, .sidebar-menu a span, .condominio-selector {
+            .sidebar-header h3, .sidebar-menu a span {
                 display: none;
             }
             .sidebar-menu a i {
@@ -843,6 +833,15 @@
             border-radius: 4px;
             font-size: 14px;
         }
+        .condominio-badge {
+            background: var(--secondary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
         .login-connection-dot {
             width: 10px;
             height: 10px;
@@ -912,11 +911,6 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h3>Multi Condomínios</h3>
-                <div class="condominio-selector">
-                    <select id="condominioSelect">
-                        <option value="">Selecione um condomínio</option>
-                    </select>
-                </div>
                 <div id="connectionStatus" class="connection-status" title="Desconectado"></div>
             </div>
             <ul class="sidebar-menu" id="moduleMenu">
@@ -932,7 +926,15 @@
                 <div class="user-info">
                     <img src="https://ui-avatars.com/api/?name=Admin&background=3498db&color=fff" alt="Usuário" id="userAvatar">
                     <span id="userName">Administrador</span>
-                    <span class="condominio-badge" id="currentCondominioBadge"></span>
+                    <!-- SELETOR DE CONDOMÍNIO E BADGE -->
+                    <div class="condominio-selector-top" style="margin-left: 15px; display: flex; align-items: center;">
+                        <select id="condominioSelectTop" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            <option value="">Selecione um condomínio</option>
+                        </select>
+                        <span id="currentCondominioBadge" class="condominio-badge" style="margin-left: 10px;">
+                            Nenhum condomínio selecionado
+                        </span>
+                    </div>
                     <div class="online-indicator" onclick="showOnlineUsers()">
                         <div class="online-dot"></div>
                         <span id="onlineCount">0</span> online
@@ -949,6 +951,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal para Troca de Senha -->
     <div id="changePasswordModal" class="modal">
         <div class="modal-content">
@@ -966,7 +969,6 @@
                     <label>Confirmar Nova Senha</label>
                     <input type="password" class="form-control" id="confirmPassword" required>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -974,13 +976,13 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
                 </div>
             </form>
         </div>
     </div>
+
     <!-- Modal para Cadastro de Usuários -->
     <div id="userModal" class="modal">
         <div class="modal-content">
@@ -1041,7 +1043,6 @@
                         <!-- Permissões serão carregadas aqui -->
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1049,7 +1050,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Usuário</button>
                     <button type="button" class="btn" onclick="closeUserModal()">Cancelar</button>
@@ -1057,6 +1057,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Cadastro de Condomínios -->
     <div id="condominioModal" class="modal">
         <div class="modal-content">
@@ -1107,7 +1108,6 @@
                         <option value="inativo">Inativo</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1115,7 +1115,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Condomínio</button>
                     <button type="button" class="btn" onclick="closeCondominioModal()">Cancelar</button>
@@ -1123,6 +1122,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Agendamentos -->
     <div id="agendamentoModal" class="modal">
         <div class="modal-content">
@@ -1178,7 +1178,6 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="agendamentoObservacoes" rows="3"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1186,7 +1185,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
                     <button type="button" class="btn" onclick="closeAgendamentoModal()">Cancelar</button>
@@ -1194,6 +1192,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Contas a Pagar -->
     <div id="contaModal" class="modal">
         <div class="modal-content">
@@ -1245,7 +1244,6 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="contaObservacoes" rows="3"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1253,7 +1251,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Conta</button>
                     <button type="button" class="btn" onclick="closeContaModal()">Cancelar</button>
@@ -1261,6 +1258,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Lembretes -->
     <div id="lembreteModal" class="modal">
         <div class="modal-content">
@@ -1298,7 +1296,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1306,7 +1303,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Lembrete</button>
                     <button type="button" class="btn" onclick="closeLembreteModal()">Cancelar</button>
@@ -1314,6 +1310,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Cadastro de Moradores -->
     <div id="moradorModal" class="modal">
         <div class="modal-content">
@@ -1355,7 +1352,6 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="moradorObservacoes" rows="3"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1363,7 +1359,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar Morador</button>
                     <button type="button" class="btn" onclick="closeMoradorModal()">Cancelar</button>
@@ -1371,6 +1366,42 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal para Horas Extras -->
+    <div id="horaExtraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="horaExtraModalTitle">Nova Hora Extra</h3>
+                <button type="button" onclick="closeHoraExtraModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <form id="horaExtraForm">
+                <input type="hidden" id="editingHoraExtraId">
+                <div class="form-group">
+                    <label>Funcionário *</label>
+                    <input type="text" class="form-control" id="horaExtraFuncionario" required>
+                </div>
+                <div class="form-group">
+                    <label>Matrícula *</label>
+                    <input type="text" class="form-control" id="horaExtraMatricula" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data *</label>
+                        <input type="date" class="form-control" id="horaExtraData" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantidade (horas) *</label>
+                        <input type="number" class="form-control" id="horaExtraQuantidade" step="0.5" min="0.5" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Hora Extra</button>
+                    <button type="button" class="btn" onclick="closeHoraExtraModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal para Limpeza -->
     <div id="limpezaModal" class="modal">
         <div class="modal-content">
@@ -1427,7 +1458,6 @@
                         <option value="concluido">Concluído</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1435,7 +1465,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar</button>
                     <button type="button" class="btn btn-success" id="btnConcluirLimpeza" onclick="concluirLimpeza()" style="display: none;">Concluir Limpeza</button>
@@ -1444,6 +1473,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal para Sauna -->
     <div id="saunaModal" class="modal">
         <div class="modal-content">
@@ -1465,6 +1495,13 @@
                     <div class="form-group">
                         <label>Data *</label>
                         <input type="date" class="form-control" id="saunaData" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Sauna *</label>
+                        <select class="form-control" id="saunaTipo" required>
+                            <option value="umida">Sauna Úmida</option>
+                            <option value="seca">Sauna Seca</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Hora Início *</label>
@@ -1494,7 +1531,6 @@
                     <label>Observações</label>
                     <textarea class="form-control" id="saunaObservacoes" rows="3"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Permissão de Exclusão</label>
                     <div class="permission-item" style="margin-top:8px;">
@@ -1502,7 +1538,6 @@
                         <label for="userPodeExcluir" style="margin-left:6px;">Pode Excluir registros</label>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar</button>
                     <button type="button" class="btn btn-success" id="btnConcluirSauna" onclick="concluirSauna()" style="display: none;">Concluir Uso</button>
@@ -1511,6 +1546,7 @@
             </form>
         </div>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
@@ -1526,11 +1562,13 @@
         // Inicializar Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
         // Módulos do sistema
         const modules = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
             { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
             { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
+            { id: 'horas-extras', name: 'Horas Extras', icon: 'fas fa-clock' },
             { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
             { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
             { id: 'limpeza', name: 'Limpeza', icon: 'fas fa-broom' },
@@ -1541,11 +1579,13 @@
             { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
             { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
         ];
+
         // Estado da aplicação
         let currentUser = null;
         let currentCondominio = null;
         let condominios = [];
         let usuarios = [];
+        let horasExtras = [];
         let moradores = [];
         let agendamentos = [];
         let limpezas = [];
@@ -1557,10 +1597,12 @@
         let currentCalendarYear = new Date().getFullYear();
         let isFirebaseConnected = false;
         let presenceRef = null;
+
         // Inicializar a aplicação
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
         });
+
         // Função para inicializar a aplicação
         async function initializeApp() {
             try {
@@ -1568,7 +1610,6 @@
                 const savedUser = localStorage.getItem('currentUser');
                 if (savedUser) {
                     currentUser = JSON.parse(savedUser);
-                    // Verificar se o usuário ainda existe no banco
                     const userDoc = await db.collection('usuarios').doc(currentUser.id).get();
                     if (userDoc.exists) {
                         await loadSystemData();
@@ -1585,6 +1626,7 @@
                 showLoginPage();
             }
         }
+
         // Verificar conexão com Firebase
         function checkFirebaseConnection() {
             const connectionDot = document.getElementById('loginConnectionDot');
@@ -1604,16 +1646,17 @@
                     });
             }, 1000);
         }
+
         // Mostrar página de login
         function showLoginPage() {
             document.getElementById('loginPage').style.display = 'flex';
             document.getElementById('mainSystem').style.display = 'none';
             document.getElementById('tickerContainer').style.display = 'none';
             document.getElementById('loginStatus').textContent = 'Digite suas credenciais para acessar';
-            // Limpar campos do formulário
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
+
         // Mostrar sistema principal
         function showMainSystem() {
             document.getElementById('loginPage').style.display = 'none';
@@ -1621,18 +1664,131 @@
             document.getElementById('tickerContainer').style.display = 'block';
             document.getElementById('userName').textContent = currentUser.nome || currentUser.usuario;
             document.getElementById('currentCondominioBadge').textContent = currentCondominio ? currentCondominio.nome : 'Nenhum condomínio selecionado';
-            // Carregar módulos no menu
             loadModuleMenu();
-            // Carregar conteúdo do módulo atual
             loadModuleContent(currentModule);
-            // Carregar letreiro de lembretes
             loadTickerContent();
         }
+
+        // ========== FUNÇÕES DE HORAS EXTRAS ==========
+        function openHoraExtraModal() {
+            document.getElementById('horaExtraModalTitle').textContent = 'Nova Hora Extra';
+            document.getElementById('editingHoraExtraId').value = '';
+            document.getElementById('horaExtraForm').reset();
+            document.getElementById('horaExtraData').value = getCurrentDate();
+            document.getElementById('horaExtraModal').style.display = 'flex';
+        }
+        function closeHoraExtraModal() {
+            document.getElementById('horaExtraModal').style.display = 'none';
+        }
+        function editHoraExtra(id) {
+            const horaExtra = horasExtras.find(h => h.id === id);
+            if (!horaExtra) return;
+            document.getElementById('horaExtraModalTitle').textContent = 'Editar Hora Extra';
+            document.getElementById('editingHoraExtraId').value = horaExtra.id;
+            document.getElementById('horaExtraFuncionario').value = horaExtra.funcionario;
+            document.getElementById('horaExtraMatricula').value = horaExtra.matricula;
+            document.getElementById('horaExtraData').value = horaExtra.data;
+            document.getElementById('horaExtraQuantidade').value = horaExtra.quantidade;
+            document.getElementById('horaExtraModal').style.display = 'flex';
+        }
+
+        document.getElementById('horaExtraForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentCondominio) {
+                alert('Selecione um condomínio primeiro!');
+                return;
+            }
+            const editingId = document.getElementById('editingHoraExtraId').value;
+            const horaExtraData = {
+                funcionario: document.getElementById('horaExtraFuncionario').value,
+                matricula: document.getElementById('horaExtraMatricula').value,
+                data: document.getElementById('horaExtraData').value,
+                quantidade: parseFloat(document.getElementById('horaExtraQuantidade').value),
+                condominioId: currentCondominio.id,
+                condominioNome: currentCondominio.nome,
+                criadoPor: currentUser.id || currentUser.usuario,
+                criadoEm: new Date().toISOString()
+            };
+            try {
+                if (editingId) {
+                    await db.collection('horasExtras').doc(editingId).update(horaExtraData);
+                } else {
+                    await db.collection('horasExtras').add(horaExtraData);
+                }
+                await loadSystemData();
+                closeHoraExtraModal();
+                if (currentModule === 'horas-extras') {
+                    loadHorasExtrasContent();
+                }
+                alert('Hora extra salva com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar hora extra:', error);
+                alert('Erro ao salvar hora extra. Tente novamente.');
+            }
+        });
+
+        async function deleteHoraExtra(id) {
+            if (!confirm('Tem certeza que deseja excluir este registro de hora extra?')) return;
+            try {
+                await db.collection('horasExtras').doc(id).delete();
+                await loadSystemData();
+                if (currentModule === 'horas-extras') {
+                    loadHorasExtrasContent();
+                }
+                alert('Hora extra excluída com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir hora extra:', error);
+                alert('Erro ao excluir hora extra. Tente novamente.');
+            }
+        }
+
+        function filterHorasExtras() {
+            const funcionario = document.getElementById('filtroFuncionario').value.toLowerCase();
+            const mes = document.getElementById('filtroMesHoraExtra').value;
+            let filteredHorasExtras = horasExtras.filter(h => 
+                h.condominioId === (currentCondominio ? currentCondominio.id : '')
+            );
+            if (funcionario) {
+                filteredHorasExtras = filteredHorasExtras.filter(h => 
+                    h.funcionario.toLowerCase().includes(funcionario)
+                );
+            }
+            if (mes) {
+                filteredHorasExtras = filteredHorasExtras.filter(h => 
+                    h.data.startsWith(mes)
+                );
+            }
+            const tbody = document.querySelector('#horasExtrasTable tbody');
+            tbody.innerHTML = '';
+            if (filteredHorasExtras.length > 0) {
+                filteredHorasExtras.forEach(horaExtra => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${horaExtra.funcionario}</td>
+                        <td>${horaExtra.matricula}</td>
+                        <td>${formatDate(horaExtra.data)}</td>
+                        <td>${horaExtra.quantidade}</td>
+                        <td>${horaExtra.condominioNome}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum registro de hora extra encontrado com os filtros aplicados.</td></tr>';
+            }
+        }
+
         // Carregar menu de módulos
         function loadModuleMenu() {
             const moduleMenu = document.getElementById('moduleMenu');
             moduleMenu.innerHTML = '';
-            // Filtrar módulos baseado nas permissões do usuário
             const allowedModules = modules.filter(module => {
                 return !currentUser.permissoes || 
                        currentUser.permissoes.includes('*') || 
@@ -1649,10 +1805,10 @@
                 moduleMenu.appendChild(menuItem);
             });
         }
+
         // Carregar conteúdo do módulo
         function loadModuleContent(moduleId) {
             currentModule = moduleId;
-            // Atualizar menu ativo
             document.querySelectorAll('.sidebar-menu a').forEach(item => {
                 item.classList.remove('active');
             });
@@ -1660,7 +1816,6 @@
             if (activeItem) {
                 activeItem.classList.add('active');
             }
-            // Carregar conteúdo específico do módulo
             const moduleContent = document.getElementById('moduleContent');
             switch(moduleId) {
                 case 'dashboard':
@@ -1693,6 +1848,9 @@
                 case 'relatorios':
                     loadRelatoriosContent();
                     break;
+                case 'horas-extras':
+                    loadHorasExtrasContent();
+                    break;
                 case 'ocorrencias':
                     loadOcorrenciasContent();
                     break;
@@ -1700,15 +1858,15 @@
                     loadPrestadoresContent();
                     break;
             }
+            setTimeout(() => updateDeleteButtonsState(), 100);
         }
-        // Mudar módulo
+
         function changeModule(moduleId) {
             loadModuleContent(moduleId);
         }
-        // Carregar dados do sistema
+
         async function loadSystemData() {
             try {
-                // Carregar condomínios
                 const condominiosSnapshot = await db.collection('condominios').get();
                 condominios = [];
                 condominiosSnapshot.forEach(doc => {
@@ -1717,7 +1875,7 @@
                         ...doc.data()
                     });
                 });
-                // Carregar usuários
+
                 const usuariosSnapshot = await db.collection('usuarios').get();
                 usuarios = [];
                 usuariosSnapshot.forEach(doc => {
@@ -1726,77 +1884,107 @@
                         ...doc.data()
                     });
                 });
-                // Carregar moradores
-                const moradoresSnapshot = await db.collection('moradores').get();
-                moradores = [];
-                moradoresSnapshot.forEach(doc => {
-                    moradores.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                if (currentCondominio) {
+                    const moradoresSnapshot = await db.collection('moradores')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    moradores = [];
+                    moradoresSnapshot.forEach(doc => {
+                        moradores.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Carregar limpezas
-                const limpezasSnapshot = await db.collection('limpezas').get();
-                limpezas = [];
-                limpezasSnapshot.forEach(doc => {
-                    limpezas.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                    const horasExtrasSnapshot = await db.collection('horasExtras')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    horasExtras = [];
+                    horasExtrasSnapshot.forEach(doc => {
+                        horasExtras.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Carregar saunas
-                const saunasSnapshot = await db.collection('saunas').get();
-                saunas = [];
-                saunasSnapshot.forEach(doc => {
-                    saunas.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                    const limpezasSnapshot = await db.collection('limpezas')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    limpezas = [];
+                    limpezasSnapshot.forEach(doc => {
+                        limpezas.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Carregar agendamentos
-                const agendamentosSnapshot = await db.collection('agendamentos').get();
-                agendamentos = [];
-                agendamentosSnapshot.forEach(doc => {
-                    agendamentos.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                    const saunasSnapshot = await db.collection('saunas')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    saunas = [];
+                    saunasSnapshot.forEach(doc => {
+                        saunas.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Carregar contas a pagar
-                const contasSnapshot = await db.collection('contas').get();
-                contas = [];
-                contasSnapshot.forEach(doc => {
-                    contas.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                    const agendamentosSnapshot = await db.collection('agendamentos')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    agendamentos = [];
+                    agendamentosSnapshot.forEach(doc => {
+                        agendamentos.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Carregar lembretes — ✅ AGORA COM dataInicio e dataFim
-                const lembretesSnapshot = await db.collection('lembretes').get();
-                lembretes = [];
-                lembretesSnapshot.forEach(doc => {
-                    lembretes.push({
-                        id: doc.id,
-                        ...doc.data()
+
+                    const contasSnapshot = await db.collection('contas')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    contas = [];
+                    contasSnapshot.forEach(doc => {
+                        contas.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
-                // Criar usuário Douglas se não existir
+
+                    const lembretesSnapshot = await db.collection('lembretes')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    lembretes = [];
+                    lembretesSnapshot.forEach(doc => {
+                        lembretes.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                } else {
+                    moradores = [];
+                    horasExtras = [];
+                    limpezas = [];
+                    saunas = [];
+                    agendamentos = [];
+                    contas = [];
+                    lembretes = [];
+                }
+
                 await createDouglasUser();
-                // Atualizar seletor de condomínios
                 updateCondominioSelector();
-                // Atualizar status de conexão
                 updateConnectionStatus(true);
             } catch (error) {
                 console.error('Erro ao carregar dados do sistema:', error);
                 updateConnectionStatus(false);
             }
         }
-        // Carregar conteúdo do letreiro — ✅ RESPEITA dataInicio e dataFim
+
         function loadTickerContent() {
             const tickerContent = document.getElementById('tickerContent');
             tickerContent.innerHTML = '';
             const hoje = getCurrentDate();
-            // Filtrar lembretes com base no período de visibilidade
             let lembretesAtivos = [];
             if (currentCondominio) {
                 lembretesAtivos = lembretes.filter(l => 
@@ -1852,7 +2040,6 @@
                 tickerContent.appendChild(item);
                 document.getElementById('tickerContainer').style.display = 'block';
             }
-            // Reiniciar a animação
             setTimeout(() => {
                 const content = document.getElementById('tickerContent');
                 content.style.animation = 'none';
@@ -1861,7 +2048,7 @@
                 }, 10);
             }, 100);
         }
-        // Criar usuário Douglas com acesso total
+
         async function createDouglasUser() {
             try {
                 const userQuery = await db.collection('usuarios')
@@ -1892,11 +2079,11 @@
                 console.error('❌ Erro ao criar usuário Douglas:', error);
             }
         }
-        // Atualizar seletor de condomínios
+
         function updateCondominioSelector() {
-            const condominioSelect = document.getElementById('condominioSelect');
-            condominioSelect.innerHTML = '<option value="">Selecione um condomínio</option>';
-            // Filtrar condomínios baseado nas permissões do usuário
+            const condominioSelectTop = document.getElementById('condominioSelectTop');
+            const currentCondominioBadge = document.getElementById('currentCondominioBadge');
+            condominioSelectTop.innerHTML = '<option value="">Selecione um condomínio</option>';
             let allowedCondominios = [...condominios];
             if (currentUser.condominios && !currentUser.condominios.includes('*')) {
                 allowedCondominios = condominios.filter(condominio => 
@@ -1907,16 +2094,22 @@
                 const option = document.createElement('option');
                 option.value = condominio.id;
                 option.textContent = condominio.nome;
-                condominioSelect.appendChild(option);
+                condominioSelectTop.appendChild(option);
             });
-            // Se não há condomínio selecionado, selecionar o primeiro permitido
             if (!currentCondominio && allowedCondominios.length > 0) {
                 currentCondominio = allowedCondominios[0];
-                condominioSelect.value = currentCondominio.id;
-                document.getElementById('currentCondominioBadge').textContent = currentCondominio.nome;
+                condominioSelectTop.value = currentCondominio.id;
+                if (currentCondominioBadge) {
+                    currentCondominioBadge.textContent = currentCondominio.nome;
+                }
+            } else if (currentCondominio) {
+                condominioSelectTop.value = currentCondominio.id;
+                if (currentCondominioBadge) {
+                    currentCondominioBadge.textContent = currentCondominio.nome;
+                }
             }
         }
-        // Atualizar status de conexão
+
         function updateConnectionStatus(connected) {
             const connectionStatus = document.getElementById('connectionStatus');
             if (connected) {
@@ -1927,10 +2120,10 @@
                 connectionStatus.title = 'Desconectado';
             }
         }
+
         // ========== MÓDULO DASHBOARD ==========
         function loadDashboardContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Filtrar dados baseado no condomínio selecionado
             const filteredAgendamentos = currentCondominio ? 
                 agendamentos.filter(a => a.condominioId === currentCondominio.id) : [];
             const filteredContas = currentCondominio ? 
@@ -1943,7 +2136,7 @@
                 limpezas.filter(l => l.condominioId === currentCondominio.id) : [];
             const filteredSaunas = currentCondominio ? 
                 saunas.filter(s => s.condominioId === currentCondominio.id) : [];
-            // Estatísticas básicas
+
             let totalCondominios;
             if (currentUser.condominios && currentUser.condominios.includes('*')) {
                 totalCondominios = condominios.length;
@@ -1963,7 +2156,7 @@
                 const hoje = new Date().toISOString().split('T')[0];
                 return a.data === hoje;
             }).length;
-            // Calcular alertas de contas a pagar
+
             const hoje = new Date();
             const alertaContas = filteredContas.filter(conta => {
                 if (conta.status === 'pago') return false;
@@ -1971,7 +2164,7 @@
                 const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
                 return diferencaDias <= 4 && diferencaDias >= 0;
             });
-            // Obter lembretes para hoje e próximos dias — ✅ respeita dataInicio/dataFim
+
             const lembretesProximos = filteredLembretes.filter(lembrete => {
                 const dataInicio = new Date(lembrete.dataInicio);
                 const dataFim = lembrete.dataFim ? new Date(lembrete.dataFim) : dataInicio;
@@ -1979,8 +2172,8 @@
                 const diferencaFim = Math.ceil((dataFim - hoje) / (1000 * 60 * 60 * 24));
                 return diferencaInicio <= 7 && diferencaFim >= 0;
             });
+
             let statsHTML = '';
-            // Sempre mostrar estatísticas básicas
             statsHTML += `
                 <div class="stat-card" onclick="changeModule('condominios')">
                     <h3>Condomínios</h3>
@@ -1991,7 +2184,44 @@
                     <div class="value">${totalUsuarios}</div>
                 </div>
             `;
-            // Mostrar estatísticas de moradores apenas se o usuário tem permissão
+
+            const saunaUmidaEmUso = filteredSaunas.find(s => 
+                s.status === 'em-uso' && s.tipo === 'umida'
+            );
+            const saunaSecaEmUso = filteredSaunas.find(s => 
+                s.status === 'em-uso' && s.tipo === 'seca'
+            );
+
+            let saunaCardsHTML = '';
+            saunaCardsHTML += `
+                <div class="stat-card" onclick="changeModule('sauna')">
+                    <h3>Sauna Úmida</h3>
+                    <div class="value" style="color: ${saunaUmidaEmUso ? '#e74c3c' : '#2ecc71'}; font-size: 16px;">
+                        ${saunaUmidaEmUso ? 
+                            `${saunaUmidaEmUso.morador}<br><small>Apto: ${saunaUmidaEmUso.apto}</small>` : 
+                            'LIVRE'
+                        }
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                        ${saunaUmidaEmUso ? '🟢 EM USO' : '🟡 DISPONÍVEL'}
+                    </div>
+                </div>
+            `;
+            saunaCardsHTML += `
+                <div class="stat-card" onclick="changeModule('sauna')">
+                    <h3>Sauna Seca</h3>
+                    <div class="value" style="color: ${saunaSecaEmUso ? '#e74c3c' : '#2ecc71'}; font-size: 16px;">
+                        ${saunaSecaEmUso ? 
+                            `${saunaSecaEmUso.morador}<br><small>Apto: ${saunaSecaEmUso.apto}</small>` : 
+                            'LIVRE'
+                        }
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                        ${saunaSecaEmUso ? '🟢 EM USO' : '🟡 DISPONÍVEL'}
+                    </div>
+                </div>
+            `;
+
             if (currentUser.permissoes && 
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('moradores'))) {
                 statsHTML += `
@@ -2001,7 +2231,6 @@
                     </div>
                 `;
             }
-            // Mostrar estatísticas de agendamentos apenas se o usuário tem permissão
             if (currentUser.permissoes && 
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('agendamentos'))) {
                 statsHTML += `
@@ -2015,7 +2244,6 @@
                     </div>
                 `;
             }
-            // Mostrar estatísticas de limpeza apenas se o usuário tem permissão
             if (currentUser.permissoes && 
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('limpeza'))) {
                 statsHTML += `
@@ -2025,7 +2253,6 @@
                     </div>
                 `;
             }
-            // Mostrar estatísticas de sauna apenas se o usuário tem permissão
             if (currentUser.permissoes && 
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) {
                 statsHTML += `
@@ -2035,6 +2262,7 @@
                     </div>
                 `;
             }
+
             moduleContent.innerHTML = `
                 <div class="card">
                     <div class="card-header">
@@ -2047,7 +2275,6 @@
                                 <strong>Atenção!</strong> Selecione um condomínio no menu acima para visualizar os dados específicos.
                             </div>
                         ` : ''}
-                        <!-- Alertas de Contas a Pagar -->
                         ${(currentUser.permissoes && 
                           (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) && 
                           alertaContas.length > 0 ? `
@@ -2061,35 +2288,28 @@
                         <div class="stats-container">
                             ${statsHTML}
                         </div>
-                        <!-- Lembretes -->
+                        ${(currentUser.permissoes && 
+                          (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
                         <div class="card">
                             <div class="card-header">
-                                <h3>Lembretes</h3>
-                                <button class="btn btn-primary btn-sm" onclick="openLembreteModal()">
-                                    <i class="fas fa-plus"></i> Novo Lembrete
+                                <h3>Status das Saunas - ${currentCondominio ? currentCondominio.nome : 'Condomínio'}</h3>
+                                <button class="btn btn-primary btn-sm" onclick="changeModule('sauna')">
+                                    <i class="fas fa-eye"></i> Ver Detalhes
                                 </button>
                             </div>
                             <div class="card-body">
-                                ${lembretesProximos.length > 0 ? 
-                                    lembretesProximos.map(lembrete => `
-                                        <div class="reminder-item ${lembrete.prioridade === 'alta' ? 'urgent' : lembrete.prioridade === 'media' ? 'warning' : ''}">
-                                            <div class="reminder-header">
-                                                <div class="reminder-title">${lembrete.titulo}</div>
-                                                <div class="reminder-date">${formatDate(lembrete.dataInicio)} ${lembrete.dataFim ? ' a ' + formatDate(lembrete.dataFim) : ''}</div>
-                                            </div>
-                                            <div class="reminder-desc">${lembrete.descricao}</div>
-                                            <div class="reminder-actions">
-                                                <button class="btn btn-sm btn-danger" onclick="deleteLembrete('${lembrete.id}')">
-                                                    <i class="fas fa-trash"></i> Excluir
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `).join('') 
-                                    : '<p>Não há lembretes para os próximos dias.</p>'
-                                }
+                                <div class="stats-container">
+                                    ${saunaCardsHTML}
+                                </div>
+                                ${(saunaUmidaEmUso || saunaSecaEmUso) ? `
+                                <div class="alert alert-info" style="margin-top: 15px;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Clique no card para gerenciar os agendamentos de sauna
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
-                        <!-- Contas a Pagar Próximas -->
+                        ` : ''}
                         ${(currentUser.permissoes && 
                           (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) ? `
                         <div class="card">
@@ -2161,10 +2381,10 @@
                 </div>
             `;
         }
+
         // ========== MÓDULO CONDOMÍNIOS ==========
         function loadCondominiosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('condominios')) {
@@ -2175,7 +2395,6 @@
                 `;
                 return;
             }
-            // Filtrar condomínios baseado nas permissões do usuário
             let allowedCondominios = [...condominios];
             if (currentUser.condominios && !currentUser.condominios.includes('*')) {
                 allowedCondominios = condominios.filter(condominio => 
@@ -2236,10 +2455,87 @@
                 </div>
             `;
         }
+
+        // ========== MÓDULO HORAS EXTRAS ==========
+        function loadHorasExtrasContent() {
+            const moduleContent = document.getElementById('moduleContent');
+            if (currentUser.permissoes && 
+                !currentUser.permissoes.includes('*') && 
+                !currentUser.permissoes.includes('horas-extras')) {
+                moduleContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+                    </div>
+                `;
+                return;
+            }
+            if (!currentCondominio) {
+                moduleContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>Selecione um condomínio</strong> para acessar o módulo de horas extras.
+                    </div>
+                `;
+                return;
+            }
+            const filteredHorasExtras = horasExtras.filter(h => h.condominioId === currentCondominio.id);
+            moduleContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Horas Extras - ${currentCondominio.nome}</h3>
+                        <button class="btn btn-primary" onclick="openHoraExtraModal()">
+                            <i class="fas fa-plus"></i> Nova Hora Extra
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Filtrar por Funcionário</label>
+                                <input type="text" class="form-control" id="filtroFuncionario" onkeyup="filterHorasExtras()" placeholder="Digite o nome do funcionário">
+                            </div>
+                            <div class="form-group">
+                                <label>Filtrar por Data</label>
+                                <input type="month" class="form-control" id="filtroMesHoraExtra" onchange="filterHorasExtras()">
+                            </div>
+                        </div>
+                        <table class="table" id="horasExtrasTable">
+                            <thead>
+                                <tr>
+                                    <th>Funcionário</th>
+                                    <th>Matrícula</th>
+                                    <th>Data</th>
+                                    <th>Quantidade (horas)</th>
+                                    <th>Condomínio</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredHorasExtras.map(horaExtra => `
+                                    <tr>
+                                        <td>${horaExtra.funcionario}</td>
+                                        <td>${horaExtra.matricula}</td>
+                                        <td>${formatDate(horaExtra.data)}</td>
+                                        <td>${horaExtra.quantidade}</td>
+                                        <td>${horaExtra.condominioNome}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
         // ========== MÓDULO USUÁRIOS ==========
         function loadUsuariosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('usuarios')) {
@@ -2302,10 +2598,10 @@
                 </div>
             `;
         }
+
         // ========== MÓDULO MORADORES ==========
         function loadMoradoresContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('moradores')) {
@@ -2324,7 +2620,6 @@
                 `;
                 return;
             }
-            // Filtrar moradores pelo condomínio selecionado
             const filteredMoradores = moradores.filter(m => m.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="card">
@@ -2336,11 +2631,15 @@
                     </div>
                     <div class="card-body">
                         ${filteredMoradores.length > 0 ? `
-                        <table class="table">
+                        <table class="table" id="moradoresTable">
                             <thead>
                                 <tr>
-                                    <th>Morador</th>
-                                    <th>Apartamento</th>
+                                    <th style="cursor: pointer;" onclick="sortMoradores('nome')">
+                                        Morador <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th style="cursor: pointer;" onclick="sortMoradores('apto')">
+                                        Apartamento <i class="fas fa-sort"></i>
+                                    </th>
                                     <th>Telefone</th>
                                     <th>Garagem</th>
                                     <th>Vaga</th>
@@ -2348,36 +2647,27 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                ${filteredMoradores.map(morador => `
-                                    <tr>
-                                        <td>${morador.nome}</td>
-                                        <td>${morador.apto}</td>
-                                        <td>${morador.telefone || '-'}</td>
-                                        <td>${morador.garagem || '-'}</td>
-                                        <td>${morador.vaga || '-'}</td>
-                                        <td>${morador.observacoes || '-'}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info" onclick="editMorador('${morador.id}')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" onclick="deleteMorador('${morador.id}')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                            <tbody id="moradoresTbody">
                             </tbody>
                         </table>
                         ` : '<p>Nenhum morador cadastrado para este condomínio.</p>'}
                     </div>
                 </div>
             `;
+            if (filteredMoradores.length > 0) {
+                const sortedMoradores = filteredMoradores.sort((a, b) => {
+                    const numA = extractNumberFromApto(a.apto);
+                    const numB = extractNumberFromApto(b.apto);
+                    return numA - numB;
+                });
+                loadMoradoresTableData(sortedMoradores);
+                setTimeout(() => updateSortIcons('apto'), 100);
+            }
         }
+
         // ========== MÓDULO AGENDAMENTOS ==========
         function loadAgendamentosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('agendamentos')) {
@@ -2396,7 +2686,6 @@
                 `;
                 return;
             }
-            // Filtrar agendamentos pelo condomínio selecionado
             const filteredAgendamentos = agendamentos.filter(a => a.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="agendamentos-header">
@@ -2454,7 +2743,6 @@
                         </div>
                     </div>
                     <div class="calendar-grid" id="calendarGrid">
-                        <!-- Calendário será gerado aqui -->
                     </div>
                     <div class="calendar-legends">
                         <div class="legend-item">
@@ -2493,21 +2781,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Agendamentos serão carregados aqui -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             `;
-            // Gerar calendário
             generateCalendar(currentCalendarMonth, currentCalendarYear);
-            // Carregar lista de agendamentos
             loadAgendamentosList();
         }
+
         // ========== MÓDULO LIMPEZA ==========
         function loadLimpezaContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('limpeza')) {
@@ -2526,7 +2811,6 @@
                 `;
                 return;
             }
-            // Filtrar limpezas pelo condomínio selecionado
             const filteredLimpezas = limpezas.filter(l => l.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="card">
@@ -2609,10 +2893,10 @@
                 </div>
             `;
         }
+
         // ========== MÓDULO SAUNA ==========
         function loadSaunaContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('sauna')) {
@@ -2631,7 +2915,6 @@
                 `;
                 return;
             }
-            // Filtrar saunas pelo condomínio selecionado
             const filteredSaunas = saunas.filter(s => s.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="card">
@@ -2663,6 +2946,7 @@
                                 <tr>
                                     <th>Morador</th>
                                     <th>Apartamento</th>
+                                    <th>Tipo</th>
                                     <th>Data</th>
                                     <th>Horário</th>
                                     <th>Tempo (min)</th>
@@ -2675,6 +2959,7 @@
                                     <tr>
                                         <td>${sauna.morador}</td>
                                         <td>${sauna.apto}</td>
+                                        <td>${sauna.tipo === 'umida' ? 'Úmida' : 'Seca'}</td>
                                         <td>${formatDate(sauna.data)}</td>
                                         <td>${sauna.horaInicio} ${sauna.horaFim ? ' - ' + sauna.horaFim : ''}</td>
                                         <td>${sauna.tempoUso || '-'}</td>
@@ -2709,10 +2994,10 @@
                 </div>
             `;
         }
+
         // ========== MÓDULO CONTAS A PAGAR ==========
         function loadContasContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('contas')) {
@@ -2731,7 +3016,6 @@
                 `;
                 return;
             }
-            // Filtrar contas pelo condomínio selecionado
             const filteredContas = contas.filter(c => c.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="card">
@@ -2810,10 +3094,10 @@
                 </div>
             `;
         }
-        // ========== MÓDULO LEMBRETES ========== ✅ COM dataInicio e dataFim
+
+        // ========== MÓDULO LEMBRETES ==========
         function loadLembretesContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('lembretes')) {
@@ -2832,7 +3116,6 @@
                 `;
                 return;
             }
-            // Filtrar lembretes do condomínio selecionado
             const filteredLembretes = lembretes.filter(l => l.condominioId === currentCondominio.id);
             moduleContent.innerHTML = `
                 <div class="card">
@@ -2884,10 +3167,10 @@
                 </div>
             `;
         }
+
         // ========== MÓDULO RELATÓRIOS ==========
         function loadRelatoriosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            // Verificar se o usuário tem permissão para ver este módulo
             if (currentUser.permissoes && 
                 !currentUser.permissoes.includes('*') && 
                 !currentUser.permissoes.includes('relatorios')) {
@@ -2898,7 +3181,6 @@
                 `;
                 return;
             }
-            // Definir datas padrão (primeiro e último dia do mês atual)
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -2922,6 +3204,7 @@
                                         <option value="moradores">Moradores</option>
                                         <option value="limpeza">Limpeza</option>
                                         <option value="sauna">Sauna</option>
+                                        <option value="horas-extras">Horas Extras</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -2957,6 +3240,7 @@
                 </div>
             `;
         }
+
         // ========== FUNÇÕES AUXILIARES ==========
         function getEspacoNome(espacoId) {
             const espacos = {
@@ -2969,11 +3253,13 @@
             };
             return espacos[espacoId] || espacoId;
         }
+
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('pt-BR');
         }
+
         function getCurrentDate() {
             const now = new Date();
             const year = now.getFullYear();
@@ -2981,6 +3267,7 @@
             const day = String(now.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
         function formatUserType(userType) {
             const types = {
                 'sindico': 'Síndico',
@@ -2992,6 +3279,7 @@
             };
             return types[userType] || userType;
         }
+
         function formatStatusAgendamento(status) {
             const statusMap = {
                 'agendado': 'Agendado',
@@ -3001,6 +3289,7 @@
             };
             return statusMap[status] || status;
         }
+
         function formatStatusSauna(status) {
             const statusMap = {
                 'agendado': 'Agendado',
@@ -3010,6 +3299,7 @@
             };
             return statusMap[status] || status;
         }
+
         function formatCategoriaConta(categoria) {
             const categorias = {
                 'manutencao': 'Manutenção',
@@ -3022,6 +3312,7 @@
             };
             return categorias[categoria] || categoria;
         }
+
         function formatStatusConta(status) {
             const statusMap = {
                 'pendente': 'Pendente',
@@ -3030,6 +3321,7 @@
             };
             return statusMap[status] || status;
         }
+
         function getMonthName(month) {
             const months = [
                 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -3037,15 +3329,13 @@
             ];
             return months[month];
         }
+
         // ========== FUNÇÕES DE CALENDÁRIO ==========
         function generateCalendar(month, year) {
             const calendarGrid = document.getElementById('calendarGrid');
             if (!calendarGrid) return;
-            // Atualizar título do calendário
             document.getElementById('calendarTitle').textContent = `${getMonthName(month)} ${year}`;
-            // Limpar calendário
             calendarGrid.innerHTML = '';
-            // Adicionar cabeçalhos dos dias
             const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
             daysOfWeek.forEach(day => {
                 const dayHeader = document.createElement('div');
@@ -3053,13 +3343,9 @@
                 dayHeader.textContent = day;
                 calendarGrid.appendChild(dayHeader);
             });
-            // Primeiro dia do mês
             const firstDay = new Date(year, month, 1);
-            // Último dia do mês
             const lastDay = new Date(year, month + 1, 0);
-            // Dia da semana do primeiro dia (0 = Domingo, 6 = Sábado)
             const firstDayOfWeek = firstDay.getDay();
-            // Dias do mês anterior (se necessário)
             const prevMonthLastDay = new Date(year, month, 0).getDate();
             for (let i = firstDayOfWeek - 1; i >= 0; i--) {
                 const day = document.createElement('div');
@@ -3067,18 +3353,15 @@
                 day.innerHTML = `<div class="day-number">${prevMonthLastDay - i}</div>`;
                 calendarGrid.appendChild(day);
             }
-            // Dias do mês atual
             for (let i = 1; i <= lastDay.getDate(); i++) {
                 const day = document.createElement('div');
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                // Verificar se é hoje
                 const today = new Date();
                 const isToday = today.getDate() === i && 
                                today.getMonth() === month && 
                                today.getFullYear() === year;
                 day.className = `calendar-day ${isToday ? 'today' : ''}`;
                 day.innerHTML = `<div class="day-number">${i}</div>`;
-                // Adicionar eventos do dia (apenas do condomínio selecionado)
                 const dayEvents = agendamentos.filter(a => 
                     a.data === dateStr && 
                     a.condominioId === (currentCondominio ? currentCondominio.id : '')
@@ -3088,21 +3371,18 @@
                     eventElement.className = `event-item ${event.espaco}`;
                     eventElement.textContent = `${event.unidade} ${event.horaInicio} a ${event.horaFim}`;
                     eventElement.title = `${getEspacoNome(event.espaco)}: ${event.responsavel} (${event.unidade}) - ${event.horaInicio} a ${event.horaFim}`;
-                    // Adicionar evento de clique para mostrar opções
                     eventElement.addEventListener('click', function(e) {
                         e.stopPropagation();
                         showAgendamentoActions(event, eventElement);
                     });
                     day.appendChild(eventElement);
                 });
-                // Adicionar clique para criar agendamento
                 day.addEventListener('click', function() {
                     openAgendamentoModalForDate(dateStr);
                 });
                 calendarGrid.appendChild(day);
             }
-            // Dias do próximo mês (se necessário)
-            const totalCells = 42; // 6 semanas * 7 dias
+            const totalCells = 42;
             const daysSoFar = firstDayOfWeek + lastDay.getDate();
             const nextMonthDays = totalCells - daysSoFar;
             for (let i = 1; i <= nextMonthDays; i++) {
@@ -3112,6 +3392,7 @@
                 calendarGrid.appendChild(day);
             }
         }
+
         function changeCalendarMonth(direction) {
             currentCalendarMonth += direction;
             if (currentCalendarMonth < 0) {
@@ -3123,23 +3404,20 @@
             }
             generateCalendar(currentCalendarMonth, currentCalendarYear);
         }
+
         function changeCalendarView(view) {
-            // Atualizar botões ativos
             document.querySelectorAll('.calendar-view-options .btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            // Aqui você implementaria a mudança de visualização
             alert(`Visualização alterada para: ${view}`);
         }
-        // Mostrar ações para um agendamento específico
+
         function showAgendamentoActions(agendamento, element) {
-            // Remover qualquer modal de ações existente
             const existingModal = document.querySelector('.agendamento-actions-modal');
             if (existingModal) {
                 existingModal.remove();
             }
-            // Criar modal de ações
             const modal = document.createElement('div');
             modal.className = 'agendamento-actions-modal';
             modal.innerHTML = `
@@ -3147,13 +3425,11 @@
                 <button onclick="updateAgendamentoStatus('${agendamento.id}', 'liberado')">Marcar como Liberado</button>
                 <button onclick="updateAgendamentoStatus('${agendamento.id}', 'cancelado')">Cancelar</button>
             `;
-            // Posicionar o modal próximo ao elemento clicado
             const rect = element.getBoundingClientRect();
             modal.style.position = 'fixed';
             modal.style.top = `${rect.bottom + window.scrollY}px`;
             modal.style.left = `${rect.left + window.scrollX}px`;
             document.body.appendChild(modal);
-            // Fechar o modal ao clicar fora dele
             const closeModal = function(e) {
                 if (!modal.contains(e.target)) {
                     modal.remove();
@@ -3164,16 +3440,14 @@
                 document.addEventListener('click', closeModal);
             }, 100);
         }
-        // Atualizar status do agendamento
+
         async function updateAgendamentoStatus(agendamentoId, status) {
             try {
                 await db.collection('agendamentos').doc(agendamentoId).update({
                     status: status,
                     dataAtualizacao: new Date().toISOString()
                 });
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de agendamentos
                 if (currentModule === 'agendamentos') {
                     loadAgendamentosContent();
                 }
@@ -3183,11 +3457,11 @@
                 alert('Erro ao atualizar status do agendamento. Tente novamente.');
             }
         }
+
         function filterAgendamentos() {
             const espaco = document.getElementById('filtroEspaco').value;
             const status = document.getElementById('filtroStatus').value;
             const data = document.getElementById('filtroData').value;
-            // Filtrar agendamentos (apenas do condomínio selecionado)
             let filteredAgendamentos = agendamentos.filter(a => 
                 a.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -3200,7 +3474,6 @@
             if (data) {
                 filteredAgendamentos = filteredAgendamentos.filter(a => a.data === data);
             }
-            // Atualizar tabela
             const tbody = document.querySelector('#agendamentosTable tbody');
             tbody.innerHTML = '';
             if (filteredAgendamentos.length > 0) {
@@ -3232,13 +3505,14 @@
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum agendamento encontrado com os filtros aplicados.</td></tr>';
             }
         }
+
         function loadAgendamentosList() {
-            filterAgendamentos(); // Carrega a lista inicial
+            filterAgendamentos();
         }
+
         function filterContas() {
             const status = document.getElementById('filtroStatusConta').value;
             const categoria = document.getElementById('filtroCategoriaConta').value;
-            // Filtrar contas (apenas do condomínio selecionado)
             let filteredContas = contas.filter(c => 
                 c.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -3248,7 +3522,6 @@
             if (categoria) {
                 filteredContas = filteredContas.filter(c => c.categoria === categoria);
             }
-            // Atualizar tabela
             const tbody = document.querySelector('#contasTable tbody');
             tbody.innerHTML = '';
             if (filteredContas.length > 0) {
@@ -3283,11 +3556,11 @@
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhuma conta encontrada com os filtros aplicados.</td></tr>';
             }
         }
+
         function filterLimpezas() {
             const espaco = document.getElementById('filtroEspacoLimpeza').value;
             const status = document.getElementById('filtroStatusLimpeza').value;
             const data = document.getElementById('filtroDataLimpeza').value;
-            // Filtrar limpezas (apenas do condomínio selecionado)
             let filteredLimpezas = limpezas.filter(l => 
                 l.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -3300,7 +3573,6 @@
             if (data) {
                 filteredLimpezas = filteredLimpezas.filter(l => l.data === data);
             }
-            // Atualizar tabela
             const tbody = document.querySelector('#limpezasTable tbody');
             tbody.innerHTML = '';
             if (filteredLimpezas.length > 0) {
@@ -3337,10 +3609,10 @@
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum registro de limpeza encontrado com os filtros aplicados.</td></tr>';
             }
         }
+
         function filterSaunas() {
             const status = document.getElementById('filtroStatusSauna').value;
             const data = document.getElementById('filtroDataSauna').value;
-            // Filtrar saunas (apenas do condomínio selecionado)
             let filteredSaunas = saunas.filter(s => 
                 s.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -3350,7 +3622,6 @@
             if (data) {
                 filteredSaunas = filteredSaunas.filter(s => s.data === data);
             }
-            // Atualizar tabela
             const tbody = document.querySelector('#saunasTable tbody');
             tbody.innerHTML = '';
             if (filteredSaunas.length > 0) {
@@ -3392,6 +3663,7 @@
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum agendamento de sauna encontrado com os filtros aplicados.</td></tr>';
             }
         }
+
         // ========== FUNÇÕES DE AGENDAMENTOS ==========
         function openAgendamentoModal() {
             document.getElementById('agendamentoModalTitle').textContent = 'Novo Agendamento';
@@ -3402,26 +3674,26 @@
             document.getElementById('agendamentoStatus').value = 'agendado';
             document.getElementById('agendamentoModal').style.display = 'flex';
         }
+
         function openAgendamentoModalForDate(dateStr) {
             openAgendamentoModal();
             document.getElementById('agendamentoData').value = dateStr;
             document.getElementById('agendamentoDataInput').value = dateStr;
         }
+
         function closeAgendamentoModal() {
             document.getElementById('agendamentoModal').style.display = 'none';
         }
-        // Event listener para o formulário de agendamento
+
         document.getElementById('agendamentoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
                 alert('Selecione um condomínio primeiro!');
                 return;
             }
-            // Validação: não permitir mais de um agendamento por dia no mesmo espaço
             const editingId = document.getElementById('editingAgendamentoId').value;
             const espaco = document.getElementById('agendamentoEspaco').value;
             const data = document.getElementById('agendamentoDataInput').value;
-            // Verificar se já existe agendamento para este espaço na mesma data
             const agendamentoExistente = agendamentos.find(a => 
                 a.condominioId === currentCondominio.id &&
                 a.espaco === espaco && 
@@ -3448,17 +3720,12 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar agendamento existente
                     await db.collection('agendamentos').doc(editingId).update(agendamentoData);
                 } else {
-                    // Criar novo agendamento
                     await db.collection('agendamentos').add(agendamentoData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeAgendamentoModal();
-                // Recarregar conteúdo do módulo de agendamentos
                 if (currentModule === 'agendamentos') {
                     loadAgendamentosContent();
                 }
@@ -3468,6 +3735,7 @@
                 alert('Erro ao salvar agendamento. Tente novamente.');
             }
         });
+
         function editAgendamento(id) {
             const agendamento = agendamentos.find(a => a.id === id);
             if (!agendamento) return;
@@ -3483,13 +3751,12 @@
             document.getElementById('agendamentoObservacoes').value = agendamento.observacoes || '';
             document.getElementById('agendamentoModal').style.display = 'flex';
         }
+
         async function deleteAgendamento(id) {
             if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
             try {
                 await db.collection('agendamentos').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de agendamentos
                 if (currentModule === 'agendamentos') {
                     loadAgendamentosContent();
                 }
@@ -3499,22 +3766,23 @@
                 alert('Erro ao excluir agendamento. Tente novamente.');
             }
         }
+
         // ========== FUNÇÕES DE CONTAS A PAGAR ==========
         function openContaModal() {
             document.getElementById('contaModalTitle').textContent = 'Nova Conta a Pagar';
             document.getElementById('editingContaId').value = '';
             document.getElementById('contaForm').reset();
-            // Data de vencimento padrão: 30 dias a partir de hoje
             const dataPadrao = new Date();
             dataPadrao.setDate(dataPadrao.getDate() + 30);
             document.getElementById('contaVencimento').value = dataPadrao.toISOString().split('T')[0];
             document.getElementById('contaStatus').value = 'pendente';
             document.getElementById('contaModal').style.display = 'flex';
         }
+
         function closeContaModal() {
             document.getElementById('contaModal').style.display = 'none';
         }
-        // Event listener para o formulário de contas
+
         document.getElementById('contaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
@@ -3537,17 +3805,12 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar conta existente
                     await db.collection('contas').doc(editingId).update(contaData);
                 } else {
-                    // Criar nova conta
                     await db.collection('contas').add(contaData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeContaModal();
-                // Recarregar conteúdo do módulo de contas
                 if (currentModule === 'contas') {
                     loadContasContent();
                 }
@@ -3557,6 +3820,7 @@
                 alert('Erro ao salvar conta. Tente novamente.');
             }
         });
+
         function editConta(id) {
             const conta = contas.find(c => c.id === id);
             if (!conta) return;
@@ -3571,13 +3835,12 @@
             document.getElementById('contaObservacoes').value = conta.observacoes || '';
             document.getElementById('contaModal').style.display = 'flex';
         }
+
         async function deleteConta(id) {
             if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
             try {
                 await db.collection('contas').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de contas
                 if (currentModule === 'contas') {
                     loadContasContent();
                 }
@@ -3587,15 +3850,14 @@
                 alert('Erro ao excluir conta. Tente novamente.');
             }
         }
+
         async function marcarContaComoPaga(id) {
             try {
                 await db.collection('contas').doc(id).update({
                     status: 'pago',
                     dataAtualizacao: new Date().toISOString()
                 });
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo atual
                 if (currentModule === 'contas') {
                     loadContasContent();
                 } else if (currentModule === 'dashboard') {
@@ -3607,21 +3869,22 @@
                 alert('Erro ao marcar conta como paga. Tente novamente.');
             }
         }
-        // ========== FUNÇÕES DE LEMBRETES ========== ✅ COM dataInicio e dataFim
+
+        // ========== FUNÇÕES DE LEMBRETES ==========
         function openLembreteModal() {
             document.getElementById('lembreteModalTitle').textContent = 'Novo Lembrete';
             document.getElementById('editingLembreteId').value = '';
             document.getElementById('lembreteForm').reset();
-            // Data padrão: hoje
             document.getElementById('lembreteDataInicio').value = getCurrentDate();
-            document.getElementById('lembreteDataFim').value = ''; // deixar vazio por padrão
+            document.getElementById('lembreteDataFim').value = '';
             document.getElementById('lembretePrioridade').value = 'media';
             document.getElementById('lembreteModal').style.display = 'flex';
         }
+
         function closeLembreteModal() {
             document.getElementById('lembreteModal').style.display = 'none';
         }
-        // Event listener para o formulário de lembretes
+
         document.getElementById('lembreteForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
@@ -3633,7 +3896,7 @@
                 titulo: document.getElementById('lembreteTitulo').value,
                 descricao: document.getElementById('lembreteDescricao').value,
                 dataInicio: document.getElementById('lembreteDataInicio').value,
-                dataFim: document.getElementById('lembreteDataFim').value || null, // pode ser null
+                dataFim: document.getElementById('lembreteDataFim').value || null,
                 prioridade: document.getElementById('lembretePrioridade').value,
                 condominioId: currentCondominio.id,
                 condominioNome: currentCondominio.nome,
@@ -3642,21 +3905,15 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar lembrete existente
                     await db.collection('lembretes').doc(editingId).update(lembreteData);
                 } else {
-                    // Criar novo lembrete
                     await db.collection('lembretes').add(lembreteData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeLembreteModal();
-                // Recarregar conteúdo do dashboard
                 if (currentModule === 'dashboard') {
                     loadDashboardContent();
                 }
-                // Atualizar letreiro
                 loadTickerContent();
                 alert('Lembrete salvo com sucesso!');
             } catch (error) {
@@ -3664,6 +3921,7 @@
                 alert('Erro ao salvar lembrete. Tente novamente.');
             }
         });
+
         function editLembrete(id) {
             const lembrete = lembretes.find(l => l.id === id);
             if (!lembrete) return;
@@ -3676,17 +3934,15 @@
             document.getElementById('lembretePrioridade').value = lembrete.prioridade || 'media';
             document.getElementById('lembreteModal').style.display = 'flex';
         }
+
         async function deleteLembrete(id) {
             if (!confirm('Tem certeza que deseja excluir este lembrete?')) return;
             try {
                 await db.collection('lembretes').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do dashboard
                 if (currentModule === 'dashboard') {
                     loadDashboardContent();
                 }
-                // Atualizar letreiro
                 loadTickerContent();
                 alert('Lembrete excluído com sucesso!');
             } catch (error) {
@@ -3694,23 +3950,24 @@
                 alert('Erro ao excluir lembrete. Tente novamente.');
             }
         }
+
         // ========== FUNÇÕES DE LIMPEZA ==========
         function openLimpezaModal() {
             document.getElementById('limpezaModalTitle').textContent = 'Novo Registro de Limpeza';
             document.getElementById('editingLimpezaId').value = '';
             document.getElementById('limpezaForm').reset();
-            // Data padrão: hoje
             document.getElementById('limpezaData').value = getCurrentDate();
-            // Hora padrão: agora
             const now = new Date();
             document.getElementById('limpezaHoraInicio').value = now.toTimeString().substring(0, 5);
             document.getElementById('limpezaStatus').value = 'em-andamento';
             document.getElementById('btnConcluirLimpeza').style.display = 'none';
             document.getElementById('limpezaModal').style.display = 'flex';
         }
+
         function closeLimpezaModal() {
             document.getElementById('limpezaModal').style.display = 'none';
         }
+
         function editLimpeza(id) {
             const limpeza = limpezas.find(l => l.id === id);
             if (!limpeza) return;
@@ -3724,7 +3981,6 @@
             document.getElementById('limpezaTempoUso').value = limpeza.tempoUso || '';
             document.getElementById('limpezaObservacoes').value = limpeza.observacoes || '';
             document.getElementById('limpezaStatus').value = limpeza.status;
-            // Mostrar botão de concluir apenas se não estiver concluído
             if (limpeza.status !== 'concluido') {
                 document.getElementById('btnConcluirLimpeza').style.display = 'inline-block';
             } else {
@@ -3732,7 +3988,7 @@
             }
             document.getElementById('limpezaModal').style.display = 'flex';
         }
-        // Event listener para o formulário de limpeza
+
         document.getElementById('limpezaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
@@ -3756,17 +4012,12 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar limpeza existente
                     await db.collection('limpezas').doc(editingId).update(limpezaData);
                 } else {
-                    // Criar nova limpeza
                     await db.collection('limpezas').add(limpezaData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeLimpezaModal();
-                // Recarregar conteúdo do módulo de limpeza
                 if (currentModule === 'limpeza') {
                     loadLimpezaContent();
                 }
@@ -3776,6 +4027,7 @@
                 alert('Erro ao salvar registro de limpeza. Tente novamente.');
             }
         });
+
         async function concluirLimpeza(id = null) {
             let limpezaId = id || document.getElementById('editingLimpezaId').value;
             if (!limpezaId) {
@@ -3788,7 +4040,6 @@
                 alert('Registro de limpeza não encontrado!');
                 return;
             }
-            // Calcular tempo de uso em minutos
             const inicio = new Date(`2000-01-01T${limpeza.horaInicio}`);
             const fim = new Date(`2000-01-01T${horaFim}`);
             const tempoUso = Math.round((fim - inicio) / (1000 * 60));
@@ -3799,11 +4050,8 @@
                     status: 'concluido',
                     dataAtualizacao: new Date().toISOString()
                 });
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal se estiver aberto
                 closeLimpezaModal();
-                // Recarregar conteúdo do módulo de limpeza
                 if (currentModule === 'limpeza') {
                     loadLimpezaContent();
                 }
@@ -3813,13 +4061,12 @@
                 alert('Erro ao concluir limpeza. Tente novamente.');
             }
         }
+
         async function deleteLimpeza(id) {
             if (!confirm('Tem certeza que deseja excluir este registro de limpeza?')) return;
             try {
                 await db.collection('limpezas').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de limpeza
                 if (currentModule === 'limpeza') {
                     loadLimpezaContent();
                 }
@@ -3829,20 +4076,23 @@
                 alert('Erro ao excluir registro de limpeza. Tente novamente.');
             }
         }
+
         // ========== FUNÇÕES DE SAUNA ==========
         function openSaunaModal() {
             document.getElementById('saunaModalTitle').textContent = 'Novo Agendamento de Sauna';
             document.getElementById('editingSaunaId').value = '';
             document.getElementById('saunaForm').reset();
-            // Data padrão: hoje
             document.getElementById('saunaData').value = getCurrentDate();
+            document.getElementById('saunaTipo').value = 'umida';
             document.getElementById('saunaStatus').value = 'agendado';
             document.getElementById('btnConcluirSauna').style.display = 'none';
             document.getElementById('saunaModal').style.display = 'flex';
         }
+
         function closeSaunaModal() {
             document.getElementById('saunaModal').style.display = 'none';
         }
+
         function editSauna(id) {
             const sauna = saunas.find(s => s.id === id);
             if (!sauna) return;
@@ -3850,13 +4100,13 @@
             document.getElementById('editingSaunaId').value = sauna.id;
             document.getElementById('saunaMorador').value = sauna.morador;
             document.getElementById('saunaApto').value = sauna.apto;
+            document.getElementById('saunaTipo').value = sauna.tipo || 'umida';
             document.getElementById('saunaData').value = sauna.data;
             document.getElementById('saunaHoraInicio').value = sauna.horaInicio;
             document.getElementById('saunaHoraFim').value = sauna.horaFim || '';
             document.getElementById('saunaTempoUso').value = sauna.tempoUso || '';
             document.getElementById('saunaObservacoes').value = sauna.observacoes || '';
             document.getElementById('saunaStatus').value = sauna.status;
-            // Mostrar botão de concluir apenas se estiver em uso
             if (sauna.status === 'em-uso') {
                 document.getElementById('btnConcluirSauna').style.display = 'inline-block';
             } else {
@@ -3864,7 +4114,7 @@
             }
             document.getElementById('saunaModal').style.display = 'flex';
         }
-        // Event listener para o formulário de sauna
+
         document.getElementById('saunaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
@@ -3875,6 +4125,7 @@
             const saunaData = {
                 morador: document.getElementById('saunaMorador').value,
                 apto: document.getElementById('saunaApto').value,
+                tipo: document.getElementById('saunaTipo').value,
                 data: document.getElementById('saunaData').value,
                 horaInicio: document.getElementById('saunaHoraInicio').value,
                 horaFim: document.getElementById('saunaHoraFim').value,
@@ -3888,17 +4139,12 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar sauna existente
                     await db.collection('saunas').doc(editingId).update(saunaData);
                 } else {
-                    // Criar nova sauna
                     await db.collection('saunas').add(saunaData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeSaunaModal();
-                // Recarregar conteúdo do módulo de sauna
                 if (currentModule === 'sauna') {
                     loadSaunaContent();
                 }
@@ -3908,15 +4154,14 @@
                 alert('Erro ao salvar agendamento de sauna. Tente novamente.');
             }
         });
+
         async function iniciarSauna(id) {
             try {
                 await db.collection('saunas').doc(id).update({
                     status: 'em-uso',
                     dataAtualizacao: new Date().toISOString()
                 });
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de sauna
                 if (currentModule === 'sauna') {
                     loadSaunaContent();
                 }
@@ -3926,6 +4171,7 @@
                 alert('Erro ao iniciar sauna. Tente novamente.');
             }
         }
+
         async function concluirSauna(id = null) {
             let saunaId = id || document.getElementById('editingSaunaId').value;
             if (!saunaId) {
@@ -3938,7 +4184,6 @@
                 alert('Agendamento de sauna não encontrado!');
                 return;
             }
-            // Calcular tempo de uso em minutos
             const inicio = new Date(`2000-01-01T${sauna.horaInicio}`);
             const fim = new Date(`2000-01-01T${horaFim}`);
             const tempoUso = Math.round((fim - inicio) / (1000 * 60));
@@ -3949,11 +4194,8 @@
                     status: 'concluido',
                     dataAtualizacao: new Date().toISOString()
                 });
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal se estiver aberto
                 closeSaunaModal();
-                // Recarregar conteúdo do módulo de sauna
                 if (currentModule === 'sauna') {
                     loadSaunaContent();
                 }
@@ -3963,13 +4205,12 @@
                 alert('Erro ao concluir sauna. Tente novamente.');
             }
         }
+
         async function deleteSauna(id) {
             if (!confirm('Tem certeza que deseja excluir este agendamento de sauna?')) return;
             try {
                 await db.collection('saunas').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de sauna
                 if (currentModule === 'sauna') {
                     loadSaunaContent();
                 }
@@ -3979,24 +4220,24 @@
                 alert('Erro ao excluir agendamento de sauna. Tente novamente.');
             }
         }
-        // ========== FUNÇÕES DE USUÁRIOS ========== ✅ CORREÇÃO: não marca todos os módulos
+
+        // ========== FUNÇÕES DE USUÁRIOS ==========
         function openUserModal() {
             document.getElementById('userModalTitle').textContent = 'Cadastrar Usuário';
             document.getElementById('editingUserId').value = '';
             document.getElementById('userForm').reset();
-            // Configurar campo de senha para novo usuário
             document.getElementById('userSenha').required = true;
             document.getElementById('senhaObrigatoria').style.display = 'inline';
             document.getElementById('senhaInfo').style.display = 'none';
-            // Carregar condomínios para permissões
             loadCondominiosForPermissions();
-            // Carregar módulos para permissões — ✅ NÃO MARCA TODOS
             loadModulesForPermissions();
             document.getElementById('userModal').style.display = 'flex';
         }
+
         function closeUserModal() {
             document.getElementById('userModal').style.display = 'none';
         }
+
         function loadCondominiosForPermissions() {
             const container = document.getElementById('condominiosPermitidos');
             container.innerHTML = '';
@@ -4010,13 +4251,13 @@
                 container.appendChild(item);
             });
         }
+
         function loadModulesForPermissions() {
             const container = document.getElementById('permissoesUsuario');
             container.innerHTML = '';
             modules.forEach(module => {
                 const item = document.createElement('div');
                 item.className = 'permission-item';
-                // ✅ Não marca automaticamente
                 item.innerHTML = `
                     <input type="checkbox" id="module-${module.id}" value="${module.id}">
                     <label for="module-${module.id}">${module.name}</label>
@@ -4024,7 +4265,7 @@
                 container.appendChild(item);
             });
         }
-        // Event listener para o formulário de usuário
+
         document.getElementById('userForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const editingId = document.getElementById('editingUserId').value;
@@ -4038,22 +4279,18 @@
                 criadoPor: currentUser.id || currentUser.usuario,
                 dataAtualizacao: new Date().toISOString()
             };
-            // Se é um novo usuário ou se a senha foi preenchida, atualizar a senha
             const senha = document.getElementById('userSenha').value;
             if (!editingId || senha) {
                 userData.senha = senha;
             }
-            // Se é um novo usuário, adicionar data de criação
             if (!editingId) {
                 userData.dataCriacao = new Date().toISOString();
             }
-            // Coletar condomínios permitidos
             const condominiosPermitidos = [];
             document.querySelectorAll('#condominiosPermitidos input:checked').forEach(checkbox => {
                 condominiosPermitidos.push(checkbox.value);
             });
             userData.condominios = condominiosPermitidos;
-            // Coletar módulos permitidos
             const modulosPermitidos = [];
             document.querySelectorAll('#permissoesUsuario input:checked').forEach(checkbox => {
                 modulosPermitidos.push(checkbox.value);
@@ -4061,17 +4298,12 @@
             userData.permissoes = modulosPermitidos;
             try {
                 if (editingId) {
-                    // Atualizar usuário existente
                     await db.collection('usuarios').doc(editingId).update(userData);
                 } else {
-                    // Criar novo usuário
                     await db.collection('usuarios').add(userData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeUserModal();
-                // Recarregar conteúdo do módulo de usuários
                 if (currentModule === 'usuarios') {
                     loadUsuariosContent();
                 }
@@ -4081,6 +4313,7 @@
                 alert('Erro ao salvar usuário. Tente novamente.');
             }
         });
+
         function editUser(id) {
             const usuario = usuarios.find(u => u.id === id);
             if (!usuario) return;
@@ -4090,24 +4323,18 @@
             document.getElementById('userUsuario').value = usuario.usuario;
             document.getElementById('userEmail').value = usuario.email || '';
             document.getElementById('userTelefone').value = usuario.telefone || '';
-            document.getElementById('userSenha').value = ''; // Não preencher senha por segurança
-            document.getElementById('userTipo').value = usuario.tipo;
-            // Configurar campo de senha para edição (não obrigatório)
+            document.getElementById('userSenha').value = '';
             document.getElementById('userSenha').required = false;
             document.getElementById('senhaObrigatoria').style.display = 'none';
             document.getElementById('senhaInfo').style.display = 'block';
-            // Carregar condomínios para permissões
             loadCondominiosForPermissions();
-            // Marcar condomínios permitidos
             if (usuario.condominios) {
                 usuario.condominios.forEach(condominioId => {
                     const checkbox = document.getElementById(`condominio-${condominioId}`);
                     if (checkbox) checkbox.checked = true;
                 });
             }
-            // Carregar módulos para permissões — ✅ NÃO MARCA TODOS
             loadModulesForPermissions();
-            // ✅ MARCAR APENAS OS PERMITIDOS
             if (usuario.permissoes) {
                 usuario.permissoes.forEach(moduleId => {
                     const checkbox = document.getElementById(`module-${moduleId}`);
@@ -4116,13 +4343,12 @@
             }
             document.getElementById('userModal').style.display = 'flex';
         }
+
         async function deleteUser(id) {
             if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
             try {
                 await db.collection('usuarios').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de usuários
                 if (currentModule === 'usuarios') {
                     loadUsuariosContent();
                 }
@@ -4132,6 +4358,7 @@
                 alert('Erro ao excluir usuário. Tente novamente.');
             }
         }
+
         // ========== FUNÇÕES DE CONDOMÍNIOS ==========
         function openCondominioModal() {
             document.getElementById('condominioModalTitle').textContent = 'Cadastrar Condomínio';
@@ -4139,10 +4366,11 @@
             document.getElementById('condominioForm').reset();
             document.getElementById('condominioModal').style.display = 'flex';
         }
+
         function closeCondominioModal() {
             document.getElementById('condominioModal').style.display = 'none';
         }
-        // Event listener para o formulário de condomínio
+
         document.getElementById('condominioForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const editingId = document.getElementById('editingCondominioId').value;
@@ -4159,24 +4387,18 @@
                 criadoPor: currentUser.id || currentUser.usuario,
                 dataAtualizacao: new Date().toISOString()
             };
-            // Se é um novo condomínio, adicionar data de criação
             if (!editingId) {
                 condominioData.dataCriacao = new Date().toISOString();
             }
             try {
                 if (editingId) {
-                    // Atualizar condomínio existente
                     await db.collection('condominios').doc(editingId).update(condominioData);
                 } else {
-                    // Criar novo condomínio
                     await db.collection('condominios').add(condominioData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeCondominioModal();
-                // Recarregar conteúdo do módulo de condomínios
-                if (currentModule === 'condomínios') {
+                if (currentModule === 'condominios') {
                     loadCondominiosContent();
                 }
                 alert('Condomínio salvo com sucesso!');
@@ -4185,6 +4407,7 @@
                 alert('Erro ao salvar condomínio. Tente novamente.');
             }
         });
+
         function editCondominio(id) {
             const condominio = condominios.find(c => c.id === id);
             if (!condominio) return;
@@ -4201,14 +4424,13 @@
             document.getElementById('condominioStatus').value = condominio.status || 'ativo';
             document.getElementById('condominioModal').style.display = 'flex';
         }
+
         async function deleteCondominio(id) {
             if (!confirm('Tem certeza que deseja excluir este condomínio?')) return;
             try {
                 await db.collection('condominios').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de condomínios
-                if (currentModule === 'condomínios') {
+                if (currentModule === 'condominios') {
                     loadCondominiosContent();
                 }
                 alert('Condomínio excluído com sucesso!');
@@ -4217,6 +4439,7 @@
                 alert('Erro ao excluir condomínio. Tente novamente.');
             }
         }
+
         // ========== FUNÇÕES PARA MORADORES ==========
         function openMoradorModal() {
             document.getElementById('moradorModalTitle').textContent = 'Cadastrar Morador';
@@ -4224,10 +4447,11 @@
             document.getElementById('moradorForm').reset();
             document.getElementById('moradorModal').style.display = 'flex';
         }
+
         function closeMoradorModal() {
             document.getElementById('moradorModal').style.display = 'none';
         }
-        // Event listener para o formulário de morador
+
         document.getElementById('moradorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentCondominio) {
@@ -4249,17 +4473,12 @@
             };
             try {
                 if (editingId) {
-                    // Atualizar morador existente
                     await db.collection('moradores').doc(editingId).update(moradorData);
                 } else {
-                    // Criar novo morador
                     await db.collection('moradores').add(moradorData);
                 }
-                // Recarregar dados
                 await loadSystemData();
-                // Fechar modal
                 closeMoradorModal();
-                // Recarregar conteúdo do módulo de moradores
                 if (currentModule === 'moradores') {
                     loadMoradoresContent();
                 }
@@ -4269,6 +4488,7 @@
                 alert('Erro ao salvar morador. Tente novamente.');
             }
         });
+
         function editMorador(id) {
             const morador = moradores.find(m => m.id === id);
             if (!morador) return;
@@ -4282,13 +4502,12 @@
             document.getElementById('moradorObservacoes').value = morador.observacoes || '';
             document.getElementById('moradorModal').style.display = 'flex';
         }
+
         async function deleteMorador(id) {
             if (!confirm('Tem certeza que deseja excluir este morador?')) return;
             try {
                 await db.collection('moradores').doc(id).delete();
-                // Recarregar dados
                 await loadSystemData();
-                // Recarregar conteúdo do módulo de moradores
                 if (currentModule === 'moradores') {
                     loadMoradoresContent();
                 }
@@ -4298,12 +4517,12 @@
                 alert('Erro ao excluir morador. Tente novamente.');
             }
         }
-        // ========== PRESENCE SYSTEM ========== ✅ INDICADOR DE USUÁRIOS ONLINE FUNCIONANDO
+
+        // ========== PRESENCE SYSTEM ==========
         function setupPresence() {
             if (!currentUser) return;
             const userPresenceRef = db.collection('presence').doc(currentUser.id);
             presenceRef = userPresenceRef;
-            // Configurar detecção de saída
             const onClose = () => {
                 if (presenceRef) {
                     presenceRef.update({ 
@@ -4312,14 +4531,12 @@
                     });
                 }
             };
-            // Atualizar presença
             userPresenceRef.set({
                 userId: currentUser.id,
                 nome: currentUser.nome || currentUser.usuario,
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
                 online: true
             }, { merge: true });
-            // Manter presença atualizada
             const keepAlive = setInterval(() => {
                 if (presenceRef) {
                     presenceRef.update({
@@ -4328,17 +4545,16 @@
                     });
                 }
             }, 30000);
-            // Configurar eventos de saída
             window.addEventListener('beforeunload', onClose);
             window.addEventListener('pagehide', onClose);
-            // Limpar intervalo quando sair
             window.addEventListener('beforeunload', () => {
                 clearInterval(keepAlive);
             });
         }
+
         async function updateOnlineCount() {
             try {
-                const cutoff = new Date(Date.now() - 60000); // 1 minuto atrás
+                const cutoff = new Date(Date.now() - 60000);
                 const snapshot = await db.collection('presence')
                     .where('lastSeen', '>=', firebase.firestore.Timestamp.fromDate(cutoff))
                     .where('online', '==', true)
@@ -4346,13 +4562,12 @@
                 const onlineUsers = [];
                 snapshot.forEach(doc => {
                     const userData = doc.data();
-                    if (userData.userId !== currentUser.id) { // Excluir o usuário atual da contagem
+                    if (userData.userId !== currentUser.id) {
                         onlineUsers.push(userData);
                     }
                 });
                 const count = onlineUsers.length;
                 document.getElementById('onlineCount').textContent = count;
-                // Opcional: Mostrar nomes dos usuários online
                 if (count > 0) {
                     const userNames = onlineUsers.map(user => user.nome).join(', ');
                     document.querySelector('.online-indicator').title = `Online: ${userNames}`;
@@ -4362,6 +4577,7 @@
                 document.getElementById('onlineCount').textContent = '0';
             }
         }
+
         function showOnlineUsers() {
             const cutoff = new Date(Date.now() - 60000);
             db.collection('presence')
@@ -4375,8 +4591,7 @@
                         onlineUsers.push(userData.nome);
                     });
                     if (onlineUsers.length > 0) {
-                        alert(`Usuários Online:
-${onlineUsers.join('\n')}`);
+                        alert(`Usuários Online:\n${onlineUsers.join('\n')}`);
                     } else {
                         alert('Nenhum outro usuário online no momento.');
                     }
@@ -4386,10 +4601,11 @@ ${onlineUsers.join('\n')}`);
                     alert('Erro ao carregar lista de usuários online.');
                 });
         }
+
         // ========== REALTIME LISTENERS ==========
         function setupRealtimeListeners() {
-            const collections = ['agendamentos', 'contas', 'lembretes', 'moradores', 'usuarios', 'condominios', 'limpezas', 'saunas'];
-            collections.forEach(collection => {
+            const globalCollections = ['usuarios', 'condominios'];
+            globalCollections.forEach(collection => {
                 db.collection(collection).onSnapshot(() => {
                     if (document.getElementById('mainSystem').style.display !== 'none') {
                         loadSystemData().then(() => {
@@ -4399,21 +4615,35 @@ ${onlineUsers.join('\n')}`);
                     }
                 });
             });
+            if (currentCondominio) {
+                const condominioCollections = ['moradores', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores'];
+                condominioCollections.forEach(collection => {
+                    db.collection(collection)
+                        .where('condominioId', '==', currentCondominio.id)
+                        .onSnapshot(() => {
+                            if (document.getElementById('mainSystem').style.display !== 'none') {
+                                loadSystemData().then(() => {
+                                    if (currentModule) loadModuleContent(currentModule);
+                                    loadTickerContent();
+                                });
+                            }
+                        });
+                });
+            }
             db.collection('presence').onSnapshot(() => {
                 updateOnlineCount();
             });
         }
+
         // ========== FUNÇÕES DE LOGIN ==========
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            // Mostrar loading
             document.getElementById('loginBtnText').style.display = 'none';
             document.getElementById('loginLoading').style.display = 'inline-block';
             document.getElementById('loginBtn').disabled = true;
             try {
-                // Verificar credenciais
                 const usuariosSnapshot = await db.collection('usuarios').where('usuario', '==', username).get();
                 if (usuariosSnapshot.empty) {
                     throw new Error('Usuário não encontrado');
@@ -4431,13 +4661,10 @@ ${onlineUsers.join('\n')}`);
                 if (!userFound) {
                     throw new Error('Senha incorreta');
                 }
-                // Verificar se é a primeira vez (senha padrão)
                 if (password === 'admin123' || password === '0000') {
-                    // Mostrar modal para trocar senha
                     currentUser = userFound;
                     document.getElementById('changePasswordModal').style.display = 'flex';
                 } else {
-                    // Login bem-sucedido
                     currentUser = userFound;
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     await loadSystemData();
@@ -4451,13 +4678,12 @@ ${onlineUsers.join('\n')}`);
                 document.getElementById('loginStatus').textContent = error.message || 'Erro ao fazer login';
                 document.getElementById('loginStatus').style.color = 'red';
             } finally {
-                // Restaurar botão
                 document.getElementById('loginBtnText').style.display = 'inline';
                 document.getElementById('loginLoading').style.display = 'none';
                 document.getElementById('loginBtn').disabled = false;
             }
         });
-        // Event listener para troca de senha
+
         document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const newPassword = document.getElementById('newPassword').value;
@@ -4471,18 +4697,14 @@ ${onlineUsers.join('\n')}`);
                 return;
             }
             try {
-                // Atualizar senha no banco de dados
                 await db.collection('usuarios').doc(currentUser.id).update({
                     senha: newPassword,
                     primeiroLogin: false
                 });
-                // Fechar modal
                 document.getElementById('changePasswordModal').style.display = 'none';
-                // Atualizar usuário local
                 currentUser.senha = newPassword;
                 currentUser.primeiroLogin = false;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                // Carregar sistema
                 await loadSystemData();
                 showMainSystem();
                 setupPresence();
@@ -4494,7 +4716,7 @@ ${onlineUsers.join('\n')}`);
                 alert('Erro ao alterar senha. Tente novamente.');
             }
         });
-        // Logout
+
         document.getElementById('logoutBtn').addEventListener('click', function() {
             if (confirm('Deseja realmente sair do sistema?')) {
                 if (presenceRef) {
@@ -4509,7 +4731,7 @@ ${onlineUsers.join('\n')}`);
                 showLoginPage();
             }
         });
-        // Toggle sidebar
+
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -4521,16 +4743,31 @@ ${onlineUsers.join('\n')}`);
                 mainContent.style.marginLeft = '280px';
             }
         });
-        // Selecionar condomínio
-        document.getElementById('condominioSelect').addEventListener('change', function() {
-            const condominioId = this.value;
-            currentCondominio = condominios.find(c => c.id === condominioId);
-            document.getElementById('currentCondominioBadge').textContent = currentCondominio ? currentCondominio.nome : 'Nenhum condomínio selecionado';
-            // Recarregar conteúdo do módulo atual para refletir o condomínio selecionado
-            loadModuleContent(currentModule);
-            // Recarregar letreiro de lembretes
+
+        async function handleCondominioChange(condominioId) {
+            if (!condominioId) {
+                currentCondominio = null;
+            } else {
+                currentCondominio = condominios.find(c => c.id === condominioId);
+            }
+            const condominioSelectTop = document.getElementById('condominioSelectTop');
+            const currentCondominioBadge = document.getElementById('currentCondominioBadge');
+            if (condominioSelectTop) condominioSelectTop.value = condominioId || '';
+            if (currentCondominioBadge) {
+                currentCondominioBadge.textContent = currentCondominio ? currentCondominio.nome : 'Nenhum condomínio selecionado';
+            }
+            await loadSystemData();
+            if (currentModule) {
+                loadModuleContent(currentModule);
+            }
             loadTickerContent();
+        }
+
+        // Evento de mudança no seletor da top bar
+        document.getElementById('condominioSelectTop').addEventListener('change', function() {
+            handleCondominioChange(this.value);
         });
+
         // ========== FUNÇÕES DE RELATÓRIOS ==========
         function generateReport() {
             const reportType = document.getElementById('reportType').value;
@@ -4550,6 +4787,9 @@ ${onlineUsers.join('\n')}`);
                 case 'limpeza':
                     reportContent = generateLimpezaReport(startDate, endDate);
                     break;
+                case 'horas-extras':
+                    reportContent = generateHorasExtrasReport(startDate, endDate);
+                    break;
                 case 'sauna':
                     reportContent = generateSaunaReport(startDate, endDate);
                     break;
@@ -4559,8 +4799,8 @@ ${onlineUsers.join('\n')}`);
             }
             document.getElementById('reportPreview').innerHTML = reportContent;
         }
+
         function generateAgendamentosReport(startDate, endDate) {
-            // Filtrar agendamentos pelo condomínio selecionado e período
             let filteredAgendamentos = agendamentos.filter(a => 
                 a.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -4587,6 +4827,7 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
         function generateUsuariosReport() {
             let report = `<h4>Relatório de Usuários</h4>`;
             report += `<p>Total de usuários: ${usuarios.length}</p>`;
@@ -4602,8 +4843,8 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
         function generateMoradoresReport() {
-            // Filtrar moradores pelo condomínio selecionado
             const filteredMoradores = currentCondominio ? 
                 moradores.filter(m => m.condominioId === currentCondominio.id) : 
                 moradores;
@@ -4622,8 +4863,8 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
         function generateLimpezaReport(startDate, endDate) {
-            // Filtrar limpezas pelo condomínio selecionado e período
             let filteredLimpezas = limpezas.filter(l => 
                 l.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -4650,8 +4891,37 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
+        function generateHorasExtrasReport(startDate, endDate) {
+            let filteredHorasExtras = horasExtras.filter(h => 
+                h.condominioId === (currentCondominio ? currentCondominio.id : '')
+            );
+            if (startDate) {
+                filteredHorasExtras = filteredHorasExtras.filter(h => h.data >= startDate);
+            }
+            if (endDate) {
+                filteredHorasExtras = filteredHorasExtras.filter(h => h.data <= endDate);
+            }
+            const totalHoras = filteredHorasExtras.reduce((sum, h) => sum + h.quantidade, 0);
+            let report = `<h4>Relatório de Horas Extras</h4>`;
+            report += `<p>Período: ${startDate || 'Início'} a ${endDate || 'Fim'}</p>`;
+            report += `<p>Condomínio: ${currentCondominio ? currentCondominio.nome : 'Todos'}</p>`;
+            report += `<p>Total de registros: ${filteredHorasExtras.length}</p>`;
+            report += `<p>Total de horas: ${totalHoras}</p>`;
+            report += `<div class="report-line"><strong>Data | Funcionário | Matrícula | Quantidade (h) | Condomínio</strong></div>`;
+            filteredHorasExtras.forEach(horaExtra => {
+                report += `<div class="report-line">`;
+                report += `${formatDate(horaExtra.data)} | `;
+                report += `${horaExtra.funcionario} | `;
+                report += `${horaExtra.matricula} | `;
+                report += `${horaExtra.quantidade} | `;
+                report += `${horaExtra.condominioNome}`;
+                report += `</div>`;
+            });
+            return report;
+        }
+
         function generateSaunaReport(startDate, endDate) {
-            // Filtrar saunas pelo condomínio selecionado e período
             let filteredSaunas = saunas.filter(s => 
                 s.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -4678,8 +4948,8 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
         function generateContasReport(startDate, endDate) {
-            // Filtrar contas pelo condomínio selecionado e período
             let filteredContas = contas.filter(c => 
                 c.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
@@ -4707,6 +4977,7 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+
         function exportReport() {
             const reportPreview = document.getElementById('reportPreview').innerText;
             const blob = new Blob([reportPreview], { type: 'text/plain' });
@@ -4719,8 +4990,78 @@ ${onlineUsers.join('\n')}`);
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // ========== FUNÇÕES DE ORDENAÇÃO PARA MORADORES ==========
+        let currentMoradoresSort = { field: 'apto', direction: 'asc' };
+
+        function loadMoradoresTableData(moradoresArray) {
+            const tbody = document.getElementById('moradoresTbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            moradoresArray.forEach(morador => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${morador.nome}</td>
+                    <td>${morador.apto}</td>
+                    <td>${morador.telefone || '-'}</td>
+                    <td>${morador.garagem || '-'}</td>
+                    <td>${morador.vaga || '-'}</td>
+                    <td>${morador.observacoes || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="editMorador('${morador.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteMorador('${morador.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function sortMoradores(field) {
+            if (currentMoradoresSort.field === field) {
+                currentMoradoresSort.direction = currentMoradoresSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentMoradoresSort.field = field;
+                currentMoradoresSort.direction = 'asc';
+            }
+            const filteredMoradores = moradores.filter(m => m.condominioId === currentCondominio.id);
+            const sortedMoradores = filteredMoradores.sort((a, b) => {
+                let valueA = a[field];
+                let valueB = b[field];
+                if (field === 'apto') {
+                    valueA = extractNumberFromApto(valueA);
+                    valueB = extractNumberFromApto(valueB);
+                }
+                if (valueA < valueB) return currentMoradoresSort.direction === 'asc' ? -1 : 1;
+                if (valueA > valueB) return currentMoradoresSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            loadMoradoresTableData(sortedMoradores);
+            updateSortIcons(field);
+        }
+
+        function extractNumberFromApto(apto) {
+            if (!apto) return 0;
+            const match = apto.toString().match(/\d+/);
+            return match ? parseInt(match[0]) : 0;
+        }
+
+        function updateSortIcons(activeField) {
+            document.querySelectorAll('#moradoresTable th i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            const activeHeader = document.querySelector(`#moradoresTable th[onclick="sortMoradores('${activeField}')"] i`);
+            if (activeHeader) {
+                activeHeader.className = currentMoradoresSort.direction === 'asc' 
+                    ? 'fas fa-sort-up' 
+                    : 'fas fa-sort-down';
+            }
+        }
+
         // ========== INICIALIZAÇÃO ==========
-        // Verificar força da senha
         document.getElementById('newPassword')?.addEventListener('input', function() {
             const password = this.value;
             const strengthBar = document.getElementById('passwordStrength');
@@ -4735,16 +5076,14 @@ ${onlineUsers.join('\n')}`);
             else if (strength === 3) strengthBar.className += 'strength-good';
             else if (strength >= 4) strengthBar.className += 'strength-strong';
         });
-    
+
         // --- INJEÇÃO: Controle global de permissão "Pode Excluir" ---
-        // Intercepta cliques em botões de exclusão (btn-danger ou que contenham "Excluir"/"Remover")
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('button, a');
             if (!btn) return;
             const text = (btn.textContent || '').toLowerCase();
             const isDelete = btn.classList.contains('btn-danger') || /excluir|remover|delete|deletar/.test(text);
             if (isDelete) {
-                // Se usuário não tiver permissão, bloqueia ação e mostra alerta
                 if (!currentUser || !currentUser.podeExcluir) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -4754,9 +5093,7 @@ ${onlineUsers.join('\n')}`);
             }
         }, true);
 
-        // Função para atualizar estado (habilitado/desabilitado) de botões de excluir na DOM
         function updateDeleteButtonsState() {
-            // aguarda que currentUser esteja definido
             const canDelete = currentUser && currentUser.podeExcluir;
             document.querySelectorAll('button.btn-danger, a.btn-danger').forEach(btn => {
                 try {
@@ -4764,7 +5101,7 @@ ${onlineUsers.join('\n')}`);
                     if (!canDelete) {
                         btn.classList.add('disabled');
                         btn.style.opacity = '0.6';
-                        btn.style.pointerEvents = 'auto'; // ainda permite que o click seja capturado pelo listener global acima
+                        btn.style.pointerEvents = 'auto';
                     } else {
                         btn.classList.remove('disabled');
                         btn.style.opacity = '';
@@ -4773,25 +5110,20 @@ ${onlineUsers.join('\n')}`);
             });
         }
 
-        // Chamar updateDeleteButtonsState sempre que o layout mudar ou o usuário fizer login
         const observer = new MutationObserver(function() {
             updateDeleteButtonsState();
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
-        // Quando exibimos o sistema principal, atualizamos os botões
         const originalShowMainSystem = showMainSystem;
         showMainSystem = function() {
             originalShowMainSystem.apply(this, arguments);
-            // garantir default do campo podeExcluir se não existir
             if (!currentUser.hasOwnProperty('podeExcluir')) currentUser.podeExcluir = false;
-            // preencher o checkbox no modal de usuário
             const chk = document.getElementById('userPodeExcluir');
             if (chk) chk.checked = !!currentUser.podeExcluir;
             updateDeleteButtonsState();
         };
 
-        // Adiciona persistência do campo 'podeExcluir' ao salvar usuário (substitui/sobrepõe)
         const userForm = document.getElementById('userForm');
         if (userForm) {
             userForm.addEventListener('submit', async function(ev) {
@@ -4804,10 +5136,8 @@ ${onlineUsers.join('\n')}`);
                     const telefone = document.getElementById('userTelefone').value.trim();
                     const tipo = document.getElementById('userTipo').value;
                     const senha = document.getElementById('userSenha').value;
-                    // coletar condomínios permitidos (checkboxes dentro #condominiosPermitidos)
                     const condominiosEls = Array.from(document.querySelectorAll('#condominiosPermitidos input[type="checkbox"]'));
                     const condominiosPermitidos = condominiosEls.filter(i=>i.checked).map(i=>i.value);
-                    // coletar permissoes de módulos (inputs em #permissoesUsuario)
                     const permissoesEls = Array.from(document.querySelectorAll('#permissoesUsuario input[type="checkbox"]'));
                     const permissoes = permissoesEls.filter(i=>i.checked).map(i=>i.value);
                     const podeExcluir = !!document.getElementById('userPodeExcluir').checked;
@@ -4829,7 +5159,6 @@ ${onlineUsers.join('\n')}`);
                         await db.collection('usuarios').add(userData);
                         alert('Usuário criado com sucesso.');
                     }
-                    // fechar modal e recarregar usuários
                     closeUserModal();
                     await loadSystemData();
                     loadUsuariosContent();
@@ -4862,7 +5191,6 @@ ${onlineUsers.join('\n')}`);
                         </table>
                     </div>
                 </div>
-
                 <!-- Modal Ocorrência -->
                 <div id="ocorrenciaModal" class="modal">
                     <div class="modal-content">
@@ -4890,7 +5218,6 @@ ${onlineUsers.join('\n')}`);
                     </div>
                 </div>
             `;
-            // carregar ocorrências do firestore
             const tbody = document.querySelector('#ocorrenciasTable tbody');
             tbody.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
             try {
@@ -4918,6 +5245,7 @@ ${onlineUsers.join('\n')}`);
                 console.error(err);
             }
         }
+
         function openOcorrenciaModal() {
             document.getElementById('ocorrenciaModal').style.display = 'flex';
             document.getElementById('editingOcorrenciaId').value = '';
@@ -4926,7 +5254,9 @@ ${onlineUsers.join('\n')}`);
             document.getElementById('ocorrenciaDescricao').value = '';
             document.getElementById('ocorrenciaStatus').value = 'aberta';
         }
+
         function closeOcorrenciaModal() { document.getElementById('ocorrenciaModal').style.display = 'none'; }
+
         document.addEventListener('submit', async function(e) {
             if (e.target && e.target.id === 'ocorrenciaForm') {
                 e.preventDefault();
@@ -4951,29 +5281,29 @@ ${onlineUsers.join('\n')}`);
                 }
             }
             if (e.target && e.target.id === 'prestadorForm') {
-    e.preventDefault();
-    const id = document.getElementById('editingPrestadorId').value;
-    const doc = {
-        nome: document.getElementById('prestadorNome').value,
-        data: document.getElementById('prestadorData').value,
-        entrada: document.getElementById('prestadorEntrada').value,
-        saida: document.getElementById('prestadorSaida').value,
-        observacoes: document.getElementById('prestadorObservacoes').value,
-        status: document.getElementById('prestadorStatus').value,
-        dataAtualizacao: new Date()
-    };
-    try {
-        if (id) {
-            await db.collection('prestadores').doc(id).update(doc);
-        } else {
-            await db.collection('prestadores').add(doc);
-        }
-        closePrestadorModal();
-        await loadPrestadoresContent();
-    } catch (err) {
-        alert('Erro ao salvar prestador: ' + (err.message || err));
-    }
-}
+                e.preventDefault();
+                const id = document.getElementById('editingPrestadorId').value;
+                const doc = {
+                    nome: document.getElementById('prestadorNome').value,
+                    data: document.getElementById('prestadorData').value,
+                    entrada: document.getElementById('prestadorEntrada').value,
+                    saida: document.getElementById('prestadorSaida').value,
+                    observacoes: document.getElementById('prestadorObservacoes').value,
+                    status: document.getElementById('prestadorStatus').value,
+                    dataAtualizacao: new Date()
+                };
+                try {
+                    if (id) {
+                        await db.collection('prestadores').doc(id).update(doc);
+                    } else {
+                        await db.collection('prestadores').add(doc);
+                    }
+                    closePrestadorModal();
+                    await loadPrestadoresContent();
+                } catch (err) {
+                    alert('Erro ao salvar prestador: ' + (err.message || err));
+                }
+            }
         });
 
         function editOcorrencia(id) {
@@ -4988,6 +5318,7 @@ ${onlineUsers.join('\n')}`);
                 document.getElementById('ocorrenciaModal').style.display = 'flex';
             });
         }
+
         async function safeDeleteOcorrencia(id) {
             if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
             if (!confirm('Confirma exclusão?')) return;
@@ -5017,7 +5348,6 @@ ${onlineUsers.join('\n')}`);
                         </table>
                     </div>
                 </div>
-
                 <!-- Modal Prestador -->
                 <div id="prestadorModal" class="modal">
                     <div class="modal-content">
@@ -5081,7 +5411,6 @@ ${onlineUsers.join('\n')}`);
             document.getElementById('prestadorModal').style.display = 'flex';
             document.getElementById('editingPrestadorId').value = '';
             document.getElementById('prestadorNome').value = '';
-            // set automatic date to today (yyyy-mm-dd)
             const hoje = new Date();
             const yyyy = hoje.getFullYear();
             const mm = String(hoje.getMonth()+1).padStart(2,'0');
@@ -5092,14 +5421,15 @@ ${onlineUsers.join('\n')}`);
             document.getElementById('prestadorObservacoes').value = '';
             document.getElementById('prestadorStatus').value = 'andamento';
         }
+
         function closePrestadorModal() { document.getElementById('prestadorModal').style.display = 'none'; }
+
         function editPrestador(id) {
             db.collection('prestadores').doc(id).get().then(doc => {
                 if (!doc.exists) return alert('Registro não encontrado');
                 const data = doc.data();
                 document.getElementById('editingPrestadorId').value = id;
                 document.getElementById('prestadorNome').value = data.nome || '';
-                // set data field if present
                 if (data.data) {
                     const d = data.data.seconds ? data.data.toDate() : new Date(data.data);
                     const yyyy = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
@@ -5114,6 +5444,7 @@ ${onlineUsers.join('\n')}`);
                 document.getElementById('prestadorModal').style.display = 'flex';
             });
         }
+
         async function safeDeletePrestador(id) {
             if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
             if (!confirm('Confirma exclusão?')) return;
@@ -5121,21 +5452,11 @@ ${onlineUsers.join('\n')}`);
             await loadPrestadoresContent();
         }
 
-                
-       
-        async function safeDeletePrestador(id) {
-            if (!currentUser || !currentUser.podeExcluir) return alert('Você não tem permissão para excluir registros.');
-            if (!confirm('Confirma exclusão?')) return;
-            await db.collection('prestadores').doc(id).delete();
-            await loadPrestadoresContent();
-        }
-
-        // garantir que os botões sejam atualizados após carregar módulos
         const originalLoadModuleContent = loadModuleContent;
         loadModuleContent = function(moduleId) {
             originalLoadModuleContent.apply(this, arguments);
             setTimeout(()=> updateDeleteButtonsState(), 100);
         };
-</script>
+    </script>
 </body>
 </html>
