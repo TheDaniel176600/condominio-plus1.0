@@ -1407,40 +1407,95 @@
             </form>
         </div>
     </div>
-    <!-- Modal para Horas Extras -->
     <div id="horaExtraModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="horaExtraModalTitle">Nova Hora Extra</h3>
-                <button type="button" onclick="closeHoraExtraModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-            </div>
-            <form id="horaExtraForm">
-                <input type="hidden" id="editingHoraExtraId">
-                <div class="form-group">
-                    <label>Funcionário *</label>
-                    <input type="text" class="form-control" id="horaExtraFuncionario" required>
-                </div>
-                <div class="form-group">
-                    <label>Matrícula *</label>
-                    <input type="text" class="form-control" id="horaExtraMatricula" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Data *</label>
-                        <input type="date" class="form-control" id="horaExtraData" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Quantidade (horas) *</label>
-                        <input type="number" class="form-control" id="horaExtraQuantidade" step="0.5" min="0.5" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Salvar Hora Extra</button>
-                    <button type="button" class="btn" onclick="closeHoraExtraModal()">Cancelar</button>
-                </div>
-            </form>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="horaExtraModalTitle">Nova Hora Extra</h3>
+            <button type="button" onclick="closeHoraExtraModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
         </div>
+        <form id="horaExtraForm">
+            <input type="hidden" id="editingHoraExtraId">
+            <div class="form-group">
+                <label>Funcionário *</label>
+                <input type="text" class="form-control" id="horaExtraFuncionario" required>
+            </div>
+            <div class="form-group">
+                <label>Matrícula *</label>
+                <input type="text" class="form-control" id="horaExtraMatricula" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data *</label>
+                    <input type="date" class="form-control" id="horaExtraData" required>
+                </div>
+                <div class="form-group">
+                    <label>Regime de Trabalho *</label>
+                    <select class="form-control" id="horaExtraRegime" required onchange="atualizarHorariosRegime()">
+                        <option value="">Selecione o regime...</option>
+                        <option value="12-36">12/36 (7h às 19h)</option>
+                        <option value="8h">8h (8h às 17:48h)</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="permission-item">
+                    <input type="checkbox" id="trabalhoFolga" onchange="calcularHorasExtras()">
+                    <label for="trabalhoFolga" style="font-weight: bold; color: #e74c3c;">
+                        <i class="fas fa-calendar-day"></i> Trabalho em Dia de Folga (100% horas extras)
+                    </label>
+                </div>
+                <small class="text-muted">Quando marcado, todo o período trabalhado é considerado hora extra</small>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Entrada Real *</label>
+                    <input type="time" class="form-control" id="horaExtraEntrada" required onchange="calcularHorasExtras()">
+                </div>
+                <div class="form-group">
+                    <label>Saída Intervalo</label>
+                    <input type="time" class="form-control" id="horaExtraSaidaIntervalo" onchange="calcularHorasExtras()">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Volta Intervalo</label>
+                    <input type="time" class="form-control" id="horaExtraVoltaIntervalo" onchange="calcularHorasExtras()">
+                </div>
+                <div class="form-group">
+                    <label>Saída Real *</label>
+                    <input type="time" class="form-control" id="horaExtraSaida" required onchange="calcularHorasExtras()">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Horas Extras Calculadas</label>
+                <input type="text" class="form-control" id="horaExtraCalculada" readonly style="background-color: #f8f9fa; font-weight: bold; font-size: 16px;">
+                <small class="text-muted" id="detalhesCalculo"></small>
+            </div>
+            
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea class="form-control" id="horaExtraObservacoes" rows="2"></textarea>
+            </div>
+            
+            <input type="hidden" id="horaExtraQuantidade">
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" onclick="calcularHorasExtras()">
+                    <i class="fas fa-calculator"></i> Recalcular
+                </button>
+                <button type="submit" class="btn btn-primary">Salvar Hora Extra</button>
+                <button type="button" class="btn btn-secondary" onclick="closeHoraExtraModal()">Cancelar</button>
+            </div>
+        </form>
     </div>
+</div>
+`
     <!-- Modal para Limpeza -->
     <div id="limpezaModal" class="modal">
         <div class="modal-content">
@@ -1590,16 +1645,17 @@
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
             { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
             { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
-            { id: 'horas-extras', name: 'Horas Extras', icon: 'fas fa-clock' },
-            { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
+            { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
+            { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
             { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
             { id: 'limpeza', name: 'Limpeza', icon: 'fas fa-broom' },
             { id: 'sauna', name: 'Sauna', icon: 'fas fa-hot-tub' },
+            { id: 'horas-extras', name: 'Horas Extras', icon: 'fas fa-clock' },
+            { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },            
             { id: 'contas', name: 'Contas a Pagar', icon: 'fas fa-file-invoice-dollar' },
             { id: 'lembretes', name: 'Lembretes', icon: 'fas fa-bell' },
             { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' },
-            { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
-            { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
+            
         ];
         // Estado da aplicação
         let currentUser = null;
@@ -1651,6 +1707,230 @@
                 showLoginPage();
             }
         }
+// ========== FUNÇÕES DE CÁLCULO DE HORAS EXTRAS ==========
+
+function atualizarHorariosRegime() {
+    const regime = document.getElementById('horaExtraRegime').value;
+    const hoje = document.getElementById('horaExtraData').value || getCurrentDate();
+    
+    switch(regime) {
+        case '12-36':
+            document.getElementById('horaExtraEntrada').value = '07:00';
+            document.getElementById('horaExtraSaidaIntervalo').value = '12:00';
+            document.getElementById('horaExtraVoltaIntervalo').value = '13:00';
+            document.getElementById('horaExtraSaida').value = '19:00';
+            break;
+        case '8h':
+            document.getElementById('horaExtraEntrada').value = '08:00';
+            document.getElementById('horaExtraSaidaIntervalo').value = '12:00';
+            document.getElementById('horaExtraVoltaIntervalo').value = '13:00';
+            document.getElementById('horaExtraSaida').value = '17:48';
+            break;
+        case 'personalizado':
+            // Limpa os campos para preenchimento manual
+            document.getElementById('horaExtraEntrada').value = '';
+            document.getElementById('horaExtraSaidaIntervalo').value = '';
+            document.getElementById('horaExtraVoltaIntervalo').value = '';
+            document.getElementById('horaExtraSaida').value = '';
+            break;
+    }
+    
+    calcularHorasExtras();
+}
+
+function calcularHorasExtras() {
+    const regime = document.getElementById('horaExtraRegime').value;
+    const entradaReal = document.getElementById('horaExtraEntrada').value;
+    const saidaIntervalo = document.getElementById('horaExtraSaidaIntervalo').value;
+    const voltaIntervalo = document.getElementById('horaExtraVoltaIntervalo').value;
+    const saidaReal = document.getElementById('horaExtraSaida').value;
+    const trabalhoFolga = document.getElementById('trabalhoFolga').checked;
+    
+    if (!entradaReal || !saidaReal || !regime) {
+        document.getElementById('horaExtraCalculada').value = 'Preencha todos os campos';
+        return;
+    }
+// ========== FUNÇÃO DE CÁLCULO DETALHADO DE HORAS EXTRAS ==========
+function calcularHorasExtrasDetalhado(entradaReal, saidaReal, saidaIntervaloReal, voltaIntervaloReal, 
+                                     entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual) {
+    
+    function toMinutes(timeStr) {
+        if (!timeStr) return 0;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+    
+    function toHours(minutos) {
+        return minutos / 60;
+    }
+    
+    const entReal = toMinutes(entradaReal);
+    const saiReal = toMinutes(saidaReal);
+    const saiIntReal = toMinutes(saidaIntervaloReal);
+    const voltIntReal = toMinutes(voltaIntervaloReal);
+    const entContr = toMinutes(entradaContratual);
+    const saiContr = toMinutes(saidaContratual);
+    const saiIntContr = toMinutes(saidaIntervaloContratual);
+    const voltIntContr = toMinutes(voltaIntervaloContratual);
+    
+    let horasExtras = {
+        antesExpediente: 0,
+        intervaloSuprimido: 0,
+        aposExpediente: 0,
+        total: 0
+    };
+    
+    // REGIME 12/36 (7h-19h)
+    if (saidaContratual === '19:00') {
+        // 1. Horas extras antes do expediente
+        if (entReal < entContr) {
+            horasExtras.antesExpediente = toHours(entContr - entReal);
+        }
+        
+        // 2. Horas extras no intervalo
+        if (saiIntReal && voltIntReal) {
+            const intervaloReal = voltIntReal - saiIntReal;
+            const intervaloContratual = 60; // 1 hora de almoço
+            
+            if (intervaloReal < intervaloContratual) {
+                horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
+            }
+        }
+        
+        // 3. Horas extras após o expediente
+        if (saiReal > saiContr) {
+            horasExtras.aposExpediente = toHours(saiReal - saiContr);
+        }
+    }
+    
+    // REGIME 8h (8h-17:48)
+    else if (saidaContratual === '17:48') {
+        // No regime de 8h, a jornada contratual é das 8h às 17:48
+        // Isso inclui 8h de trabalho + 48min de horas extras habituais
+        
+        // 1. Horas extras antes das 8h
+        if (entReal < toMinutes('08:00')) {
+            horasExtras.antesExpediente = toHours(toMinutes('08:00') - entReal);
+        }
+        
+        // 2. Horas extras no intervalo de almoço
+        if (saiIntReal && voltIntReal) {
+            const intervaloReal = voltIntReal - saiIntReal;
+            const intervaloContratual = 60; // 1 hora de almoço
+            
+            if (intervaloReal < intervaloContratual) {
+                horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
+            }
+        }
+        
+        // 3. Horas extras APÓS as 17:48 (apenas o que passar disso é hora extra)
+        if (saiReal > toMinutes('17:48')) {
+            horasExtras.aposExpediente = toHours(saiReal - toMinutes('17:48'));
+        }
+        
+        // IMPORTANTE: O período das 17:00 às 17:48 já está incluído na jornada normal
+        // do regime de 8h, portanto NÃO conta como hora extra
+    }
+    
+    // REGIME PERSONALIZADO
+    else {
+        // Cálculo genérico para regime personalizado
+        if (entReal < entContr) {
+            horasExtras.antesExpediente = toHours(entContr - entReal);
+        }
+        
+        if (saiIntReal && voltIntReal) {
+            const intervaloReal = voltIntReal - saiIntReal;
+            const intervaloContratual = 60;
+            
+            if (intervaloReal < intervaloContratual) {
+                horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
+            }
+        }
+        
+        if (saiReal > saiContr) {
+            horasExtras.aposExpediente = toHours(saiReal - saiContr);
+        }
+    }
+    
+    horasExtras.total = horasExtras.antesExpediente + horasExtras.intervaloSuprimido + horasExtras.aposExpediente;
+    
+    return horasExtras;
+}
+    
+    // TRABALHO NA FOLGA - cálculo simplificado (todo período é extra)
+    if (trabalhoFolga) {
+        const horasTrabalhadas = calcularDiferencaHoras(entradaReal, saidaReal);
+        
+        // Subtrair intervalo se informado
+        let intervalo = 0;
+        if (saidaIntervalo && voltaIntervalo) {
+            intervalo = calcularDiferencaHoras(saidaIntervalo, voltaIntervalo);
+        }
+        
+        const horasExtrasTotal = horasTrabalhadas - intervalo;
+        
+        document.getElementById('horaExtraCalculada').value = `${horasExtrasTotal.toFixed(2)} horas (100% extra - Folga)`;
+        document.getElementById('horaExtraQuantidade').value = horasExtrasTotal;
+        document.getElementById('detalhesCalculo').textContent = `Trabalho em folga: ${horasTrabalhadas.toFixed(2)}h trabalhadas - ${intervalo.toFixed(2)}h intervalo`;
+        return;
+    }
+    
+    // CÁLCULO NORMAL (dia de trabalho)
+    let entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual;
+    
+    switch(regime) {
+        case '12-36':
+            entradaContratual = '07:00';
+            saidaContratual = '19:00';
+            saidaIntervaloContratual = '12:00';
+            voltaIntervaloContratual = '13:00';
+            break;
+        case '8h':
+            entradaContratual = '08:00';
+            saidaContratual = '17:48'; // 8h48min de trabalho (8h + 48min)
+            saidaIntervaloContratual = '12:00';
+            voltaIntervaloContratual = '13:00';
+            break;
+        case 'personalizado':
+            entradaContratual = '08:00';
+            saidaContratual = '17:00';
+            saidaIntervaloContratual = '12:00';
+            voltaIntervaloContratual = '13:00';
+            break;
+    }
+    
+    const horasExtras = calcularHorasExtrasDetalhado(
+        entradaReal, saidaReal, saidaIntervalo, voltaIntervalo,
+        entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual
+    );
+    
+    document.getElementById('horaExtraCalculada').value = `${horasExtras.total.toFixed(2)} horas`;
+    document.getElementById('horaExtraQuantidade').value = horasExtras.total;
+    
+    let detalhes = [];
+    if (horasExtras.antesExpediente > 0) detalhes.push(`Antes: ${horasExtras.antesExpediente.toFixed(2)}h`);
+    if (horasExtras.intervaloSuprimido > 0) detalhes.push(`Intervalo: ${horasExtras.intervaloSuprimido.toFixed(2)}h`);
+    if (horasExtras.aposExpediente > 0) detalhes.push(`Após: ${horasExtras.aposExpediente.toFixed(2)}h`);
+    
+    document.getElementById('detalhesCalculo').textContent = detalhes.join(' | ');
+}
+
+// Função auxiliar para calcular diferença entre horários
+function calcularDiferencaHoras(horario1, horario2) {
+    const [h1, m1] = horario1.split(':').map(Number);
+    const [h2, m2] = horario2.split(':').map(Number);
+    
+    const totalMinutos1 = h1 * 60 + m1;
+    const totalMinutos2 = h2 * 60 + m2;
+    
+    // Se o horário2 for menor que horário1, assumir que é do dia seguinte
+    const diferencaMinutos = totalMinutos2 >= totalMinutos1 
+        ? totalMinutos2 - totalMinutos1 
+        : (1440 - totalMinutos1) + totalMinutos2; // 1440 = minutos em 24h
+    
+    return diferencaMinutos / 60;
+}
         // Verificar conexão com Firebase
         function checkFirebaseConnection() {
             const connectionDot = document.getElementById('loginConnectionDot');
@@ -1691,61 +1971,90 @@
             loadTickerContent();
         }
         // ========== FUNÇÕES DE HORAS EXTRAS ==========
-        function openHoraExtraModal() {
-            document.getElementById('horaExtraModalTitle').textContent = 'Nova Hora Extra';
-            document.getElementById('editingHoraExtraId').value = '';
-            document.getElementById('horaExtraForm').reset();
-            document.getElementById('horaExtraData').value = getCurrentDate();
-            document.getElementById('horaExtraModal').style.display = 'flex';
-        }
-        function closeHoraExtraModal() {
-            document.getElementById('horaExtraModal').style.display = 'none';
-        }
+    function openHoraExtraModal() {
+    document.getElementById('horaExtraModalTitle').textContent = 'Nova Hora Extra';
+    document.getElementById('editingHoraExtraId').value = '';
+    document.getElementById('horaExtraForm').reset();
+    document.getElementById('horaExtraData').value = getCurrentDate();
+    
+    // Reset dos campos
+    document.getElementById('horaExtraEntrada').value = '';
+    document.getElementById('horaExtraSaidaIntervalo').value = '';
+    document.getElementById('horaExtraVoltaIntervalo').value = '';
+    document.getElementById('horaExtraSaida').value = '';
+    document.getElementById('horaExtraCalculada').value = '';
+    document.getElementById('trabalhoFolga').checked = false;
+    
+    document.getElementById('horaExtraModal').style.display = 'flex';
+}
         function editHoraExtra(id) {
-            const horaExtra = horasExtras.find(h => h.id === id);
-            if (!horaExtra) return;
-            document.getElementById('horaExtraModalTitle').textContent = 'Editar Hora Extra';
-            document.getElementById('editingHoraExtraId').value = horaExtra.id;
-            document.getElementById('horaExtraFuncionario').value = horaExtra.funcionario;
-            document.getElementById('horaExtraMatricula').value = horaExtra.matricula;
-            document.getElementById('horaExtraData').value = horaExtra.data;
-            document.getElementById('horaExtraQuantidade').value = horaExtra.quantidade;
-            document.getElementById('horaExtraModal').style.display = 'flex';
-        }
+    const horaExtra = horasExtras.find(h => h.id === id);
+    if (!horaExtra) return;
+    
+    document.getElementById('horaExtraModalTitle').textContent = 'Editar Hora Extra';
+    document.getElementById('editingHoraExtraId').value = horaExtra.id;
+    document.getElementById('horaExtraFuncionario').value = horaExtra.funcionario;
+    document.getElementById('horaExtraMatricula').value = horaExtra.matricula;
+    document.getElementById('horaExtraData').value = horaExtra.data;
+    document.getElementById('horaExtraRegime').value = horaExtra.regime || '12-36';
+    document.getElementById('horaExtraEntrada').value = horaExtra.entradaReal || '';
+    document.getElementById('horaExtraSaidaIntervalo').value = horaExtra.saidaIntervalo || '';
+    document.getElementById('horaExtraVoltaIntervalo').value = horaExtra.voltaIntervalo || '';
+    document.getElementById('horaExtraSaida').value = horaExtra.saidaReal || '';
+    document.getElementById('horaExtraObservacoes').value = horaExtra.observacoes || '';
+    
+    // Recalcular horas extras para exibir
+    setTimeout(() => {
+        calcularHorasExtras();
+    }, 100);
+    
+    document.getElementById('horaExtraModal').style.display = 'flex';
+}
         document.getElementById('horaExtraForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!currentCondominio) {
-                alert('Selecione um condomínio primeiro!');
-                return;
-            }
-            const editingId = document.getElementById('editingHoraExtraId').value;
-            const horaExtraData = {
-                funcionario: document.getElementById('horaExtraFuncionario').value,
-                matricula: document.getElementById('horaExtraMatricula').value,
-                data: document.getElementById('horaExtraData').value,
-                quantidade: parseFloat(document.getElementById('horaExtraQuantidade').value),
-                condominioId: currentCondominio.id,
-                condominioNome: currentCondominio.nome,
-                criadoPor: currentUser.id || currentUser.usuario,
-                criadoEm: new Date().toISOString()
-            };
-            try {
-                if (editingId) {
-                    await db.collection('horasExtras').doc(editingId).update(horaExtraData);
-                } else {
-                    await db.collection('horasExtras').add(horaExtraData);
-                }
-                await loadSystemData();
-                closeHoraExtraModal();
-                if (currentModule === 'horas-extras') {
-                    loadHorasExtrasContent();
-                }
-                alert('Hora extra salva com sucesso!');
-            } catch (error) {
-                console.error('Erro ao salvar hora extra:', error);
-                alert('Erro ao salvar hora extra. Tente novamente.');
-            }
-        });
+    e.preventDefault();
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+    
+    const editingId = document.getElementById('editingHoraExtraId').value;
+    const horaExtraData = {
+        funcionario: document.getElementById('horaExtraFuncionario').value,
+        matricula: document.getElementById('horaExtraMatricula').value,
+        data: document.getElementById('horaExtraData').value,
+        regime: document.getElementById('horaExtraRegime').value,
+        entradaReal: document.getElementById('horaExtraEntrada').value,
+        saidaIntervalo: document.getElementById('horaExtraSaidaIntervalo').value,
+        voltaIntervalo: document.getElementById('horaExtraVoltaIntervalo').value,
+        saidaReal: document.getElementById('horaExtraSaida').value,
+        quantidade: parseFloat(document.getElementById('horaExtraQuantidade').value) || 0,
+        observacoes: document.getElementById('horaExtraObservacoes').value,
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        criadoPor: currentUser.id || currentUser.usuario,
+        criadoEm: new Date().toISOString()
+    };
+    
+    try {
+        if (editingId) {
+            await db.collection('horasExtras').doc(editingId).update(horaExtraData);
+        } else {
+            await db.collection('horasExtras').add(horaExtraData);
+        }
+        await loadSystemData();
+        closeHoraExtraModal();
+        if (currentModule === 'horas-extras') {
+            loadHorasExtrasContent();
+        }
+        alert('Hora extra salva com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar hora extra:', error);
+        alert('Erro ao salvar hora extra. Tente novamente.');
+    }
+});
+function closeHoraExtraModal() {
+    document.getElementById('horaExtraModal').style.display = 'none';
+}
         async function deleteHoraExtra(id) {
             if (!podeExcluirRegistros()) {
                 alert('Somente síndico ou subsíndico podem excluir registros.');
@@ -2162,11 +2471,12 @@
             }).length;
             const hoje = new Date();
             const alertaContas = filteredContas.filter(conta => {
-                if (conta.status === 'pago') return false;
-                const vencimento = new Date(conta.vencimento);
-                const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-                return diferencaDias <= 4 && diferencaDias >= 0;
-            });
+    if (conta.status === 'pago') return false;
+    const vencimento = new Date(conta.vencimento);
+    const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+    // Mostra contas que venceram nos últimos 4 dias OU que estão vencidas
+    return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
+});
             const lembretesProximos = filteredLembretes.filter(lembrete => {
                 const dataInicio = new Date(lembrete.dataInicio);
                 const dataFim = lembrete.dataFim ? new Date(lembrete.dataFim) : dataInicio;
@@ -2273,15 +2583,30 @@
                             </div>
                         ` : ''}
 ${(currentUser.permissoes && 
-                          (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) && 
-                          alertaContas.length > 0 ? `
-                            <div class="dashboard-alerts">
-                                <div class="alert alert-warning">
-                                    <h4><i class="fas fa-exclamation-triangle"></i> Contas Próximas do Vencimento</h4>
-                                    <p>Você tem ${alertaContas.length} conta(s) que vence(m) em até 4 dias.</p>
-                                </div>
-                            </div>
-                        ` : ''}
+  (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) && 
+  alertaContas.length > 0 ? `
+    <div class="dashboard-alerts">
+        <div class="alert alert-warning">
+            <h4><i class="fas fa-exclamation-triangle"></i> Contas em Aberto</h4>
+            <p>
+                Você tem ${alertaContas.length} conta(s) em aberto:
+                ${(() => {
+                    const hoje = new Date();
+                    const vencidas = alertaContas.filter(conta => {
+                        const vencimento = new Date(conta.vencimento);
+                        return vencimento < hoje;
+                    }).length;
+                    const proximas = alertaContas.filter(conta => {
+                        const vencimento = new Date(conta.vencimento);
+                        const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+                        return diferencaDias >= 0 && diferencaDias <= 4;
+                    }).length;
+                    return `${vencidas} vencida(s) e ${proximas} próxima(s) do vencimento`;
+                })()}
+            </p>
+        </div>
+    </div>
+` : ''}
 ${(currentUser.permissoes && 
   (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
 <div class="card">
@@ -2755,6 +3080,7 @@ ${(currentUser.permissoes &&
                             <div class="form-group">
                                 <label>Filtrar por Funcionário</label>
                                 <input type="text" class="form-control" id="filtroFuncionario" onkeyup="filterHorasExtras()" placeholder="Digite o nome do funcionário">
+                                <input type="hidden" id="horaExtraQuantidade">
                             </div>
                             <div class="form-group">
                                 <label>Filtrar por Data</label>
@@ -2771,27 +3097,41 @@ ${(currentUser.permissoes &&
                                     <th>Condomínio</th>
                                     <th>Ações</th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredHorasExtras.map(horaExtra => `
-                                    <tr>
-                                        <td>${horaExtra.funcionario}</td>
-                                        <td>${horaExtra.matricula}</td>
-                                        <td>${formatDate(horaExtra.data)}</td>
-                                        <td>${horaExtra.quantidade}</td>
-                                        <td>${horaExtra.condominioNome}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            ${podeExcluirRegistros() ? `
-                                            <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
+                            // Na tabela, adicione estas colunas:
+<thead>
+    <tr>
+        <th>Funcionário</th>
+        <th>Matrícula</th>
+        <th>Data</th>
+        <th>Regime</th>
+        <th>Horário</th>
+        <th>Horas Extras</th>
+        <th>Condomínio</th>
+        <th>Ações</th>
+    </tr>
+</thead>
+<tbody>
+    ${filteredHorasExtras.map(horaExtra => `
+        <tr>
+            <td>${horaExtra.funcionario}</td>
+            <td>${horaExtra.matricula}</td>
+            <td>${formatDate(horaExtra.data)}</td>
+            <td>${horaExtra.regime === '12-36' ? '12/36' : horaExtra.regime === '8h' ? '8h' : 'Personalizado'}</td>
+            <td>${horaExtra.entradaReal || ''} - ${horaExtra.saidaReal || ''}</td>
+            <td>${horaExtra.quantidade ? horaExtra.quantidade.toFixed(2) + 'h' : '0h'}</td>
+            <td>${horaExtra.condominioNome}</td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${podeExcluirRegistros() ? `
+                <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+            </td>
+        </tr>
+    `).join('')}
+</tbody>
                         </table>
                     </div>
                 </div>
