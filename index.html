@@ -45,7 +45,6 @@
     position: relative;
     overflow: hidden;
 }
-
 .stat-card-modern::before {
     content: '';
     position: absolute;
@@ -55,42 +54,35 @@
     height: 4px;
     background: rgba(255,255,255,0.3);
 }
-
 .stat-card-modern:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
 }
-
 .stat-card-header {
     margin-bottom: 15px;
 }
-
 .stat-card-modern h3 {
     font-size: 1em;
     margin: 0;
     font-weight: 600;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-
 .stat-card-content {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-
 .stat-value {
     font-size: 2.2em;
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     line-height: 1;
 }
-
 .stat-label {
     font-size: 0.85em;
     opacity: 0.9;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
 /* Efeito de brilho suave */
 .stat-card-modern::after {
     content: '';
@@ -109,17 +101,14 @@
     transition: all 0.5s ease;
     opacity: 0;
 }
-
 .stat-card-modern:hover::after {
     opacity: 1;
     animation: shine 1.5s ease-in-out;
 }
-
 @keyframes shine {
     0% { transform: rotate(45deg) translateX(-100%); }
     100% { transform: rotate(45deg) translateX(100%); }
 }
-
 .stats-container {
     display: flex;
     flex-wrap: wrap;
@@ -869,7 +858,7 @@
             border: 1px solid #b3d9ff;
             color: #004085;
         }
-        .reminder-item, .conta-item {
+        .reminder-item, .conta-item, .compra-item {
             padding: 12px 15px;
             border-left: 4px solid var(--secondary-color);
             background: white;
@@ -877,29 +866,29 @@
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .reminder-item.urgent, .conta-item.urgent {
+        .reminder-item.urgent, .conta-item.urgent, .compra-item.urgent {
             border-left-color: var(--accent-color);
             background-color: #fff5f5;
         }
-        .reminder-item.warning, .conta-item.warning {
+        .reminder-item.warning, .conta-item.warning, .compra-item.warning {
             border-left-color: var(--warning-color);
             background-color: #fffbf0;
         }
-        .reminder-header, .conta-header {
+        .reminder-header, .conta-header, .compra-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 5px;
         }
-        .reminder-title, .conta-title {
+        .reminder-title, .conta-title, .compra-title {
             font-weight: 600;
             color: var(--primary-color);
         }
-        .reminder-date, .conta-date {
+        .reminder-date, .conta-date, .compra-date {
             font-size: 12px;
             color: #666;
         }
-        .reminder-actions, .conta-actions {
+        .reminder-actions, .conta-actions, .compra-actions {
             display: flex;
             gap: 5px;
             margin-top: 8px;
@@ -917,6 +906,9 @@
         .status-pendente { background-color: #95a5a6; color: white; }
         .status-pago { background-color: #2ecc71; color: white; }
         .status-atrasado { background-color: #e74c3c; color: white; }
+        .status-em-andamento { background-color: #f39c12; color: white; }
+        .status-concluido { background-color: #2ecc71; color: white; }
+        .status-adaptado { background-color: #9b59b6; color: white; }
         .dashboard-alerts {
             margin-bottom: 20px;
         }
@@ -966,6 +958,55 @@
             background-color: #2ecc71;
             box-shadow: 0 0 6px #2ecc71;
             animation: pulse 2s infinite;
+        }
+        /* Estilo para o modal de compras */
+        .compras-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .compras-item:last-child {
+            border-bottom: none;
+        }
+        .compras-item .item-info {
+            flex: 1;
+        }
+        .compras-item .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .compras-item .item-actions button {
+            padding: 3px 6px;
+            font-size: 12px;
+        }
+        .add-item-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .add-item-btn:hover {
+            background-color: #27ae60;
+        }
+        .item-total {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .compra-itens-lista {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .compra-itens-lista .compras-item {
+            padding: 6px 0;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -1423,7 +1464,6 @@
                 <label>Matrícula *</label>
                 <input type="text" class="form-control" id="horaExtraMatricula" required>
             </div>
-            
             <div class="form-row">
                 <div class="form-group">
                     <label>Data *</label>
@@ -1439,7 +1479,6 @@
                     </select>
                 </div>
             </div>
-
             <div class="form-group">
                 <div class="permission-item">
                     <input type="checkbox" id="trabalhoFolga" onchange="calcularHorasExtras()">
@@ -1449,7 +1488,6 @@
                 </div>
                 <small class="text-muted">Quando marcado, todo o período trabalhado é considerado hora extra</small>
             </div>
-            
             <div class="form-row">
                 <div class="form-group">
                     <label>Entrada Real *</label>
@@ -1460,7 +1498,6 @@
                     <input type="time" class="form-control" id="horaExtraSaidaIntervalo" onchange="calcularHorasExtras()">
                 </div>
             </div>
-            
             <div class="form-row">
                 <div class="form-group">
                     <label>Volta Intervalo</label>
@@ -1471,20 +1508,16 @@
                     <input type="time" class="form-control" id="horaExtraSaida" required onchange="calcularHorasExtras()">
                 </div>
             </div>
-            
             <div class="form-group">
                 <label>Horas Extras Calculadas</label>
                 <input type="text" class="form-control" id="horaExtraCalculada" readonly style="background-color: #f8f9fa; font-weight: bold; font-size: 16px;">
                 <small class="text-muted" id="detalhesCalculo"></small>
             </div>
-            
             <div class="form-group">
                 <label>Observações</label>
                 <textarea class="form-control" id="horaExtraObservacoes" rows="2"></textarea>
             </div>
-            
             <input type="hidden" id="horaExtraQuantidade">
-            
             <div class="modal-footer">
                 <button type="button" class="btn btn-info" onclick="calcularHorasExtras()">
                     <i class="fas fa-calculator"></i> Recalcular
@@ -1495,7 +1528,6 @@
         </form>
     </div>
 </div>
-`
     <!-- Modal para Limpeza -->
     <div id="limpezaModal" class="modal">
         <div class="modal-content">
@@ -1625,6 +1657,58 @@
             </form>
         </div>
     </div>
+    <!-- Modal para Compras -->
+    <div id="compraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="compraModalTitle">Nova Compra</h3>
+                <button type="button" onclick="closeCompraModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <form id="compraForm">
+                <input type="hidden" id="editingCompraId">
+                <div class="form-group">
+                    <label>Fornecedor *</label>
+                    <input type="text" class="form-control" id="compraFornecedor" required>
+                </div>
+                <div class="form-group">
+                    <label>Data da Fatura *</label>
+                    <input type="date" class="form-control" id="compraDataFatura" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição Geral</label>
+                    <textarea class="form-control" id="compraDescricaoGeral" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Itens da Compra</label>
+                    <div class="form-row">
+                        <input type="text" class="form-control" id="novoItemNome" placeholder="Nome do Item">
+                        <input type="number" class="form-control" id="novoItemQuantidade" placeholder="Qtd" style="width: 80px;">
+                        <input type="number" class="form-control" id="novoItemValor" placeholder="Valor Unitário" step="0.01" style="width: 120px;">
+                    </div>
+                    <button type="button" class="add-item-btn" onclick="adicionarItemCompra()">+ Adicionar Item</button>
+                </div>
+                <div class="form-group">
+                    <div class="compra-itens-lista" id="compraItensLista">
+                        <!-- Itens serão adicionados aqui -->
+                    </div>
+                    <div class="item-total" id="compraTotalDisplay">Total: R$ 0.00</div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-control" id="compraStatus">
+                        <option value="pendente">Pendente</option>
+                        <option value="recebido">Recebido</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Compra</button>
+                    <button type="button" class="btn" onclick="closeCompraModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
@@ -1642,20 +1726,20 @@
         const db = firebase.firestore();
         // Módulos do sistema
         const modules = [
-            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
-            { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
-            { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
+            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },                       
             { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
             { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
             { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
             { id: 'limpeza', name: 'Limpeza', icon: 'fas fa-broom' },
             { id: 'sauna', name: 'Sauna', icon: 'fas fa-hot-tub' },
-            { id: 'horas-extras', name: 'Horas Extras', icon: 'fas fa-clock' },
-            { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },            
+            { id: 'horas-extras', name: 'Horas Extras', icon: 'fas fa-clock' },            
+            { id: 'compras', name: 'Compras', icon: 'fas fa-shopping-cart' }, // <-- Novo Módulo
             { id: 'contas', name: 'Contas a Pagar', icon: 'fas fa-file-invoice-dollar' },
             { id: 'lembretes', name: 'Lembretes', icon: 'fas fa-bell' },
+            { id: 'condominios', name: 'Condomínios', icon: 'fas fa-building' },
             { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' },
-            
+            { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
+            { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
         ];
         // Estado da aplicação
         let currentUser = null;
@@ -1669,6 +1753,7 @@
         let saunas = [];
         let contas = [];
         let lembretes = [];
+        let compras = []; // <-- Novo Array
         let currentModule = 'dashboard';
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
@@ -1679,7 +1764,6 @@
         function podeExcluirRegistros() {
             return currentUser && (currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico');
         }
-
         // Inicializar a aplicação
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
@@ -1708,11 +1792,9 @@
             }
         }
 // ========== FUNÇÕES DE CÁLCULO DE HORAS EXTRAS ==========
-
 function atualizarHorariosRegime() {
     const regime = document.getElementById('horaExtraRegime').value;
     const hoje = document.getElementById('horaExtraData').value || getCurrentDate();
-    
     switch(regime) {
         case '12-36':
             document.getElementById('horaExtraEntrada').value = '07:00';
@@ -1734,10 +1816,8 @@ function atualizarHorariosRegime() {
             document.getElementById('horaExtraSaida').value = '';
             break;
     }
-    
     calcularHorasExtras();
 }
-
 function calcularHorasExtras() {
     const regime = document.getElementById('horaExtraRegime').value;
     const entradaReal = document.getElementById('horaExtraEntrada').value;
@@ -1745,25 +1825,21 @@ function calcularHorasExtras() {
     const voltaIntervalo = document.getElementById('horaExtraVoltaIntervalo').value;
     const saidaReal = document.getElementById('horaExtraSaida').value;
     const trabalhoFolga = document.getElementById('trabalhoFolga').checked;
-    
     if (!entradaReal || !saidaReal || !regime) {
         document.getElementById('horaExtraCalculada').value = 'Preencha todos os campos';
         return;
     }
 // ========== FUNÇÃO DE CÁLCULO DETALHADO DE HORAS EXTRAS ==========
-function calcularHorasExtrasDetalhado(entradaReal, saidaReal, saidaIntervaloReal, voltaIntervaloReal, 
+function calcularHorasExtrasDetalhado(entradaReal, saidaReal, saidaIntervaloReal, voltaIntervaloReal,
                                      entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual) {
-    
     function toMinutes(timeStr) {
         if (!timeStr) return 0;
         const [hours, minutes] = timeStr.split(':').map(Number);
         return hours * 60 + minutes;
     }
-    
     function toHours(minutos) {
         return minutos / 60;
     }
-    
     const entReal = toMinutes(entradaReal);
     const saiReal = toMinutes(saidaReal);
     const saiIntReal = toMinutes(saidaIntervaloReal);
@@ -1772,113 +1848,90 @@ function calcularHorasExtrasDetalhado(entradaReal, saidaReal, saidaIntervaloReal
     const saiContr = toMinutes(saidaContratual);
     const saiIntContr = toMinutes(saidaIntervaloContratual);
     const voltIntContr = toMinutes(voltaIntervaloContratual);
-    
     let horasExtras = {
         antesExpediente: 0,
         intervaloSuprimido: 0,
         aposExpediente: 0,
         total: 0
     };
-    
     // REGIME 12/36 (7h-19h)
     if (saidaContratual === '19:00') {
         // 1. Horas extras antes do expediente
         if (entReal < entContr) {
             horasExtras.antesExpediente = toHours(entContr - entReal);
         }
-        
         // 2. Horas extras no intervalo
         if (saiIntReal && voltIntReal) {
             const intervaloReal = voltIntReal - saiIntReal;
             const intervaloContratual = 60; // 1 hora de almoço
-            
             if (intervaloReal < intervaloContratual) {
                 horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
             }
         }
-        
         // 3. Horas extras após o expediente
         if (saiReal > saiContr) {
             horasExtras.aposExpediente = toHours(saiReal - saiContr);
         }
     }
-    
     // REGIME 8h (8h-17:48)
     else if (saidaContratual === '17:48') {
         // No regime de 8h, a jornada contratual é das 8h às 17:48
         // Isso inclui 8h de trabalho + 48min de horas extras habituais
-        
         // 1. Horas extras antes das 8h
         if (entReal < toMinutes('08:00')) {
             horasExtras.antesExpediente = toHours(toMinutes('08:00') - entReal);
         }
-        
         // 2. Horas extras no intervalo de almoço
         if (saiIntReal && voltIntReal) {
             const intervaloReal = voltIntReal - saiIntReal;
             const intervaloContratual = 60; // 1 hora de almoço
-            
             if (intervaloReal < intervaloContratual) {
                 horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
             }
         }
-        
         // 3. Horas extras APÓS as 17:48 (apenas o que passar disso é hora extra)
         if (saiReal > toMinutes('17:48')) {
             horasExtras.aposExpediente = toHours(saiReal - toMinutes('17:48'));
         }
-        
         // IMPORTANTE: O período das 17:00 às 17:48 já está incluído na jornada normal
         // do regime de 8h, portanto NÃO conta como hora extra
     }
-    
     // REGIME PERSONALIZADO
     else {
         // Cálculo genérico para regime personalizado
         if (entReal < entContr) {
             horasExtras.antesExpediente = toHours(entContr - entReal);
         }
-        
         if (saiIntReal && voltIntReal) {
             const intervaloReal = voltIntReal - saiIntReal;
             const intervaloContratual = 60;
-            
             if (intervaloReal < intervaloContratual) {
                 horasExtras.intervaloSuprimido = toHours(intervaloContratual - intervaloReal);
             }
         }
-        
         if (saiReal > saiContr) {
             horasExtras.aposExpediente = toHours(saiReal - saiContr);
         }
     }
-    
     horasExtras.total = horasExtras.antesExpediente + horasExtras.intervaloSuprimido + horasExtras.aposExpediente;
-    
     return horasExtras;
 }
-    
     // TRABALHO NA FOLGA - cálculo simplificado (todo período é extra)
     if (trabalhoFolga) {
         const horasTrabalhadas = calcularDiferencaHoras(entradaReal, saidaReal);
-        
         // Subtrair intervalo se informado
         let intervalo = 0;
         if (saidaIntervalo && voltaIntervalo) {
             intervalo = calcularDiferencaHoras(saidaIntervalo, voltaIntervalo);
         }
-        
         const horasExtrasTotal = horasTrabalhadas - intervalo;
-        
         document.getElementById('horaExtraCalculada').value = `${horasExtrasTotal.toFixed(2)} horas (100% extra - Folga)`;
         document.getElementById('horaExtraQuantidade').value = horasExtrasTotal;
         document.getElementById('detalhesCalculo').textContent = `Trabalho em folga: ${horasTrabalhadas.toFixed(2)}h trabalhadas - ${intervalo.toFixed(2)}h intervalo`;
         return;
     }
-    
     // CÁLCULO NORMAL (dia de trabalho)
     let entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual;
-    
     switch(regime) {
         case '12-36':
             entradaContratual = '07:00';
@@ -1899,36 +1952,28 @@ function calcularHorasExtrasDetalhado(entradaReal, saidaReal, saidaIntervaloReal
             voltaIntervaloContratual = '13:00';
             break;
     }
-    
     const horasExtras = calcularHorasExtrasDetalhado(
         entradaReal, saidaReal, saidaIntervalo, voltaIntervalo,
         entradaContratual, saidaContratual, saidaIntervaloContratual, voltaIntervaloContratual
     );
-    
     document.getElementById('horaExtraCalculada').value = `${horasExtras.total.toFixed(2)} horas`;
     document.getElementById('horaExtraQuantidade').value = horasExtras.total;
-    
     let detalhes = [];
     if (horasExtras.antesExpediente > 0) detalhes.push(`Antes: ${horasExtras.antesExpediente.toFixed(2)}h`);
     if (horasExtras.intervaloSuprimido > 0) detalhes.push(`Intervalo: ${horasExtras.intervaloSuprimido.toFixed(2)}h`);
     if (horasExtras.aposExpediente > 0) detalhes.push(`Após: ${horasExtras.aposExpediente.toFixed(2)}h`);
-    
     document.getElementById('detalhesCalculo').textContent = detalhes.join(' | ');
 }
-
 // Função auxiliar para calcular diferença entre horários
 function calcularDiferencaHoras(horario1, horario2) {
     const [h1, m1] = horario1.split(':').map(Number);
     const [h2, m2] = horario2.split(':').map(Number);
-    
     const totalMinutos1 = h1 * 60 + m1;
     const totalMinutos2 = h2 * 60 + m2;
-    
     // Se o horário2 for menor que horário1, assumir que é do dia seguinte
-    const diferencaMinutos = totalMinutos2 >= totalMinutos1 
-        ? totalMinutos2 - totalMinutos1 
+    const diferencaMinutos = totalMinutos2 >= totalMinutos1
+        ? totalMinutos2 - totalMinutos1
         : (1440 - totalMinutos1) + totalMinutos2; // 1440 = minutos em 24h
-    
     return diferencaMinutos / 60;
 }
         // Verificar conexão com Firebase
@@ -1976,7 +2021,6 @@ function calcularDiferencaHoras(horario1, horario2) {
     document.getElementById('editingHoraExtraId').value = '';
     document.getElementById('horaExtraForm').reset();
     document.getElementById('horaExtraData').value = getCurrentDate();
-    
     // Reset dos campos
     document.getElementById('horaExtraEntrada').value = '';
     document.getElementById('horaExtraSaidaIntervalo').value = '';
@@ -1984,13 +2028,11 @@ function calcularDiferencaHoras(horario1, horario2) {
     document.getElementById('horaExtraSaida').value = '';
     document.getElementById('horaExtraCalculada').value = '';
     document.getElementById('trabalhoFolga').checked = false;
-    
     document.getElementById('horaExtraModal').style.display = 'flex';
 }
         function editHoraExtra(id) {
     const horaExtra = horasExtras.find(h => h.id === id);
     if (!horaExtra) return;
-    
     document.getElementById('horaExtraModalTitle').textContent = 'Editar Hora Extra';
     document.getElementById('editingHoraExtraId').value = horaExtra.id;
     document.getElementById('horaExtraFuncionario').value = horaExtra.funcionario;
@@ -2002,12 +2044,10 @@ function calcularDiferencaHoras(horario1, horario2) {
     document.getElementById('horaExtraVoltaIntervalo').value = horaExtra.voltaIntervalo || '';
     document.getElementById('horaExtraSaida').value = horaExtra.saidaReal || '';
     document.getElementById('horaExtraObservacoes').value = horaExtra.observacoes || '';
-    
     // Recalcular horas extras para exibir
     setTimeout(() => {
         calcularHorasExtras();
     }, 100);
-    
     document.getElementById('horaExtraModal').style.display = 'flex';
 }
         document.getElementById('horaExtraForm').addEventListener('submit', async function(e) {
@@ -2016,7 +2056,6 @@ function calcularDiferencaHoras(horario1, horario2) {
         alert('Selecione um condomínio primeiro!');
         return;
     }
-    
     const editingId = document.getElementById('editingHoraExtraId').value;
     const horaExtraData = {
         funcionario: document.getElementById('horaExtraFuncionario').value,
@@ -2034,7 +2073,6 @@ function calcularDiferencaHoras(horario1, horario2) {
         criadoPor: currentUser.id || currentUser.usuario,
         criadoEm: new Date().toISOString()
     };
-    
     try {
         if (editingId) {
             await db.collection('horasExtras').doc(editingId).update(horaExtraData);
@@ -2076,16 +2114,16 @@ function closeHoraExtraModal() {
         function filterHorasExtras() {
             const funcionario = document.getElementById('filtroFuncionario').value.toLowerCase();
             const mes = document.getElementById('filtroMesHoraExtra').value;
-            let filteredHorasExtras = horasExtras.filter(h => 
+            let filteredHorasExtras = horasExtras.filter(h =>
                 h.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (funcionario) {
-                filteredHorasExtras = filteredHorasExtras.filter(h => 
+                filteredHorasExtras = filteredHorasExtras.filter(h =>
                     h.funcionario.toLowerCase().includes(funcionario)
                 );
             }
             if (mes) {
-                filteredHorasExtras = filteredHorasExtras.filter(h => 
+                filteredHorasExtras = filteredHorasExtras.filter(h =>
                     h.data.startsWith(mes)
                 );
             }
@@ -2116,13 +2154,248 @@ function closeHoraExtraModal() {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum registro de hora extra encontrado com os filtros aplicados.</td></tr>';
             }
         }
+
+        // ========== FUNÇÕES DO NOVO MÓDULO COMPRAS ==========
+
+        function openCompraModal() {
+            document.getElementById('compraModalTitle').textContent = 'Nova Compra';
+            document.getElementById('editingCompraId').value = '';
+            document.getElementById('compraForm').reset();
+            document.getElementById('compraItensLista').innerHTML = '';
+            document.getElementById('compraTotalDisplay').textContent = 'Total: R$ 0.00';
+            document.getElementById('compraDataFatura').value = getCurrentDate();
+            document.getElementById('compraStatus').value = 'pendente';
+            document.getElementById('compraModal').style.display = 'flex';
+        }
+
+        function closeCompraModal() {
+            document.getElementById('compraModal').style.display = 'none';
+        }
+
+        function editCompra(id) {
+            const compra = compras.find(c => c.id === id);
+            if (!compra) return;
+
+            document.getElementById('compraModalTitle').textContent = 'Editar Compra';
+            document.getElementById('editingCompraId').value = compra.id;
+            document.getElementById('compraFornecedor').value = compra.fornecedor;
+            document.getElementById('compraDataFatura').value = compra.dataFatura;
+            document.getElementById('compraDescricaoGeral').value = compra.descricaoGeral || '';
+            document.getElementById('compraStatus').value = compra.status;
+
+            // Carregar itens
+            document.getElementById('compraItensLista').innerHTML = '';
+            compra.itens.forEach((item, index) => {
+                adicionarItemNaLista(item.nome, item.quantidade, item.valorUnitario, index);
+            });
+            atualizarTotalCompra();
+            document.getElementById('compraModal').style.display = 'flex';
+        }
+
+        function adicionarItemCompra() {
+            const nome = document.getElementById('novoItemNome').value.trim();
+            const qtd = parseFloat(document.getElementById('novoItemQuantidade').value);
+            const valor = parseFloat(document.getElementById('novoItemValor').value);
+
+            if (!nome || isNaN(qtd) || isNaN(valor) || qtd <= 0 || valor <= 0) {
+                alert('Preencha corretamente os campos do item.');
+                return;
+            }
+
+            const index = Date.now(); // Usar timestamp como ID temporário para o item
+            adicionarItemNaLista(nome, qtd, valor, index);
+
+            // Limpar campos
+            document.getElementById('novoItemNome').value = '';
+            document.getElementById('novoItemQuantidade').value = '';
+            document.getElementById('novoItemValor').value = '';
+            atualizarTotalCompra();
+        }
+
+        function adicionarItemNaLista(nome, qtd, valor, index) {
+            const lista = document.getElementById('compraItensLista');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'compras-item';
+            itemDiv.id = `item-${index}`;
+            itemDiv.innerHTML = `
+                <div class="item-info">
+                    <span class="item-nome">${nome}</span> - <span class="item-qtd">${qtd}</span> x R$ <span class="item-valor">${valor.toFixed(2)}</span>
+                </div>
+                <div class="item-actions">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removerItemCompra(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            lista.appendChild(itemDiv);
+        }
+
+        function removerItemCompra(index) {
+            const item = document.getElementById(`item-${index}`);
+            if (item) {
+                item.remove();
+                atualizarTotalCompra();
+            }
+        }
+
+        function atualizarTotalCompra() {
+            let total = 0;
+            const itens = document.getElementById('compraItensLista').children;
+            for (let i = 0; i < itens.length; i++) {
+                const itemDiv = itens[i];
+                const qtdText = itemDiv.querySelector('.item-qtd').textContent;
+                const valorText = itemDiv.querySelector('.item-valor').textContent;
+                const qtd = parseFloat(qtdText);
+                const valor = parseFloat(valorText);
+                total += qtd * valor;
+            }
+            document.getElementById('compraTotalDisplay').textContent = `Total: R$ ${total.toFixed(2)}`;
+        }
+
+        function getItensCompraFromDOM() {
+            const itens = [];
+            const itensDivs = document.getElementById('compraItensLista').children;
+            for (let i = 0; i < itensDivs.length; i++) {
+                const itemDiv = itensDivs[i];
+                const nome = itemDiv.querySelector('.item-nome').textContent;
+                const qtd = parseFloat(itemDiv.querySelector('.item-qtd').textContent);
+                const valor = parseFloat(itemDiv.querySelector('.item-valor').textContent);
+                itens.push({ nome, quantidade: qtd, valorUnitario: valor });
+            }
+            return itens;
+        }
+
+        document.getElementById('compraForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentCondominio) {
+                alert('Selecione um condomínio primeiro!');
+                return;
+            }
+
+            const itens = getItensCompraFromDOM();
+            if (itens.length === 0) {
+                alert('Adicione pelo menos um item à compra.');
+                return;
+            }
+
+            const editingId = document.getElementById('editingCompraId').value;
+            const compraData = {
+                fornecedor: document.getElementById('compraFornecedor').value,
+                dataFatura: document.getElementById('compraDataFatura').value,
+                descricaoGeral: document.getElementById('compraDescricaoGeral').value,
+                itens: itens,
+                status: document.getElementById('compraStatus').value,
+                condominioId: currentCondominio.id,
+                condominioNome: currentCondominio.nome,
+                criadoPor: currentUser.id || currentUser.usuario,
+                criadoEm: new Date().toISOString()
+            };
+
+            try {
+                if (editingId) {
+                    await db.collection('compras').doc(editingId).update(compraData);
+                } else {
+                    await db.collection('compras').add(compraData);
+                }
+                await loadSystemData();
+                closeCompraModal();
+                if (currentModule === 'compras') {
+                    loadComprasContent();
+                }
+                alert('Compra salva com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar compra:', error);
+                alert('Erro ao salvar compra. Tente novamente.');
+            }
+        });
+
+        async function deleteCompra(id) {
+            if (!podeExcluirRegistros()) {
+                alert('Somente síndico ou subsíndico podem excluir registros.');
+                return;
+            }
+            if (!confirm('Tem certeza que deseja excluir esta compra?')) return;
+            try {
+                await db.collection('compras').doc(id).delete();
+                await loadSystemData();
+                if (currentModule === 'compras') {
+                    loadComprasContent();
+                }
+                alert('Compra excluída com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir compra:', error);
+                alert('Erro ao excluir compra. Tente novamente.');
+            }
+        }
+
+        function filterCompras() {
+            const fornecedor = document.getElementById('filtroFornecedorCompra').value.toLowerCase();
+            const status = document.getElementById('filtroStatusCompra').value;
+            const data = document.getElementById('filtroDataCompra').value;
+
+            let filteredCompras = compras.filter(c =>
+                c.condominioId === (currentCondominio ? currentCondominio.id : '')
+            );
+
+            if (fornecedor) {
+                filteredCompras = filteredCompras.filter(c => c.fornecedor.toLowerCase().includes(fornecedor));
+            }
+            if (status) {
+                filteredCompras = filteredCompras.filter(c => c.status === status);
+            }
+            if (data) {
+                filteredCompras = filteredCompras.filter(c => c.dataFatura === data);
+            }
+
+            const tbody = document.querySelector('#comprasTable tbody');
+            tbody.innerHTML = '';
+            if (filteredCompras.length > 0) {
+                filteredCompras.forEach(compra => {
+                    const total = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${compra.fornecedor}</td>
+                        <td>${formatDate(compra.dataFatura)}</td>
+                        <td>R$ ${total.toFixed(2)}</td>
+                        <td>${compra.descricaoGeral || '-'}</td>
+                        <td>
+                            <span class="status-badge status-${compra.status}">
+                                ${formatStatusCompra(compra.status)}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${podeExcluirRegistros() ? `
+                            <button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma compra encontrada com os filtros aplicados.</td></tr>';
+            }
+        }
+
+        function formatStatusCompra(status) {
+            const statusMap = {
+                'pendente': 'Pendente',
+                'recebido': 'Recebido',
+                'cancelado': 'Cancelado'
+            };
+            return statusMap[status] || status;
+        }
+
         // Carregar menu de módulos
         function loadModuleMenu() {
             const moduleMenu = document.getElementById('moduleMenu');
             moduleMenu.innerHTML = '';
             const allowedModules = modules.filter(module => {
-                return !currentUser.permissoes || 
-                       currentUser.permissoes.includes('*') || 
+                return !currentUser.permissoes ||
+                       currentUser.permissoes.includes('*') ||
                        currentUser.permissoes.includes(module.id);
             });
             allowedModules.forEach(module => {
@@ -2186,6 +2459,9 @@ function closeHoraExtraModal() {
                     break;
                 case 'prestadores':
                     loadPrestadoresContent();
+                    break;
+                case 'compras': // <-- Novo Caso
+                    loadComprasContent();
                     break;
             }
             setTimeout(() => updateDeleteButtonsState(), 100);
@@ -2282,6 +2558,17 @@ function closeHoraExtraModal() {
                             ...doc.data()
                         });
                     });
+                    // Carregar Compras
+                    const comprasSnapshot = await db.collection('compras')
+                        .where('condominioId', '==', currentCondominio.id)
+                        .get();
+                    compras = [];
+                    comprasSnapshot.forEach(doc => {
+                        compras.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
                 } else {
                     moradores = [];
                     horasExtras = [];
@@ -2290,6 +2577,7 @@ function closeHoraExtraModal() {
                     agendamentos = [];
                     contas = [];
                     lembretes = [];
+                    compras = []; // <-- Limpar Compras
                 }
                 await createDouglasUser();
                 updateCondominioSelector();
@@ -2305,13 +2593,13 @@ function closeHoraExtraModal() {
             const hoje = getCurrentDate();
             let lembretesAtivos = [];
             if (currentCondominio) {
-                lembretesAtivos = lembretes.filter(l => 
+                lembretesAtivos = lembretes.filter(l =>
                     l.condominioId === currentCondominio.id &&
                     l.dataInicio <= hoje &&
                     (!l.dataFim || l.dataFim >= hoje)
                 );
             } else {
-                lembretesAtivos = lembretes.filter(l => 
+                lembretesAtivos = lembretes.filter(l =>
                     l.dataInicio <= hoje &&
                     (!l.dataFim || l.dataFim >= hoje)
                 );
@@ -2337,12 +2625,12 @@ function closeHoraExtraModal() {
                             nomeUsuario = lembrete.criadoPor;
                         }
                     }
-                    const textoCurto = lembrete.descricao ? 
-                        (lembrete.descricao.length > 50 ? lembrete.descricao.substring(0, 50) + '...' : lembrete.descricao) : 
+                    const textoCurto = lembrete.descricao ?
+                        (lembrete.descricao.length > 50 ? lembrete.descricao.substring(0, 50) + '...' : lembrete.descricao) :
                         'Sem descrição';
                     item.innerHTML = `
                         <i class="${icon}"></i>
-                        <strong>${lembrete.titulo}</strong> - ${textoCurto} 
+                        <strong>${lembrete.titulo}</strong> - ${textoCurto}
                         <em>(por: ${nomeUsuario})</em>
                     `;
                     tickerContent.appendChild(item);
@@ -2402,7 +2690,7 @@ function closeHoraExtraModal() {
             condominioSelectTop.innerHTML = '<option value="">Selecione um condomínio</option>';
             let allowedCondominios = [...condominios];
             if (currentUser.condominios && !currentUser.condominios.includes('*')) {
-                allowedCondominios = condominios.filter(condominio => 
+                allowedCondominios = condominios.filter(condominio =>
                     currentUser.condominios.includes(condominio.id)
                 );
             }
@@ -2435,26 +2723,122 @@ function closeHoraExtraModal() {
                 connectionStatus.title = 'Desconectado';
             }
         }
+        // ========== MÓDULO COMPRAS ==========
+        function loadComprasContent() {
+            const moduleContent = document.getElementById('moduleContent');
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
+                !currentUser.permissoes.includes('compras')) {
+                moduleContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+                    </div>
+                `;
+                return;
+            }
+            if (!currentCondominio) {
+                moduleContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>Selecione um condomínio</strong> para acessar o módulo de compras.
+                    </div>
+                `;
+                return;
+            }
+            const filteredCompras = compras.filter(c => c.condominioId === currentCondominio.id);
+            moduleContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Compras - ${currentCondominio.nome}</h3>
+                        <button class="btn btn-primary" onclick="openCompraModal()">
+                            <i class="fas fa-plus"></i> Nova Compra
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Filtrar por Fornecedor</label>
+                                <input type="text" class="form-control" id="filtroFornecedorCompra" onkeyup="filterCompras()" placeholder="Digite o nome do fornecedor">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select class="form-control" id="filtroStatusCompra" onchange="filterCompras()">
+                                    <option value="">Todos</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="recebido">Recebido</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Data da Fatura</label>
+                                <input type="date" class="form-control" id="filtroDataCompra" onchange="filterCompras()">
+                            </div>
+                        </div>
+                        <table class="table" id="comprasTable">
+                            <thead>
+                                <tr>
+                                    <th>Fornecedor</th>
+                                    <th>Data da Fatura</th>
+                                    <th>Valor Total</th>
+                                    <th>Descrição</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredCompras.length > 0 ? filteredCompras.map(compra => {
+                                    const total = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
+                                    return `
+                                        <tr>
+                                            <td>${compra.fornecedor}</td>
+                                            <td>${formatDate(compra.dataFatura)}</td>
+                                            <td>R$ ${total.toFixed(2)}</td>
+                                            <td>${compra.descricaoGeral || '-'}</td>
+                                            <td>
+                                                <span class="status-badge status-${compra.status}">
+                                                    ${formatStatusCompra(compra.status)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                ${podeExcluirRegistros() ? `
+                                                <button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>` : ''}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('') : '<tr><td colspan="6">Nenhuma compra encontrada.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
         // ========== MÓDULO DASHBOARD ==========
         function loadDashboardContent() {
             const moduleContent = document.getElementById('moduleContent');
-            const filteredAgendamentos = currentCondominio ? 
+            const filteredAgendamentos = currentCondominio ?
                 agendamentos.filter(a => a.condominioId === currentCondominio.id) : [];
-            const filteredContas = currentCondominio ? 
+            const filteredContas = currentCondominio ?
                 contas.filter(c => c.condominioId === currentCondominio.id) : [];
-            const filteredLembretes = currentCondominio ? 
+            const filteredLembretes = currentCondominio ?
                 lembretes.filter(l => l.condominioId === currentCondominio.id) : [];
-            const filteredMoradores = currentCondominio ? 
+            const filteredMoradores = currentCondominio ?
                 moradores.filter(m => m.condominioId === currentCondominio.id) : [];
-            const filteredLimpezas = currentCondominio ? 
+            const filteredLimpezas = currentCondominio ?
                 limpezas.filter(l => l.condominioId === currentCondominio.id) : [];
-            const filteredSaunas = currentCondominio ? 
+            const filteredSaunas = currentCondominio ?
                 saunas.filter(s => s.condominioId === currentCondominio.id) : [];
+            const filteredCompras = currentCondominio ?
+                compras.filter(c => c.condominioId === currentCondominio.id) : []; // <-- Novo Filtro
             let totalCondominios;
             if (currentUser.condominios && currentUser.condominios.includes('*')) {
                 totalCondominios = condominios.length;
             } else if (currentUser.condominios) {
-                totalCondominios = condominios.filter(cond => 
+                totalCondominios = condominios.filter(cond =>
                     currentUser.condominios.includes(cond.id)
                 ).length;
             } else {
@@ -2465,10 +2849,12 @@ function closeHoraExtraModal() {
             const totalAgendamentos = filteredAgendamentos.length;
             const totalLimpezas = filteredLimpezas.length;
             const totalSaunas = filteredSaunas.length;
+            const totalCompras = filteredCompras.length; // <-- Novo Total
             const agendamentosHoje = filteredAgendamentos.filter(a => {
                 const hoje = new Date().toISOString().split('T')[0];
                 return a.data === hoje;
             }).length;
+
             const hoje = new Date();
             const alertaContas = filteredContas.filter(conta => {
     if (conta.status === 'pago') return false;
@@ -2477,6 +2863,7 @@ function closeHoraExtraModal() {
     // Mostra contas que venceram nos últimos 4 dias OU que estão vencidas
     return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
 });
+
             const lembretesProximos = filteredLembretes.filter(lembrete => {
                 const dataInicio = new Date(lembrete.dataInicio);
                 const dataFim = lembrete.dataFim ? new Date(lembrete.dataFim) : dataInicio;
@@ -2484,6 +2871,7 @@ function closeHoraExtraModal() {
                 const diferencaFim = Math.ceil((dataFim - hoje) / (1000 * 60 * 60 * 24));
                 return diferencaInicio <= 7 && diferencaFim >= 0;
             });
+
             let statsHTML = '';
             statsHTML += `
                 <div class="stat-card" onclick="changeModule('condominios')">
@@ -2495,19 +2883,21 @@ function closeHoraExtraModal() {
                     <div class="value">${totalUsuarios}</div>
                 </div>
             `;
-            const saunaUmidaEmUso = filteredSaunas.find(s => 
+
+            const saunaUmidaEmUso = filteredSaunas.find(s =>
                 s.status === 'em-uso' && s.tipo === 'umida'
             );
-            const saunaSecaEmUso = filteredSaunas.find(s => 
+            const saunaSecaEmUso = filteredSaunas.find(s =>
                 s.status === 'em-uso' && s.tipo === 'seca'
             );
+
             let saunaCardsHTML = '';
             saunaCardsHTML += `
                 <div class="stat-card" onclick="changeModule('sauna')">
                     <h3>Sauna Úmida</h3>
                     <div class="value" style="color: ${saunaUmidaEmUso ? '#e74c3c' : '#2ecc71'}; font-size: 16px;">
-                        ${saunaUmidaEmUso ? 
-                            `${saunaUmidaEmUso.morador}<br><small>Apto: ${saunaUmidaEmUso.apto}</small>` : 
+                        ${saunaUmidaEmUso ?
+                            `${saunaUmidaEmUso.morador}<br><small>Apto: ${saunaUmidaEmUso.apto}</small>` :
                             'LIVRE'
                         }
                     </div>
@@ -2520,8 +2910,8 @@ function closeHoraExtraModal() {
                 <div class="stat-card" onclick="changeModule('sauna')">
                     <h3>Sauna Seca</h3>
                     <div class="value" style="color: ${saunaSecaEmUso ? '#e74c3c' : '#2ecc71'}; font-size: 16px;">
-                        ${saunaSecaEmUso ? 
-                            `${saunaSecaEmUso.morador}<br><small>Apto: ${saunaSecaEmUso.apto}</small>` : 
+                        ${saunaSecaEmUso ?
+                            `${saunaSecaEmUso.morador}<br><small>Apto: ${saunaSecaEmUso.apto}</small>` :
                             'LIVRE'
                         }
                     </div>
@@ -2530,7 +2920,8 @@ function closeHoraExtraModal() {
                     </div>
                 </div>
             `;
-            if (currentUser.permissoes && 
+
+            if (currentUser.permissoes &&
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('moradores'))) {
                 statsHTML += `
                     <div class="stat-card" onclick="changeModule('moradores')">
@@ -2539,7 +2930,7 @@ function closeHoraExtraModal() {
                     </div>
                 `;
             }
-            if (currentUser.permissoes && 
+            if (currentUser.permissoes &&
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('agendamentos'))) {
                 statsHTML += `
                     <div class="stat-card" onclick="changeModule('agendamentos')">
@@ -2552,7 +2943,7 @@ function closeHoraExtraModal() {
                     </div>
                 `;
             }
-            if (currentUser.permissoes && 
+            if (currentUser.permissoes &&
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('limpeza'))) {
                 statsHTML += `
                     <div class="stat-card" onclick="changeModule('limpeza')">
@@ -2561,7 +2952,7 @@ function closeHoraExtraModal() {
                     </div>
                 `;
             }
-            if (currentUser.permissoes && 
+            if (currentUser.permissoes &&
                 (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) {
                 statsHTML += `
                     <div class="stat-card" onclick="changeModule('sauna')">
@@ -2570,6 +2961,17 @@ function closeHoraExtraModal() {
                     </div>
                 `;
             }
+            // Adicionando estatística de Compras no Dashboard
+            if (currentUser.permissoes &&
+                (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('compras'))) {
+                statsHTML += `
+                    <div class="stat-card" onclick="changeModule('compras')">
+                        <h3>Compras</h3>
+                        <div class="value">${totalCompras}</div>
+                    </div>
+                `;
+            }
+
             moduleContent.innerHTML = `
                 <div class="card">
                     <div class="card-header">
@@ -2582,8 +2984,8 @@ function closeHoraExtraModal() {
                                 <strong>Atenção!</strong> Selecione um condomínio no menu acima para visualizar os dados específicos.
                             </div>
                         ` : ''}
-${(currentUser.permissoes && 
-  (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) && 
+${(currentUser.permissoes &&
+  (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) &&
   alertaContas.length > 0 ? `
     <div class="dashboard-alerts">
         <div class="alert alert-warning">
@@ -2607,7 +3009,7 @@ ${(currentUser.permissoes &&
         </div>
     </div>
 ` : ''}
-${(currentUser.permissoes && 
+${(currentUser.permissoes &&
   (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
 <div class="card">
     <div class="card-header">
@@ -2628,18 +3030,17 @@ ${(currentUser.permissoes &&
                         ${saunaUmidaEmUso ? '🟢 EM USO' : '🟡 DISPONÍVEL'}
                     </div>
                     <div class="sauna-user-info">
-                        ${saunaUmidaEmUso ? 
+                        ${saunaUmidaEmUso ?
                             `<div class="user-details">
                                 <strong>${saunaUmidaEmUso.morador}</strong>
                                 <div class="apto-info">Apto: ${saunaUmidaEmUso.apto}</div>
                                 <div class="time-info">Desde: ${saunaUmidaEmUso.horaInicio}</div>
-                            </div>` : 
+                            </div>` :
                             '<div class="available-text">LIVRE PARA USO</div>'
                         }
                     </div>
                 </div>
             </div>
-            
             <div class="sauna-card-large" onclick="changeModule('sauna')">
                 <div class="sauna-card-header">
                     <i class="fas fa-fire" style="font-size: 2em; margin-bottom: 15px; color: #e74c3c;"></i>
@@ -2650,28 +3051,26 @@ ${(currentUser.permissoes &&
                         ${saunaSecaEmUso ? '🟢 EM USO' : '🟡 DISPONÍVEL'}
                     </div>
                     <div class="sauna-user-info">
-                        ${saunaSecaEmUso ? 
+                        ${saunaSecaEmUso ?
                             `<div class="user-details">
                                 <strong>${saunaSecaEmUso.morador}</strong>
                                 <div class="apto-info">Apto: ${saunaSecaEmUso.apto}</div>
                                 <div class="time-info">Desde: ${saunaSecaEmUso.horaInicio}</div>
-                            </div>` : 
+                            </div>` :
                             '<div class="available-text">LIVRE PARA USO</div>'
                         }
                     </div>
                 </div>
             </div>
         </div>
-        
         ${(saunaUmidaEmUso || saunaSecaEmUso) ? `
         <div class="alert alert-info" style="margin-top: 20px; padding: 15px; border-radius: 8px;">
-            <i class="fas fa-info-circle"></i> 
+            <i class="fas fa-info-circle"></i>
             Clique no card para gerenciar os agendamentos de sauna
         </div>
         ` : ''}
     </div>
 </div>
-
 <style>
 .sauna-card-large {
     flex: 1;
@@ -2688,7 +3087,6 @@ ${(currentUser.permissoes &&
     position: relative;
     overflow: hidden;
 }
-
 .sauna-card-large::before {
     content: '';
     position: absolute;
@@ -2698,29 +3096,24 @@ ${(currentUser.permissoes &&
     height: 4px;
     background: rgba(255,255,255,0.3);
 }
-
 .sauna-card-large:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 15px 35px rgba(0,0,0,0.25);
 }
-
 .sauna-card-header {
     margin-bottom: 20px;
 }
-
 .sauna-card-large h3 {
     font-size: 1.4em;
     margin: 0;
     font-weight: 600;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-
 .sauna-card-content {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
-
 .sauna-status {
     padding: 10px 15px;
     border-radius: 25px;
@@ -2729,48 +3122,40 @@ ${(currentUser.permissoes &&
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
 }
-
 .sauna-status.in-use {
     background: rgba(231, 76, 60, 0.9);
     border: 2px solid rgba(255,255,255,0.5);
 }
-
 .sauna-status.available {
     background: rgba(46, 204, 113, 0.9);
     border: 2px solid rgba(255,255,255,0.5);
 }
-
 .sauna-user-info {
     min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-
 .user-details {
     text-align: center;
 }
-
 .user-details strong {
     display: block;
     font-size: 1.3em;
     margin-bottom: 8px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-
 .apto-info, .time-info {
     font-size: 1em;
     opacity: 0.9;
     margin: 3px 0;
 }
-
 .available-text {
     font-size: 1.4em;
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     opacity: 0.9;
 }
-
 /* Efeito de brilho suave */
 .sauna-card-large::after {
     content: '';
@@ -2789,17 +3174,14 @@ ${(currentUser.permissoes &&
     transition: all 0.5s ease;
     opacity: 0;
 }
-
 .sauna-card-large:hover::after {
     opacity: 1;
     animation: shine 1.5s ease-in-out;
 }
-
 @keyframes shine {
     0% { transform: rotate(45deg) translateX(-100%); }
     100% { transform: rotate(45deg) translateX(100%); }
 }
-
 .stats-container {
     display: flex;
     flex-wrap: wrap;
@@ -2808,7 +3190,6 @@ ${(currentUser.permissoes &&
 }
 </style>
 ` : ''}
-                        
                         <div class="stats-container">
     <div class="stat-card-modern" onclick="changeModule('condominios')">
         <div class="stat-card-header">
@@ -2820,7 +3201,6 @@ ${(currentUser.permissoes &&
             <div class="stat-label">Total cadastrados</div>
         </div>
     </div>
-
     <div class="stat-card-modern" onclick="changeModule('usuarios')">
         <div class="stat-card-header">
             <i class="fas fa-users" style="font-size: 1.8em; margin-bottom: 10px; color: #e74c3c;"></i>
@@ -2831,8 +3211,7 @@ ${(currentUser.permissoes &&
             <div class="stat-label">Total no sistema</div>
         </div>
     </div>
-
-    ${(currentUser.permissoes && 
+    ${(currentUser.permissoes &&
       (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('moradores'))) ? `
     <div class="stat-card-modern" onclick="changeModule('moradores')">
         <div class="stat-card-header">
@@ -2845,8 +3224,7 @@ ${(currentUser.permissoes &&
         </div>
     </div>
     ` : ''}
-
-    ${(currentUser.permissoes && 
+    ${(currentUser.permissoes &&
       (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('agendamentos'))) ? `
     <div class="stat-card-modern" onclick="changeModule('agendamentos')">
         <div class="stat-card-header">
@@ -2858,7 +3236,6 @@ ${(currentUser.permissoes &&
             <div class="stat-label">Total realizados</div>
         </div>
     </div>
-
     <div class="stat-card-modern" onclick="changeModule('agendamentos')">
         <div class="stat-card-header">
             <i class="fas fa-calendar-day" style="font-size: 1.8em; margin-bottom: 10px; color: #f39c12;"></i>
@@ -2870,8 +3247,7 @@ ${(currentUser.permissoes &&
         </div>
     </div>
     ` : ''}
-
-    ${(currentUser.permissoes && 
+    ${(currentUser.permissoes &&
       (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('limpeza'))) ? `
     <div class="stat-card-modern" onclick="changeModule('limpeza')">
         <div class="stat-card-header">
@@ -2884,8 +3260,7 @@ ${(currentUser.permissoes &&
         </div>
     </div>
     ` : ''}
-
-    ${(currentUser.permissoes && 
+    ${(currentUser.permissoes &&
       (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
     <div class="stat-card-modern" onclick="changeModule('sauna')">
         <div class="stat-card-header">
@@ -2898,9 +3273,21 @@ ${(currentUser.permissoes &&
         </div>
     </div>
     ` : ''}
+    ${(currentUser.permissoes &&
+      (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('compras'))) ? `
+    <div class="stat-card-modern" onclick="changeModule('compras')">
+        <div class="stat-card-header">
+            <i class="fas fa-shopping-cart" style="font-size: 1.8em; margin-bottom: 10px; color: #8e44ad;"></i>
+            <h3>Compras</h3>
+        </div>
+        <div class="stat-card-content">
+            <div class="stat-value">${totalCompras}</div>
+            <div class="stat-label">Total registradas</div>
+        </div>
+    </div>
+    ` : ''}
 </div>
-                        
-                        ${(currentUser.permissoes && 
+                        ${(currentUser.permissoes &&
                           (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) ? `
                         <div class="card">
                             <div class="card-header">
@@ -2910,7 +3297,7 @@ ${(currentUser.permissoes &&
                                 </button>
                             </div>
                             <div class="card-body">
-                                ${alertaContas.length > 0 ? 
+                                ${alertaContas.length > 0 ?
                                     alertaContas.map(conta => `
                                         <div class="conta-item ${conta.status === 'atrasado' ? 'urgent' : 'warning'}">
                                             <div class="conta-header">
@@ -2926,14 +3313,14 @@ ${(currentUser.permissoes &&
                                                 </button>
                                             </div>
                                         </div>
-                                    `).join('') 
+                                    `).join('')
                                     : '<p>Não há contas com vencimento próximo.</p>'
                                 }
                             </div>
                         </div>
                         ` : ''}
-                        ${currentCondominio && 
-                         (currentUser.permissoes && 
+                        ${currentCondominio &&
+                         (currentUser.permissoes &&
                           (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('agendamentos'))) ? `
                         <div class="card">
                             <div class="card-header">
@@ -2974,8 +3361,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO CONDOMÍNIOS ==========
         function loadCondominiosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('condominios')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -2986,7 +3373,7 @@ ${(currentUser.permissoes &&
             }
             let allowedCondominios = [...condominios];
             if (currentUser.condominios && !currentUser.condominios.includes('*')) {
-                allowedCondominios = condominios.filter(condominio => 
+                allowedCondominios = condominios.filter(condominio =>
                     currentUser.condominios.includes(condominio.id)
                 );
             }
@@ -3048,8 +3435,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO HORAS EXTRAS ==========
         function loadHorasExtrasContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('horas-extras')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3097,8 +3484,7 @@ ${(currentUser.permissoes &&
                                     <th>Condomínio</th>
                                     <th>Ações</th>
                                 </tr>
-                            // Na tabela, adicione estas colunas:
-<thead>
+                            <thead>
     <tr>
         <th>Funcionário</th>
         <th>Matrícula</th>
@@ -3140,8 +3526,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO USUÁRIOS ==========
         function loadUsuariosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('usuarios')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3206,8 +3592,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO MORADORES ==========
         function loadMoradoresContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('moradores')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3271,8 +3657,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO AGENDAMENTOS ==========
         function loadAgendamentosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('agendamentos')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3395,8 +3781,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO LIMPEZA ==========
         function loadLimpezaContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('limpeza')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3499,8 +3885,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO SAUNA ==========
         function loadSaunaContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('sauna')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3600,8 +3986,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO CONTAS A PAGAR ==========
         function loadContasContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('contas')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3700,8 +4086,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO LEMBRETES ==========
         function loadLembretesContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('lembretes')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3773,8 +4159,8 @@ ${(currentUser.permissoes &&
         // ========== MÓDULO RELATÓRIOS ==========
         function loadRelatoriosContent() {
             const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes && 
-                !currentUser.permissoes.includes('*') && 
+            if (currentUser.permissoes &&
+                !currentUser.permissoes.includes('*') &&
                 !currentUser.permissoes.includes('relatorios')) {
                 moduleContent.innerHTML = `
                     <div class="alert alert-warning">
@@ -3807,6 +4193,7 @@ ${(currentUser.permissoes &&
                                         <option value="limpeza">Limpeza</option>
                                         <option value="sauna">Sauna</option>
                                         <option value="horas-extras">Horas Extras</option>
+                                        <option value="compras">Compras</option> <!-- Adicionado -->
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -3949,13 +4336,13 @@ ${(currentUser.permissoes &&
                 const day = document.createElement('div');
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const today = new Date();
-                const isToday = today.getDate() === i && 
-                               today.getMonth() === month && 
+                const isToday = today.getDate() === i &&
+                               today.getMonth() === month &&
                                today.getFullYear() === year;
                 day.className = `calendar-day ${isToday ? 'today' : ''}`;
                 day.innerHTML = `<div class="day-number">${i}</div>`;
-                const dayEvents = agendamentos.filter(a => 
-                    a.data === dateStr && 
+                const dayEvents = agendamentos.filter(a =>
+                    a.data === dateStr &&
                     a.condominioId === (currentCondominio ? currentCondominio.id : '')
                 );
                 dayEvents.forEach(event => {
@@ -4049,7 +4436,7 @@ ${(currentUser.permissoes &&
             const espaco = document.getElementById('filtroEspaco').value;
             const status = document.getElementById('filtroStatus').value;
             const data = document.getElementById('filtroData').value;
-            let filteredAgendamentos = agendamentos.filter(a => 
+            let filteredAgendamentos = agendamentos.filter(a =>
                 a.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (espaco) {
@@ -4099,7 +4486,7 @@ ${(currentUser.permissoes &&
         function filterContas() {
             const status = document.getElementById('filtroStatusConta').value;
             const categoria = document.getElementById('filtroCategoriaConta').value;
-            let filteredContas = contas.filter(c => 
+            let filteredContas = contas.filter(c =>
                 c.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (status) {
@@ -4147,7 +4534,7 @@ ${(currentUser.permissoes &&
             const espaco = document.getElementById('filtroEspacoLimpeza').value;
             const status = document.getElementById('filtroStatusLimpeza').value;
             const data = document.getElementById('filtroDataLimpeza').value;
-            let filteredLimpezas = limpezas.filter(l => 
+            let filteredLimpezas = limpezas.filter(l =>
                 l.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (espaco) {
@@ -4199,7 +4586,7 @@ ${(currentUser.permissoes &&
         function filterSaunas() {
             const status = document.getElementById('filtroStatusSauna').value;
             const data = document.getElementById('filtroDataSauna').value;
-            let filteredSaunas = saunas.filter(s => 
+            let filteredSaunas = saunas.filter(s =>
                 s.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (status) {
@@ -4277,10 +4664,10 @@ ${(currentUser.permissoes &&
             const editingId = document.getElementById('editingAgendamentoId').value;
             const espaco = document.getElementById('agendamentoEspaco').value;
             const data = document.getElementById('agendamentoDataInput').value;
-            const agendamentoExistente = agendamentos.find(a => 
+            const agendamentoExistente = agendamentos.find(a =>
                 a.condominioId === currentCondominio.id &&
-                a.espaco === espaco && 
-                a.data === data && 
+                a.espaco === espaco &&
+                a.data === data &&
                 a.id != editingId
             );
             if (agendamentoExistente) {
@@ -5096,7 +5483,7 @@ ${(currentUser.permissoes &&
             presenceRef = userPresenceRef;
             const onClose = () => {
                 if (presenceRef) {
-                    presenceRef.update({ 
+                    presenceRef.update({
                         online: false,
                         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -5147,7 +5534,7 @@ ${(currentUser.permissoes &&
                 document.getElementById('onlineCount').textContent = '0';
             }
         }
-        function showOnlineUsers() {
+                function showOnlineUsers() {
             const cutoff = new Date(Date.now() - 60000);
             db.collection('presence')
                 .where('lastSeen', '>=', firebase.firestore.Timestamp.fromDate(cutoff))
@@ -5160,8 +5547,8 @@ ${(currentUser.permissoes &&
                         onlineUsers.push(userData.nome);
                     });
                     if (onlineUsers.length > 0) {
-                        alert(`Usuários Online:
-${onlineUsers.join('\n')}`);
+                        // Corrigido: Usando \n para quebra de linha
+                        alert(`Usuários Online:\n${onlineUsers.join('\n')}`);
                     } else {
                         alert('Nenhum outro usuário online no momento.');
                     }
@@ -5185,7 +5572,7 @@ ${onlineUsers.join('\n')}`);
                 });
             });
             if (currentCondominio) {
-                const condominioCollections = ['moradores', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores'];
+                const condominioCollections = ['moradores', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
                 condominioCollections.forEach(collection => {
                     db.collection(collection)
                         .where('condominioId', '==', currentCondominio.id)
@@ -5286,7 +5673,7 @@ ${onlineUsers.join('\n')}`);
         document.getElementById('logoutBtn').addEventListener('click', function() {
             if (confirm('Deseja realmente sair do sistema?')) {
                 if (presenceRef) {
-                    presenceRef.update({ 
+                    presenceRef.update({
                         online: false,
                         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -5358,11 +5745,14 @@ ${onlineUsers.join('\n')}`);
                 case 'contas':
                     reportContent = generateContasReport(startDate, endDate);
                     break;
+                case 'compras': // <-- Novo Caso
+                    reportContent = generateComprasReport(startDate, endDate);
+                    break;
             }
             document.getElementById('reportPreview').innerHTML = reportContent;
         }
         function generateAgendamentosReport(startDate, endDate) {
-            let filteredAgendamentos = agendamentos.filter(a => 
+            let filteredAgendamentos = agendamentos.filter(a =>
                 a.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (startDate) {
@@ -5404,8 +5794,8 @@ ${onlineUsers.join('\n')}`);
             return report;
         }
         function generateMoradoresReport() {
-            const filteredMoradores = currentCondominio ? 
-                moradores.filter(m => m.condominioId === currentCondominio.id) : 
+            const filteredMoradores = currentCondominio ?
+                moradores.filter(m => m.condominioId === currentCondominio.id) :
                 moradores;
             let report = `<h4>Relatório de Moradores</h4>`;
             report += `<p>Condomínio: ${currentCondominio ? currentCondominio.nome : 'Todos'}</p>`;
@@ -5423,7 +5813,7 @@ ${onlineUsers.join('\n')}`);
             return report;
         }
         function generateLimpezaReport(startDate, endDate) {
-            let filteredLimpezas = limpezas.filter(l => 
+            let filteredLimpezas = limpezas.filter(l =>
                 l.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (startDate) {
@@ -5450,7 +5840,7 @@ ${onlineUsers.join('\n')}`);
             return report;
         }
         function generateHorasExtrasReport(startDate, endDate) {
-            let filteredHorasExtras = horasExtras.filter(h => 
+            let filteredHorasExtras = horasExtras.filter(h =>
                 h.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (startDate) {
@@ -5478,7 +5868,7 @@ ${onlineUsers.join('\n')}`);
             return report;
         }
         function generateSaunaReport(startDate, endDate) {
-            let filteredSaunas = saunas.filter(s => 
+            let filteredSaunas = saunas.filter(s =>
                 s.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (startDate) {
@@ -5505,7 +5895,7 @@ ${onlineUsers.join('\n')}`);
             return report;
         }
         function generateContasReport(startDate, endDate) {
-            let filteredContas = contas.filter(c => 
+            let filteredContas = contas.filter(c =>
                 c.condominioId === (currentCondominio ? currentCondominio.id : '')
             );
             if (startDate) {
@@ -5532,6 +5922,36 @@ ${onlineUsers.join('\n')}`);
             });
             return report;
         }
+        // ========== RELATÓRIO DE COMPRAS ==========
+        function generateComprasReport(startDate, endDate) {
+            let filteredCompras = compras.filter(c =>
+                c.condominioId === (currentCondominio ? currentCondominio.id : '')
+            );
+            if (startDate) {
+                filteredCompras = filteredCompras.filter(c => c.dataFatura >= startDate);
+            }
+            if (endDate) {
+                filteredCompras = filteredCompras.filter(c => c.dataFatura <= endDate);
+            }
+            const total = filteredCompras.reduce((sum, compra) => sum + compra.itens.reduce((itemSum, item) => itemSum + (item.quantidade * item.valorUnitario), 0), 0);
+            let report = `<h4>Relatório de Compras</h4>`;
+            report += `<p>Período: ${startDate || 'Início'} a ${endDate || 'Fim'}</p>`;
+            report += `<p>Condomínio: ${currentCondominio ? currentCondominio.nome : 'Todos'}</p>`;
+            report += `<p>Total de compras: ${filteredCompras.length}</p>`;
+            report += `<p>Valor total: R$ ${total.toFixed(2)}</p>`;
+            report += `<div class="report-line"><strong>Data Fatura | Fornecedor | Valor Total | Status</strong></div>`;
+            filteredCompras.forEach(compra => {
+                const totalCompra = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
+                report += `<div class="report-line">`;
+                report += `${formatDate(compra.dataFatura)} | `;
+                report += `${compra.fornecedor} | `;
+                report += `R$ ${totalCompra.toFixed(2)} | `;
+                report += `${formatStatusCompra(compra.status)}`;
+                report += `</div>`;
+            });
+            return report;
+        }
+
         function exportReport() {
             const reportPreview = document.getElementById('reportPreview').innerText;
             const blob = new Blob([reportPreview], { type: 'text/plain' });
@@ -5605,8 +6025,8 @@ ${onlineUsers.join('\n')}`);
             });
             const activeHeader = document.querySelector(`#moradoresTable th[onclick="sortMoradores('${activeField}')"] i`);
             if (activeHeader) {
-                activeHeader.className = currentMoradoresSort.direction === 'asc' 
-                    ? 'fas fa-sort-up' 
+                activeHeader.className = currentMoradoresSort.direction === 'asc'
+                    ? 'fas fa-sort-up'
                     : 'fas fa-sort-down';
             }
         }
@@ -5647,7 +6067,6 @@ ${onlineUsers.join('\n')}`);
             updateDeleteButtonsState();
         });
         observer.observe(document.body, { childList: true, subtree: true });
-
         // --- Módulo: Ocorrências (básico) ---
         async function loadOcorrenciasContent() {
             currentModule = 'ocorrencias';
