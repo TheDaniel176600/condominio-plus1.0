@@ -1657,6 +1657,61 @@
             </form>
         </div>
     </div>
+     <!-- Modal para Confraternização -->
+<div id="confraternizacaoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="confraternizacaoModalTitle">Nova Inscrição - Confraternização</h3>
+            <button type="button" onclick="closeConfraternizacaoModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <form id="confraternizacaoForm">
+            <input type="hidden" id="editingConfraternizacaoId">
+            <div class="form-group">
+                <label>Morador *</label>
+                <select class="form-control" id="confraternizacaoMorador" required onchange="preencherAptoAutomatico()">
+                    <option value="">Selecione...</option>
+                    <!-- Moradores serão carregados aqui -->
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Apartamento</label>
+                    <input type="text" class="form-control" id="confraternizacaoApto" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Adultos (R$80)</label>
+                    <input type="number" class="form-control" id="confraternizacaoAdultos" min="0" value="0" onchange="calcularTotalConfraternizacao()">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Crianças 7 a 12 anos (R$40)</label>
+                    <input type="number" class="form-control" id="confraternizacaoCriancas7a12" min="0" value="0" onchange="calcularTotalConfraternizacao()">
+                </div>
+                <div class="form-group">
+                    <label>Crianças até 6 anos (Grátis)</label>
+                    <input type="number" class="form-control" id="confraternizacaoCriancasMenor6" min="0" value="0" onchange="calcularTotalConfraternizacao()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Total</label>
+                <input type="text" class="form-control" id="confraternizacaoTotal" readonly style="font-weight: bold; font-size: 1.2em;">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select class="form-control" id="confraternizacaoStatus" required>
+                    <option value="pendente">Pendente</option>
+                    <option value="pago">Pago</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <button type="button" class="btn" onclick="closeConfraternizacaoModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
     <!-- Modal para Compras -->
     <div id="compraModal" class="modal">
         <div class="modal-content">
@@ -1726,7 +1781,8 @@
         const db = firebase.firestore();
         // Módulos do sistema
         const modules = [
-            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },                       
+            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
+            { id: 'confraternizacao', name: 'Confraternização', icon: 'fas fa-glass-cheers' },                       
             { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
             { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
             { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
@@ -2430,6 +2486,7 @@ function closeHoraExtraModal() {
                 case 'usuarios':
                     loadUsuariosContent();
                     break;
+                
                 case 'moradores':
                     loadMoradoresContent();
                     break;
@@ -2462,6 +2519,9 @@ function closeHoraExtraModal() {
                     break;
                 case 'compras': // <-- Novo Caso
                     loadComprasContent();
+                    break;
+                 case 'confraternizacao':
+                    loadConfraternizacaoContent();
                     break;
             }
             setTimeout(() => updateDeleteButtonsState(), 100);
@@ -5572,7 +5632,7 @@ ${(currentUser.permissoes &&
                 });
             });
             if (currentCondominio) {
-                const condominioCollections = ['moradores', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
+                const condominioCollections = ['moradores', 'confraternizacoes', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
                 condominioCollections.forEach(collection => {
                     db.collection(collection)
                         .where('condominioId', '==', currentCondominio.id)
@@ -6352,6 +6412,294 @@ ${(currentUser.permissoes &&
             originalLoadModuleContent.apply(this, arguments);
             setTimeout(()=> updateDeleteButtonsState(), 100);
         };
+    // ========== FUNÇÕES DE CONFRATERNIZAÇÃO ==========
+
+function openConfraternizacaoModal() {
+    document.getElementById('confraternizacaoModalTitle').textContent = 'Nova Inscrição';
+    document.getElementById('editingConfraternizacaoId').value = '';
+    document.getElementById('confraternizacaoForm').reset();
+    document.getElementById('confraternizacaoApto').value = '';
+    carregarMoradoresSelect();
+    document.getElementById('confraternizacaoModal').style.display = 'flex';
+}
+
+function closeConfraternizacaoModal() {
+    document.getElementById('confraternizacaoModal').style.display = 'none';
+}
+
+function carregarMoradoresSelect() {
+    const select = document.getElementById('confraternizacaoMorador');
+    select.innerHTML = '<option value="">Selecione...</option>';
+    const moradoresFiltrados = moradores.filter(m => m.condominioId === currentCondominio.id);
+    moradoresFiltrados.sort((a, b) => extractNumberFromApto(a.apto) - extractNumberFromApto(b.apto));
+    moradoresFiltrados.forEach(morador => {
+        const option = document.createElement('option');
+        option.value = morador.id;
+        option.textContent = `${morador.nome} — ${morador.apto}`;
+        option.dataset.apto = morador.apto;
+        select.appendChild(option);
+    });
+}
+
+function preencherAptoAutomatico() {
+    const select = document.getElementById('confraternizacaoMorador');
+    const aptoInput = document.getElementById('confraternizacaoApto');
+    const option = select.options[select.selectedIndex];
+    aptoInput.value = option ? option.dataset.apto || '' : '';
+    calcularTotalConfraternizacao();
+}
+
+function calcularTotalConfraternizacao() {
+    const adultos = parseInt(document.getElementById('confraternizacaoAdultos').value) || 0;
+    const criancas7a12 = parseInt(document.getElementById('confraternizacaoCriancas7a12').value) || 0;
+    const total = (adultos * 80) + (criancas7a12 * 40);
+    document.getElementById('confraternizacaoTotal').value = `R$ ${total.toFixed(2).replace('.', ',')}`;
+}
+
+document.getElementById('confraternizacaoForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+    const editingId = document.getElementById('editingConfraternizacaoId').value;
+    const moradorId = document.getElementById('confraternizacaoMorador').value;
+    const moradorSelecionado = moradores.find(m => m.id === moradorId);
+    if (!moradorSelecionado) {
+        alert('Selecione um morador válido.');
+        return;
+    }
+    const adultos = parseInt(document.getElementById('confraternizacaoAdultos').value) || 0;
+    const criancas7a12 = parseInt(document.getElementById('confraternizacaoCriancas7a12').value) || 0;
+    const criancasMenor6 = parseInt(document.getElementById('confraternizacaoCriancasMenor6').value) || 0;
+    const total = (adultos * 80) + (criancas7a12 * 40);
+    const status = document.getElementById('confraternizacaoStatus').value;
+    const data = {
+        morador: moradorSelecionado.nome,
+        apto: moradorSelecionado.apto,
+        adultos: adultos,
+        criancas7a12: criancas7a12,
+        criancasMenor6: criancasMenor6,
+        total: total,
+        status: status,
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        criadoPor: currentUser.id || currentUser.usuario,
+        criadoEm: new Date().toISOString()
+    };
+    try {
+        if (editingId) {
+            await db.collection('confraternizacoes').doc(editingId).update(data);
+        } else {
+            await db.collection('confraternizacoes').add(data);
+        }
+        closeConfraternizacaoModal();
+        loadConfraternizacaoData();
+        alert(editingId ? 'Registro atualizado!' : 'Inscrição salva com sucesso!');
+    } catch (err) {
+        console.error('Erro ao salvar confraternização:', err);
+        alert('Erro ao salvar. Tente novamente.');
+    }
+});
+
+function editConfraternizacao(id) {
+    db.collection('confraternizacoes').doc(id).get().then(doc => {
+        if (!doc.exists) {
+            alert('Registro não encontrado.');
+            return;
+        }
+        const data = doc.data();
+        document.getElementById('confraternizacaoModalTitle').textContent = 'Editar Inscrição';
+        document.getElementById('editingConfraternizacaoId').value = id;
+        document.getElementById('confraternizacaoAdultos').value = data.adultos || 0;
+        document.getElementById('confraternizacaoCriancas7a12').value = data.criancas7a12 || 0;
+        document.getElementById('confraternizacaoCriancasMenor6').value = data.criancasMenor6 || 0;
+        document.getElementById('confraternizacaoStatus').value = data.status;
+        calcularTotalConfraternizacao();
+        carregarMoradoresSelect();
+        // Selecionar morador correspondente
+        setTimeout(() => {
+            const select = document.getElementById('confraternizacaoMorador');
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].textContent.includes(data.morador) && select.options[i].textContent.includes(data.apto)) {
+                    select.selectedIndex = i;
+                    preencherAptoAutomatico();
+                    break;
+                }
+            }
+        }, 100);
+        document.getElementById('confraternizacaoModal').style.display = 'flex';
+    });
+}
+
+async function deleteConfraternizacao(id) {
+    if (!podeExcluirRegistros()) {
+        alert('Somente síndico ou subsíndico podem excluir registros.');
+        return;
+    }
+    if (!confirm('Tem certeza que deseja excluir esta inscrição?')) return;
+    try {
+        await db.collection('confraternizacoes').doc(id).delete();
+        loadConfraternizacaoData();
+        alert('Inscrição excluída com sucesso!');
+    } catch (err) {
+        console.error('Erro ao excluir:', err);
+        alert('Erro ao excluir. Tente novamente.');
+    }
+}
+// ========== MÓDULO CONFRATERNIZAÇÃO ==========
+function loadConfraternizacaoContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de Confraternização.
+            </div>
+        `;
+        return;
+    }
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Confraternização - ${currentCondominio.nome}</h3>
+                <button class="btn btn-primary" onclick="openConfraternizacaoModal()">
+                    <i class="fas fa-plus"></i> Novo Registro
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Cards em tempo real -->
+                <div class="stats-container">
+                    <div class="stat-card-modern">
+                        <div class="stat-card-header">
+                            <h3>Total de Pessoas</h3>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-value" id="totalPessoas">0</div>
+                            <div class="stat-label">Participantes</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);">
+                        <div class="stat-card-header">
+                            <h3>Valor Arrecadado</h3>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-value" id="valorPago">R$ 0,00</div>
+                            <div class="stat-label">Status: Pago</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                        <div class="stat-card-header">
+                            <h3>Pendente</h3>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-value" id="valorPendente">R$ 0,00</div>
+                            <div class="stat-label">Aguardando pagamento</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);">
+                        <div class="stat-card-header">
+                            <h3>Total de Registros</h3>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-value" id="totalRegistros">0</div>
+                            <div class="stat-label">Famílias cadastradas</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <table class="table" id="confraternizacaoTable">
+                    <thead>
+                        <tr>
+                            <th>Morador</th>
+                            <th>Apto</th>
+                            <th>Adultos (R$80)</th>
+                            <th>Crianças 7-12 (R$40)</th>
+                            <th>Menores 6 (Grátis)</th>
+                            <th>Total Pago</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="confraternizacaoTbody">
+                        <tr><td colspan="8" class="text-center">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    loadConfraternizacaoData();
+}
+function loadConfraternizacaoData() {
+    db.collection('confraternizacoes')
+        .where('condominioId', '==', currentCondominio.id)
+        .get()
+        .then(snapshot => {
+            const registros = [];
+            snapshot.forEach(doc => registros.push({ id: doc.id, ...doc.data() }));
+            
+            // Atualiza cards
+            const totalPessoas = registros.reduce((sum, r) => 
+                sum + (r.adultos || 0) + (r.criancas7a12 || 0) + (r.criancasMenor6 || 0), 0);
+            const valorPago = registros
+                .filter(r => r.status === 'pago')
+                .reduce((sum, r) => sum + (r.total || 0), 0);
+            const valorPendente = registros
+                .filter(r => r.status === 'pendente')
+                .reduce((sum, r) => sum + (r.total || 0), 0);
+            
+            document.getElementById('totalPessoas').textContent = totalPessoas;
+            document.getElementById('valorPago').textContent = `R$ ${valorPago.toFixed(2).replace('.', ',')}`;
+            document.getElementById('valorPendente').textContent = `R$ ${valorPendente.toFixed(2).replace('.', ',')}`;
+            document.getElementById('totalRegistros').textContent = registros.length;
+            
+            // Atualiza tabela
+            const tbody = document.getElementById('confraternizacaoTbody');
+            if (registros.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Nenhum registro encontrado.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = registros.map(r => `
+                <tr>
+                    <td>${r.morador}</td>
+                    <td>${r.apto}</td>
+                    <td>${r.adultos || 0}</td>
+                    <td>${r.criancas7a12 || 0}</td>
+                    <td>${r.criancasMenor6 || 0}</td>
+                    <td>R$ ${(r.total || 0).toFixed(2).replace('.', ',')}</td>
+                    <td>
+                        <span class="status-badge status-${r.status}">
+                            ${formatStatusConfraternizacao(r.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="editConfraternizacao('${r.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${podeExcluirRegistros() ? `
+                        <button class="btn btn-sm btn-danger" onclick="deleteConfraternizacao('${r.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(err => {
+            console.error('Erro ao carregar confraternizações:', err);
+            document.getElementById('confraternizacaoTbody').innerHTML = '<tr><td colspan="8" class="text-center">Erro ao carregar dados.</td></tr>';
+        });
+}
+
+function formatStatusConfraternizacao(status) {
+    const map = {
+        'pago': 'Pago',
+        'pendente': 'Pendente',
+        'cancelado': 'Cancelado'
+    };
+    return map[status] || status;
+}
+
     </script>
+    
+
 </body>
 </html>
