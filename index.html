@@ -1776,7 +1776,37 @@
             </form>
         </div>
     </div>
-
+     <!-- Modal para Vales -->
+<div id="valeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="valeModalTitle">Solicitar Vale</h3>
+            <button type="button" onclick="closeValeModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <form id="valeForm">
+            <input type="hidden" id="editingValeId">
+            <div class="form-group">
+                <label>Valor *</label>
+                <input type="number" class="form-control" id="valeValor" step="0.01" min="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Motivo</label>
+                <textarea class="form-control" id="valeMotivo" rows="3" placeholder="Ex: emergência, transporte, alimentação..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select class="form-control" id="valeStatus" disabled>
+                    <option value="pendente">Pendente</option>
+                </select>
+                <small class="text-muted">Só o síndico pode alterar o status.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+                <button type="button" class="btn" onclick="closeValeModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
@@ -1797,6 +1827,7 @@
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
             { id: 'confraternizacao', name: 'Confraternização', icon: 'fas fa-glass-cheers' },                       
             { id: 'ocorrencias', name: 'Ocorrências', icon: 'fas fa-exclamation-triangle' },
+            { id: 'vales', name: 'Vales', icon: 'fas fa-money-bill-wave' },
             { id: 'prestadores', name: 'Prestador de Serviços', icon: 'fas fa-briefcase' },
             { id: 'agendamentos', name: 'Agendamentos', icon: 'fas fa-calendar-alt' },
             { id: 'limpeza', name: 'Limpeza', icon: 'fas fa-broom' },
@@ -1814,6 +1845,7 @@
         let currentUser = null;
         let currentCondominio = null;
         let condominios = [];
+        let vales = [];
         let usuarios = [];
         let horasExtras = [];
         let moradores = [];
@@ -2480,65 +2512,69 @@ function closeHoraExtraModal() {
         }
         // Carregar conteúdo do módulo
         function loadModuleContent(moduleId) {
-            currentModule = moduleId;
-            document.querySelectorAll('.sidebar-menu a').forEach(item => {
-                item.classList.remove('active');
-            });
-            const activeItem = document.querySelector(`.sidebar-menu a[onclick="changeModule('${moduleId}')"]`);
-            if (activeItem) {
-                activeItem.classList.add('active');
-            }
-            const moduleContent = document.getElementById('moduleContent');
-            switch(moduleId) {
-                case 'dashboard':
-                    loadDashboardContent();
-                    break;
-                case 'condominios':
-                    loadCondominiosContent();
-                    break;
-                case 'usuarios':
-                    loadUsuariosContent();
-                    break;
-                
-                case 'moradores':
-                    loadMoradoresContent();
-                    break;
-                case 'agendamentos':
-                    loadAgendamentosContent();
-                    break;
-                case 'limpeza':
-                    loadLimpezaContent();
-                    break;
-                case 'sauna':
-                    loadSaunaContent();
-                    break;
-                case 'contas':
-                    loadContasContent();
-                    break;
-                case 'lembretes':
-                    loadLembretesContent();
-                    break;
-                case 'relatorios':
-                    loadRelatoriosContent();
-                    break;
-                case 'horas-extras':
-                    loadHorasExtrasContent();
-                    break;
-                case 'ocorrencias':
-                    loadOcorrenciasContent();
-                    break;
-                case 'prestadores':
-                    loadPrestadoresContent();
-                    break;
-                case 'compras': // <-- Novo Caso
-                    loadComprasContent();
-                    break;
-                 case 'confraternizacao':
-                    loadConfraternizacaoContent();
-                    break;
-            }
-            setTimeout(() => updateDeleteButtonsState(), 100);
-        }
+    currentModule = moduleId;
+    document.querySelectorAll('.sidebar-menu a').forEach(item => {
+        item.classList.remove('active');
+    });
+    const activeItem = document.querySelector(`.sidebar-menu a[onclick="changeModule('${moduleId}')"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+    const moduleContent = document.getElementById('moduleContent');
+    switch(moduleId) {
+        case 'dashboard':
+            loadDashboardContent();
+            break;
+        case 'condominios':
+            loadCondominiosContent();
+            break;
+        case 'usuarios':
+            loadUsuariosContent();
+            break;
+        case 'moradores':
+            loadMoradoresContent();
+            break;
+        case 'agendamentos':
+            loadAgendamentosContent();
+            break;
+        case 'limpeza':
+            loadLimpezaContent();
+            break;
+        case 'sauna':
+            loadSaunaContent();
+            break;
+        case 'contas':
+            loadContasContent();
+            break;
+        case 'lembretes':
+            loadLembretesContent();
+            break;
+        case 'relatorios':
+            loadRelatoriosContent();
+            break;
+        case 'horas-extras':
+            loadHorasExtrasContent();
+            break;
+        case 'ocorrencias':
+            loadOcorrenciasContent();
+            break;
+        case 'prestadores':
+            loadPrestadoresContent();
+            break;
+        case 'compras':
+            loadComprasContent();
+            break;
+        case 'confraternizacao':
+            loadConfraternizacaoContent();
+            break;
+        case 'vales':  // ← ESSE CASO É O QUE FALTAVA!
+            loadValesContent();
+            break;
+        default:
+            moduleContent.innerHTML = `<div class="alert alert-warning">Módulo não encontrado: ${moduleId}</div>`;
+    }
+    setTimeout(() => updateDeleteButtonsState(), 100);
+}
         function changeModule(moduleId) {
             loadModuleContent(moduleId);
         }
@@ -2571,6 +2607,17 @@ function closeHoraExtraModal() {
                             ...doc.data()
                         });
                     });
+                     // Carregar Vales
+const valesSnapshot = await db.collection('vales')
+    .where('condominioId', '==', currentCondominio.id)
+    .get();
+vales = [];
+valesSnapshot.forEach(doc => {
+    vales.push({
+        id: doc.id,
+        ...doc.data()
+    });
+});
                     const horasExtrasSnapshot = await db.collection('horasExtras')
                         .where('condominioId', '==', currentCondominio.id)
                         .get();
@@ -2645,6 +2692,7 @@ function closeHoraExtraModal() {
                 } else {
                     moradores = [];
                     horasExtras = [];
+                    vales = []; // <-- Adicione esta linha
                     limpezas = [];
                     saunas = [];
                     agendamentos = [];
@@ -2892,7 +2940,285 @@ function closeHoraExtraModal() {
                 </div>
             `;
         }
+        function openValeModal() {
+    document.getElementById('valeModalTitle').textContent = currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico' 
+        ? 'Novo Vale (Admin)' : 'Solicitar Vale';
+    document.getElementById('editingValeId').value = '';
+    document.getElementById('valeForm').reset();
+    document.getElementById('valeStatus').value = 'pendente';
+    document.getElementById('valeStatus').disabled = !(currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico');
+    document.getElementById('valeModal').style.display = 'flex';
+}
 
+function closeValeModal() {
+    document.getElementById('valeModal').style.display = 'none';
+}
+document.getElementById('valeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+
+    const editingId = document.getElementById('editingValeId').value;
+    const valor = parseFloat(document.getElementById('valeValor').value);
+    const motivo = document.getElementById('valeMotivo').value.trim();
+    const status = document.getElementById('valeStatus').value;
+
+    if (isNaN(valor) || valor <= 0) {
+        alert('Valor inválido.');
+        return;
+    }
+
+    const valeData = {
+        solicitanteId: currentUser.id,
+        solicitanteNome: currentUser.nome || currentUser.usuario,
+        solicitanteTipo: currentUser.tipo,
+        valor: valor,
+        motivo: motivo,
+        status: status,
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        dataCriacao: new Date().toISOString()
+    };
+
+    // Se for edição por síndico, preserva o solicitante original
+    if (editingId) {
+        const valeExistente = vales.find(v => v.id === editingId);
+        if (valeExistente) {
+            valeData.solicitanteId = valeExistente.solicitanteId;
+            valeData.solicitanteNome = valeExistente.solicitanteNome;
+            valeData.solicitanteTipo = valeExistente.solicitanteTipo;
+        }
+    }
+
+    try {
+        if (editingId) {
+            await db.collection('vales').doc(editingId).update(valeData);
+        } else {
+            await db.collection('vales').add(valeData);
+        }
+        await loadSystemData();
+        closeValeModal();
+        if (currentModule === 'vales') {
+            loadValesContent();
+        }
+        alert(editingId ? 'Vale atualizado com sucesso!' : 'Solicitação enviada com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar vale:', error);
+        alert('Erro ao salvar vale. Tente novamente.');
+    }
+});
+function editVale(id) {
+    if (!podeExcluirRegistros()) { // usa sua função existente (síndico/subsíndico)
+        alert('Somente síndico ou subsíndico podem editar vales.');
+        return;
+    }
+    const vale = vales.find(v => v.id === id);
+    if (!vale) return;
+
+    document.getElementById('valeModalTitle').textContent = 'Editar Vale';
+    document.getElementById('editingValeId').value = vale.id;
+    document.getElementById('valeValor').value = vale.valor;
+    document.getElementById('valeMotivo').value = vale.motivo || '';
+    document.getElementById('valeStatus').value = vale.status;
+    document.getElementById('valeStatus').disabled = false;
+    document.getElementById('valeModal').style.display = 'flex';
+}
+async function deleteVale(id) {
+    if (!podeExcluirRegistros()) {
+        alert('Somente síndico ou subsíndico podem excluir registros.');
+        return;
+    }
+    if (!confirm('Tem certeza que deseja excluir este vale?')) return;
+    try {
+        await db.collection('vales').doc(id).delete();
+        await loadSystemData();
+        if (currentModule === 'vales') {
+            loadValesContent();
+        }
+        alert('Vale excluído com sucesso!');
+    } catch (error) {
+        console.error('Erro ao excluir vale:', error);
+        alert('Erro ao excluir vale. Tente novamente.');
+    }
+}
+async function marcarValeComoPago(id) {
+    if (!podeExcluirRegistros()) {
+        alert('Somente síndico ou subsíndico podem marcar como pago.');
+        return;
+    }
+    try {
+        await db.collection('vales').doc(id).update({
+            status: 'pago',
+            dataPagamento: new Date().toISOString()
+        });
+        await loadSystemData();
+        if (currentModule === 'vales') {
+            loadValesContent();
+        }
+        alert('Vale marcado como pago com sucesso!');
+    } catch (error) {
+        console.error('Erro ao marcar como pago:', error);
+        alert('Erro ao atualizar status do vale.');
+    }
+}
+function formatStatusVale(status) {
+    const map = {
+        'pendente': 'Pendente',
+        'aprovado': 'Aprovado',
+        'rejeitado': 'Rejeitado',
+        'pago': 'Pago'
+    };
+    return map[status] || status;
+}
+     function loadValesContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    
+    // Verifica permissão
+    if (currentUser.permissoes &&
+        !currentUser.permissoes.includes('*') &&
+        !currentUser.permissoes.includes('vales')) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+            </div>
+        `;
+        return;
+    }
+
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de Vales.
+            </div>
+        `;
+        return;
+    }
+
+    // Filtra vales: síndico/sub vê todos; outros só os próprios
+    let filteredVales = vales.filter(v => v.condominioId === currentCondominio.id);
+    if (currentUser.tipo !== 'sindico' && currentUser.tipo !== 'subsindico') {
+        filteredVales = filteredVales.filter(v => v.solicitanteId === currentUser.id);
+    }
+
+    // Estatísticas
+    const total = filteredVales.length;
+    const pendentes = filteredVales.filter(v => v.status === 'pendente').length;
+    const pagos = filteredVales.filter(v => v.status === 'pago').length;
+    const valorTotal = filteredVales.reduce((sum, v) => sum + v.valor, 0);
+    const valorPago = filteredVales.filter(v => v.status === 'pago').reduce((sum, v) => sum + v.valor, 0);
+
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Vales - ${currentCondominio.nome}</h3>
+                <div>
+                    ${currentUser.tipo !== 'sindico' && currentUser.tipo !== 'subsindico' 
+                        ? `<button class="btn btn-primary" onclick="openValeModal()">
+                            <i class="fas fa-plus"></i> Solicitar Vale
+                          </button>`
+                        : `<button class="btn btn-primary" onclick="openValeModal()">
+                            <i class="fas fa-plus"></i> Novo Vale (Admin)
+                          </button>`
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Estatísticas -->
+                <div class="stats-container">
+                    <div class="stat-card-modern">
+                        <div class="stat-card-header"><h3>Total de Vales</h3></div>
+                        <div class="stat-card-content">
+                            <div class="stat-value">${total}</div>
+                            <div class="stat-label">Solicitações</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                        <div class="stat-card-header"><h3>Pendentes</h3></div>
+                        <div class="stat-card-content">
+                            <div class="stat-value">${pendentes}</div>
+                            <div class="stat-label">Aguardando análise</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);">
+                        <div class="stat-card-header"><h3>Pagos</h3></div>
+                        <div class="stat-card-content">
+                            <div class="stat-value">${pagos}</div>
+                            <div class="stat-label">Vales liberados</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                        <div class="stat-card-header"><h3>Valor Total</h3></div>
+                        <div class="stat-card-content">
+                            <div class="stat-value">R$ ${valorTotal.toFixed(2).replace('.', ',')}</div>
+                            <div class="stat-label">Solicitado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela -->
+                <table class="table" id="valesTable">
+                    <thead>
+                        <tr>
+                            <th>Solicitante</th>
+                            <th>Valor</th>
+                            <th>Motivo</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredVales.length > 0 
+                            ? filteredVales.map(vale => `
+                                <tr>
+                                    <td>
+                                        ${vale.solicitanteNome} 
+                                        ${currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico' 
+                                            ? `<br><small>${formatUserType(vale.solicitanteTipo)}</small>` 
+                                            : ''}
+                                    </td>
+                                    <td>R$ ${vale.valor.toFixed(2).replace('.', ',')}</td>
+                                    <td>${vale.motivo || '—'}</td>
+                                    <td>${new Date(vale.dataCriacao).toLocaleDateString('pt-BR')}</td>
+                                    <td>
+                                        <span class="status-badge status-${vale.status}">
+                                            ${formatStatusVale(vale.status)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        ${currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico' 
+                                            ? `
+                                                <button class="btn btn-sm btn-info" onclick="editVale('${vale.id}')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                ${vale.status !== 'pago' ? `
+                                                <button class="btn btn-sm btn-success" onclick="marcarValeComoPago('${vale.id}')">
+                                                    <i class="fas fa-money-bill"></i> Pagar
+                                                </button>` : ''}
+                                                <button class="btn btn-sm btn-danger" onclick="deleteVale('${vale.id}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            `
+                                            : `
+                                                ${vale.status === 'pendente' 
+                                                    ? `<span class="badge badge-warning">Aguardando aprovação</span>`
+                                                    : `<span class="badge badge-success">Concluído</span>`
+                                                }
+                                            `
+                                        }
+                                    </td>
+                                </tr>
+                            `).join('')
+                            : `<tr><td colspan="6" class="text-center">Nenhum vale encontrado.</td></tr>`
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}  
         // ========== MÓDULO DASHBOARD ==========
         function loadDashboardContent() {
             const moduleContent = document.getElementById('moduleContent');
@@ -5577,30 +5903,42 @@ ${(currentUser.permissoes &&
             });
         }
         async function updateOnlineCount() {
-            try {
-                const cutoff = new Date(Date.now() - 60000);
-                const snapshot = await db.collection('presence')
-                    .where('lastSeen', '>=', firebase.firestore.Timestamp.fromDate(cutoff))
-                    .where('online', '==', true)
-                    .get();
-                const onlineUsers = [];
-                snapshot.forEach(doc => {
-                    const userData = doc.data();
-                    if (userData.userId !== currentUser.id) {
-                        onlineUsers.push(userData);
-                    }
-                });
-                const count = onlineUsers.length;
-                document.getElementById('onlineCount').textContent = count;
-                if (count > 0) {
-                    const userNames = onlineUsers.map(user => user.nome).join(', ');
-                    document.querySelector('.online-indicator').title = `Online: ${userNames}`;
-                }
-            } catch (error) {
-                console.error('Erro ao atualizar contagem online:', error);
-                document.getElementById('onlineCount').textContent = '0';
+    // 🔒 Proteção extra: só executa se usuário estiver logado
+    if (!currentUser || !currentUser.id) {
+        document.getElementById('onlineCount').textContent = '0';
+        return;
+    }
+
+    try {
+        const cutoff = new Date(Date.now() - 60000); // 60 segundos atrás
+        const snapshot = await db.collection('presence')
+            .where('lastSeen', '>=', firebase.firestore.Timestamp.fromDate(cutoff))
+            .where('online', '==', true)
+            .get();
+
+        const onlineUsers = [];
+        snapshot.forEach(doc => {
+            const userData = doc.data();
+            // ✅ Só adiciona outros usuários (não inclui o próprio)
+            if (userData.userId && userData.userId !== currentUser.id) {
+                onlineUsers.push(userData);
             }
+        });
+
+        const count = onlineUsers.length;
+        document.getElementById('onlineCount').textContent = count;
+
+        if (count > 0) {
+            const userNames = onlineUsers.map(user => user.nome || 'Usuário').join(', ');
+            document.querySelector('.online-indicator').title = `Online: ${userNames}`;
+        } else {
+            document.querySelector('.online-indicator').title = 'Ninguém mais online';
         }
+    } catch (error) {
+        console.error('Erro ao atualizar contagem online:', error);
+        document.getElementById('onlineCount').textContent = '0';
+    }
+}
                 function showOnlineUsers() {
             const cutoff = new Date(Date.now() - 60000);
             db.collection('presence')
@@ -6248,10 +6586,7 @@ ${(currentUser.permissoes &&
                 const id = document.getElementById('editingPrestadorId').value;
                 const doc = {
                     nome: document.getElementById('prestadorNome').value,
-                    data: {
-  _seconds: Math.floor(new Date(document.getElementById('prestadorData').value).getTime() / 1000),
-  _nanoseconds: 0
-},
+                                        data: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('prestadorData').value + 'T00:00:00-03:00')),
                     entrada: document.getElementById('prestadorEntrada').value,
                     saida: document.getElementById('prestadorSaida').value,
                     observacoes: document.getElementById('prestadorObservacoes').value,
@@ -6352,18 +6687,33 @@ ${(currentUser.permissoes &&
                 tbody.innerHTML = '';
                 docs.forEach(doc => {
                     const tr = document.createElement('tr');
-                    let dataStr = '';
+                   // 🔧 Substitua a parte que começa com "let dataStr = '';" até o final do bloco
+let dataStr = '';
 if (doc.data) {
     let dateObj;
+    // 1. Firestore Timestamp (padrão real)
     if (doc.data.seconds) {
         dateObj = doc.data.toDate();
-    } else if (typeof doc.data === 'string') {
-        // Corrige fuso: força horário de Brasília (-03:00)
-        dateObj = new Date(doc.data + 'T00:00:00-03:00');
-    } else {
+    }
+    // 2. Objeto com _seconds (armazenado manualmente)
+    else if (doc.data._seconds) {
+        dateObj = new Date(doc.data._seconds * 1000);
+    }
+    // 3. String ISO ou YYYY-MM-DD
+    else if (typeof doc.data === 'string') {
+        // Garante que seja interpretado como data local (horário de Brasília)
+        const datePart = doc.data.split('T')[0]; // Pega só YYYY-MM-DD
+        dateObj = new Date(datePart + 'T00:00:00-03:00');
+    }
+    // 4. Número (timestamp em ms)
+    else if (typeof doc.data === 'number') {
         dateObj = new Date(doc.data);
     }
-    dataStr = dateObj.toLocaleDateString('pt-BR');
+    // 5. Fallback
+    else {
+        dateObj = null;
+    }
+    dataStr = dateObj ? dateObj.toLocaleDateString('pt-BR') : '—';
 }
                     tr.innerHTML = `
                         <td>${doc.nome || ''}</td>
