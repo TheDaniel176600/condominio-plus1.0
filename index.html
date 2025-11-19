@@ -1733,47 +1733,58 @@
                 <button type="button" onclick="closeCompraModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
             <form id="compraForm">
-                <input type="hidden" id="editingCompraId">
-                <div class="form-group">
-                    <label>Fornecedor *</label>
-                    <input type="text" class="form-control" id="compraFornecedor" required>
-                </div>
-                <div class="form-group">
-                    <label>Data da Fatura *</label>
-                    <input type="date" class="form-control" id="compraDataFatura" required>
-                </div>
-                <div class="form-group">
-                    <label>Descrição Geral</label>
-                    <textarea class="form-control" id="compraDescricaoGeral" rows="2"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Itens da Compra</label>
-                    <div class="form-row">
-                        <input type="text" class="form-control" id="novoItemNome" placeholder="Nome do Item">
-                        <input type="number" class="form-control" id="novoItemQuantidade" placeholder="Qtd" style="width: 80px;">
-                        <input type="number" class="form-control" id="novoItemValor" placeholder="Valor Unitário" step="0.01" style="width: 120px;">
-                    </div>
-                    <button type="button" class="add-item-btn" onclick="adicionarItemCompra()">+ Adicionar Item</button>
-                </div>
-                <div class="form-group">
-                    <div class="compra-itens-lista" id="compraItensLista">
-                        <!-- Itens serão adicionados aqui -->
-                    </div>
-                    <div class="item-total" id="compraTotalDisplay">Total: R$ 0.00</div>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-control" id="compraStatus">
-                        <option value="pendente">Pendente</option>
-                        <option value="recebido">Recebido</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Salvar Compra</button>
-                    <button type="button" class="btn" onclick="closeCompraModal()">Cancelar</button>
-                </div>
-            </form>
+    <input type="hidden" id="editingCompraId">
+    <div class="form-group">
+        <label>Fornecedor *</label>
+        <input type="text" class="form-control" id="compraFornecedor" required>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Data da Fatura *</label>
+            <input type="date" class="form-control" id="compraDataFatura" required>
+        </div>
+        <div class="form-group">
+            <label>Vencimento *</label>
+            <input type="date" class="form-control" id="compraVencimento" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Descrição Geral</label>
+        <textarea class="form-control" id="compraDescricaoGeral" rows="2"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Observações</label>
+        <textarea class="form-control" id="compraObservacoes" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Itens da Compra</label>
+        <div class="form-row">
+            <input type="text" class="form-control" id="novoItemNome" placeholder="Nome do Item">
+            <input type="number" class="form-control" id="novoItemQuantidade" placeholder="Qtd" style="width: 80px;">
+            <input type="number" class="form-control" id="novoItemValor" placeholder="Valor Unitário" step="0.01" style="width: 120px;">
+        </div>
+        <button type="button" class="add-item-btn" onclick="adicionarItemCompra()">+ Adicionar Item</button>
+    </div>
+    <div class="form-group">
+        <div class="compra-itens-lista" id="compraItensLista">
+            <!-- Itens serão adicionados aqui -->
+        </div>
+        <div class="item-total" id="compraTotalDisplay">Total: R$ 0.00</div>
+    </div>
+    <div class="form-group">
+        <label>Status</label>
+        <select class="form-control" id="compraStatus">
+            <option value="pendente">Pendente</option>
+            <option value="recebido">Recebido</option>
+            <option value="pago">Pago</option>
+            <option value="cancelado">Cancelado</option>
+        </select>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Salvar Compra</button>
+        <button type="button" class="btn" onclick="closeCompraModal()">Cancelar</button>
+    </div>
+</form>
         </div>
     </div>
      <!-- Modal para Vales -->
@@ -2273,25 +2284,28 @@ function closeHoraExtraModal() {
             document.getElementById('compraModal').style.display = 'none';
         }
 
-        function editCompra(id) {
-            const compra = compras.find(c => c.id === id);
-            if (!compra) return;
+       function editCompra(id) {
+    const compra = compras.find(c => c.id === id);
+    if (!compra) return;
 
-            document.getElementById('compraModalTitle').textContent = 'Editar Compra';
-            document.getElementById('editingCompraId').value = compra.id;
-            document.getElementById('compraFornecedor').value = compra.fornecedor;
-            document.getElementById('compraDataFatura').value = compra.dataFatura;
-            document.getElementById('compraDescricaoGeral').value = compra.descricaoGeral || '';
-            document.getElementById('compraStatus').value = compra.status;
+    document.getElementById('compraModalTitle').textContent = 'Editar Compra';
+    document.getElementById('editingCompraId').value = compra.id;
 
-            // Carregar itens
-            document.getElementById('compraItensLista').innerHTML = '';
-            compra.itens.forEach((item, index) => {
-                adicionarItemNaLista(item.nome, item.quantidade, item.valorUnitario, index);
-            });
-            atualizarTotalCompra();
-            document.getElementById('compraModal').style.display = 'flex';
-        }
+    document.getElementById('compraFornecedor').value = compra.fornecedor;
+    document.getElementById('compraDataFatura').value = compra.dataFatura;
+    document.getElementById('compraVencimento').value = compra.vencimento || '';
+    document.getElementById('compraDescricaoGeral').value = compra.descricaoGeral || '';
+    document.getElementById('compraObservacoes').value = compra.observacoes || '';
+    document.getElementById('compraStatus').value = compra.status;
+
+    // Carregar itens
+    document.getElementById('compraItensLista').innerHTML = '';
+    compra.itens.forEach((item, index) => {
+        adicionarItemNaLista(item.nome, item.quantidade, item.valorUnitario, index);
+    });
+    atualizarTotalCompra();
+    document.getElementById('compraModal').style.display = 'flex';
+}
 
         function adicionarItemCompra() {
             const nome = document.getElementById('novoItemNome').value.trim();
@@ -2367,48 +2381,58 @@ function closeHoraExtraModal() {
         }
 
         document.getElementById('compraForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!currentCondominio) {
-                alert('Selecione um condomínio primeiro!');
-                return;
-            }
+    e.preventDefault();
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+    const itens = getItensCompraFromDOM();
+    const editingId = document.getElementById('editingCompraId').value;
+    const fornecedor = document.getElementById('compraFornecedor').value.trim();
+    const dataFatura = document.getElementById('compraDataFatura').value;
+    const vencimento = document.getElementById('compraVencimento').value;
+    const descricaoGeral = document.getElementById('compraDescricaoGeral').value;
+    const observacoes = document.getElementById('compraObservacoes').value;
+    const status = document.getElementById('compraStatus').value;
+    const valorTotal = itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
 
-            const itens = getItensCompraFromDOM();
-            if (itens.length === 0) {
-                alert('Adicione pelo menos um item à compra.');
-                return;
-            }
+    if (!fornecedor || !dataFatura || !vencimento) {
+        alert('Preencha todos os campos obrigatórios.');
+        return;
+    }
 
-            const editingId = document.getElementById('editingCompraId').value;
-            const compraData = {
-                fornecedor: document.getElementById('compraFornecedor').value,
-                dataFatura: document.getElementById('compraDataFatura').value,
-                descricaoGeral: document.getElementById('compraDescricaoGeral').value,
-                itens: itens,
-                status: document.getElementById('compraStatus').value,
-                condominioId: currentCondominio.id,
-                condominioNome: currentCondominio.nome,
-                criadoPor: currentUser.id || currentUser.usuario,
-                criadoEm: new Date().toISOString()
-            };
+    const compraData = {
+        fornecedor,
+        dataFatura,
+        vencimento,
+        descricaoGeral: descricaoGeral || '',
+        observacoes: observacoes || '',
+        itens,
+        valorTotal,
+        status,
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        criadoPor: currentUser.id || currentUser.usuario,
+        criadoEm: new Date().toISOString()
+    };
 
-            try {
-                if (editingId) {
-                    await db.collection('compras').doc(editingId).update(compraData);
-                } else {
-                    await db.collection('compras').add(compraData);
-                }
-                await loadSystemData();
-                closeCompraModal();
-                if (currentModule === 'compras') {
-                    loadComprasContent();
-                }
-                alert('Compra salva com sucesso!');
-            } catch (error) {
-                console.error('Erro ao salvar compra:', error);
-                alert('Erro ao salvar compra. Tente novamente.');
-            }
-        });
+    try {
+        if (editingId) {
+            await db.collection('compras').doc(editingId).update(compraData);
+        } else {
+            await db.collection('compras').add(compraData);
+        }
+        await loadSystemData();
+        closeCompraModal();
+        if (currentModule === 'compras') {
+            loadComprasContent();
+        }
+        alert('Compra salva com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar compra:', error);
+        alert('Erro ao salvar compra. Tente novamente.');
+    }
+});
 
         async function deleteCompra(id) {
             if (!podeExcluirRegistros()) {
@@ -2430,65 +2454,65 @@ function closeHoraExtraModal() {
         }
 
         function filterCompras() {
-            const fornecedor = document.getElementById('filtroFornecedorCompra').value.toLowerCase();
-            const status = document.getElementById('filtroStatusCompra').value;
-            const data = document.getElementById('filtroDataCompra').value;
+    const fornecedor = (document.getElementById('filtroFornecedorCompra')?.value || '').toLowerCase();
+    const status = document.getElementById('filtroStatusCompra')?.value || '';
+    const filtroVencimento = document.getElementById('filtroVencimentoCompra')?.value || '';
 
-            let filteredCompras = compras.filter(c =>
-                c.condominioId === (currentCondominio ? currentCondominio.id : '')
-            );
+    let filtered = compras.filter(c => c.condominioId === currentCondominio.id);
 
-            if (fornecedor) {
-                filteredCompras = filteredCompras.filter(c => c.fornecedor.toLowerCase().includes(fornecedor));
-            }
-            if (status) {
-                filteredCompras = filteredCompras.filter(c => c.status === status);
-            }
-            if (data) {
-                filteredCompras = filteredCompras.filter(c => c.dataFatura === data);
-            }
+    if (fornecedor) {
+        filtered = filtered.filter(c => c.fornecedor.toLowerCase().includes(fornecedor));
+    }
+    if (status) {
+        filtered = filtered.filter(c => c.status === status);
+    }
 
-            const tbody = document.querySelector('#comprasTable tbody');
-            tbody.innerHTML = '';
-            if (filteredCompras.length > 0) {
-                filteredCompras.forEach(compra => {
-                    const total = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${compra.fornecedor}</td>
-                        <td>${formatDate(compra.dataFatura)}</td>
-                        <td>R$ ${total.toFixed(2)}</td>
-                        <td>${compra.descricaoGeral || '-'}</td>
-                        <td>
-                            <span class="status-badge status-${compra.status}">
-                                ${formatStatusCompra(compra.status)}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            ${podeExcluirRegistros() ? `
-                            <button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>` : ''}
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma compra encontrada com os filtros aplicados.</td></tr>';
-            }
-        }
+    const hoje = new Date();
+    if (filtroVencimento === 'proximos-7') {
+        filtered = filtered.filter(c => {
+            const venc = new Date(c.vencimento);
+            const diff = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+            return diff >= 0 && diff <= 7;
+        });
+    } else if (filtroVencimento === 'atrasados') {
+        filtered = filtered.filter(c => {
+            const venc = new Date(c.vencimento);
+            return venc < hoje;
+        });
+    }
+
+    const tbody = document.querySelector('#comprasTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = filtered.length > 0 ? filtered.map(compra => {
+        const total = compra.valorTotal || compra.itens.reduce((s, i) => s + i.quantidade * i.valorUnitario, 0);
+        return `
+            <tr>
+                <td>${compra.fornecedor}</td>
+                <td>${formatDate(compra.dataFatura)}</td>
+                <td>${formatDate(compra.vencimento)}</td>
+                <td>R$ ${total.toFixed(2).replace('.', ',')}</td>
+                <td><span class="status-badge status-${compra.status}">${formatStatusCompra(compra.status)}</span></td>
+                <td>${(compra.observacoes || '').substring(0, 50)}${compra.observacoes && compra.observacoes.length > 50 ? '...' : ''}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')"><i class="fas fa-edit"></i></button>
+                    ${podeExcluirRegistros() ? 
+                        `<button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')"><i class="fas fa-trash"></i></button>` : ''}
+                </td>
+            </tr>
+        `;
+    }).join('') : '<tr><td colspan="7" class="text-center">Nenhuma compra encontrada com os filtros aplicados.</td></tr>';
+}
 
         function formatStatusCompra(status) {
-            const statusMap = {
-                'pendente': 'Pendente',
-                'recebido': 'Recebido',
-                'cancelado': 'Cancelado'
-            };
-            return statusMap[status] || status;
-        }
+    const statusMap = {
+        'pendente': 'Pendente',
+        'recebido': 'Recebido',
+        'pago': 'Pago',
+        'cancelado': 'Cancelado'
+    };
+    return statusMap[status] || status;
+}
 
         // Carregar menu de módulos
         function loadModuleMenu() {
@@ -2849,98 +2873,88 @@ valesSnapshot.forEach(doc => {
         }
         // ========== MÓDULO COMPRAS ==========
         function loadComprasContent() {
-            const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes &&
-                !currentUser.permissoes.includes('*') &&
-                !currentUser.permissoes.includes('compras')) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+    const moduleContent = document.getElementById('moduleContent');
+    if (currentUser.permissoes && !currentUser.permissoes.includes('*') && !currentUser.permissoes.includes('compras')) {
+        moduleContent.innerHTML = `<div class="alert alert-warning"><strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.</div>`;
+        return;
+    }
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `<div class="alert alert-warning"><strong>Selecione um condomínio</strong> para acessar o módulo de compras.</div>`;
+        return;
+    }
+
+    const filteredCompras = compras.filter(c => c.condominioId === currentCondominio.id);
+
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Compras - ${currentCondominio.nome}</h3>
+                <button class="btn btn-primary" onclick="openCompraModal()">
+                    <i class="fas fa-plus"></i> Nova Compra
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filtrar por Fornecedor</label>
+                        <input type="text" class="form-control" id="filtroFornecedorCompra" onkeyup="filterCompras()" placeholder="Digite o nome do fornecedor">
                     </div>
-                `;
-                return;
-            }
-            if (!currentCondominio) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Selecione um condomínio</strong> para acessar o módulo de compras.
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="filtroStatusCompra" onchange="filterCompras()">
+                            <option value="">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="recebido">Recebido</option>
+                            <option value="pago">Pago</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
                     </div>
-                `;
-                return;
-            }
-            const filteredCompras = compras.filter(c => c.condominioId === currentCondominio.id);
-            moduleContent.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Compras - ${currentCondominio.nome}</h3>
-                        <button class="btn btn-primary" onclick="openCompraModal()">
-                            <i class="fas fa-plus"></i> Nova Compra
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Filtrar por Fornecedor</label>
-                                <input type="text" class="form-control" id="filtroFornecedorCompra" onkeyup="filterCompras()" placeholder="Digite o nome do fornecedor">
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select class="form-control" id="filtroStatusCompra" onchange="filterCompras()">
-                                    <option value="">Todos</option>
-                                    <option value="pendente">Pendente</option>
-                                    <option value="recebido">Recebido</option>
-                                    <option value="cancelado">Cancelado</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Data da Fatura</label>
-                                <input type="date" class="form-control" id="filtroDataCompra" onchange="filterCompras()">
-                            </div>
-                        </div>
-                        <table class="table" id="comprasTable">
-                            <thead>
-                                <tr>
-                                    <th>Fornecedor</th>
-                                    <th>Data da Fatura</th>
-                                    <th>Valor Total</th>
-                                    <th>Descrição</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredCompras.length > 0 ? filteredCompras.map(compra => {
-                                    const total = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
-                                    return `
-                                        <tr>
-                                            <td>${compra.fornecedor}</td>
-                                            <td>${formatDate(compra.dataFatura)}</td>
-                                            <td>R$ ${total.toFixed(2)}</td>
-                                            <td>${compra.descricaoGeral || '-'}</td>
-                                            <td>
-                                                <span class="status-badge status-${compra.status}">
-                                                    ${formatStatusCompra(compra.status)}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                ${podeExcluirRegistros() ? `
-                                                <button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>` : ''}
-                                            </td>
-                                        </tr>
-                                    `;
-                                }).join('') : '<tr><td colspan="6">Nenhuma compra encontrada.</td></tr>'}
-                            </tbody>
-                        </table>
+                    <div class="form-group">
+                        <label>Vencimento</label>
+                        <select class="form-control" id="filtroVencimentoCompra" onchange="filterCompras()">
+                            <option value="">Qualquer data</option>
+                            <option value="proximos-7">Próximos 7 dias</option>
+                            <option value="atrasados">Vencidos</option>
+                        </select>
                     </div>
                 </div>
-            `;
-        }
-        function openValeModal() {
+                <table class="table" id="comprasTable">
+                    <thead>
+                        <tr>
+                            <th>Fornecedor</th>
+                            <th>Data Fatura</th>
+                            <th>Vencimento</th>
+                            <th>Valor Total</th>
+                            <th>Status</th>
+                            <th>Observações</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comprasTableBody">
+                        ${filteredCompras.length > 0 ? filteredCompras.map(compra => {
+                            const total = compra.valorTotal || compra.itens.reduce((s, i) => s + i.quantidade * i.valorUnitario, 0);
+                            return `
+                                <tr>
+                                    <td>${compra.fornecedor}</td>
+                                    <td>${formatDate(compra.dataFatura)}</td>
+                                    <td>${formatDate(compra.vencimento)}</td>
+                                    <td>R$ ${total.toFixed(2).replace('.', ',')}</td>
+                                    <td><span class="status-badge status-${compra.status}">${formatStatusCompra(compra.status)}</span></td>
+                                    <td>${(compra.observacoes || '').substring(0, 50)}${compra.observacoes && compra.observacoes.length > 50 ? '...' : ''}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="editCompra('${compra.id}')"><i class="fas fa-edit"></i></button>
+                                        ${podeExcluirRegistros() ? 
+                                            `<button class="btn btn-sm btn-danger" onclick="deleteCompra('${compra.id}')"><i class="fas fa-trash"></i></button>` : ''}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('') : '<tr><td colspan="7" class="text-center">Nenhuma compra encontrada.</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}        function openValeModal() {
     document.getElementById('valeModalTitle').textContent = currentUser.tipo === 'sindico' || currentUser.tipo === 'subsindico' 
         ? 'Novo Vale (Admin)' : 'Solicitar Vale';
     document.getElementById('editingValeId').value = '';
@@ -3265,6 +3279,14 @@ function formatStatusVale(status) {
     // Mostra contas que venceram nos últimos 4 dias OU que estão vencidas
     return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
 });
+     // ✅ ALERTA DE COMPRAS COM VENCIMENTO PRÓXIMO OU VENCIDAS
+const alertaCompras = filteredCompras.filter(compra => {
+    // Ignora compras sem vencimento ou já pagas (ou não aplicáveis)
+    if (!compra.vencimento || compra.status === 'pago') return false;
+    const vencimento = new Date(compra.vencimento);
+    const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+    return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
+});
 
             const lembretesProximos = filteredLembretes.filter(lembrete => {
                 const dataInicio = new Date(lembrete.dataInicio);
@@ -3388,26 +3410,37 @@ function formatStatusVale(status) {
                         ` : ''}
 ${(currentUser.permissoes &&
   (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) &&
-  alertaContas.length > 0 ? `
+  (alertaContas.length > 0 || alertaCompras.length > 0) ? `
     <div class="dashboard-alerts">
         <div class="alert alert-warning">
-            <h4><i class="fas fa-exclamation-triangle"></i> Contas em Aberto</h4>
-            <p>
-                Você tem ${alertaContas.length} conta(s) em aberto:
-                ${(() => {
-                    const hoje = new Date();
-                    const vencidas = alertaContas.filter(conta => {
-                        const vencimento = new Date(conta.vencimento);
-                        return vencimento < hoje;
-                    }).length;
-                    const proximas = alertaContas.filter(conta => {
-                        const vencimento = new Date(conta.vencimento);
-                        const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-                        return diferencaDias >= 0 && diferencaDias <= 4;
-                    }).length;
-                    return `${vencidas} vencida(s) e ${proximas} próxima(s) do vencimento`;
-                })()}
+            <h4><i class="fas fa-exclamation-triangle"></i> Contas e Compras em Aberto</h4>
+            <p>Você tem 
+                <strong>${alertaContas.length + alertaCompras.length}</strong> 
+                itens com vencimento próximo ou vencidos:
             </p>
+            <ul style="margin-top:10px;">
+                ${alertaContas.map(conta => `
+                    <li>
+                        <strong>CONTA</strong> — ${conta.descricao} 
+                        (vence ${formatDate(conta.vencimento)}) — R$ ${conta.valor.toFixed(2)}
+                        ${new Date(conta.vencimento) < hoje ? ' <span class="badge badge-danger">VENCIDO</span>' : ''}
+                    </li>
+                `).join('')}
+                ${alertaCompras.map(compra => `
+                    <li>
+                        <strong>COMPRA</strong> — ${compra.fornecedor}
+                        ${compra.vencimento ? ` (vence ${formatDate(compra.vencimento)})` : ''}
+                        — R$ ${(compra.valorTotal || compra.itens.reduce((s,i)=>s+i.quantidade*i.valorUnitario,0)).toFixed(2)}
+                        ${new Date(compra.vencimento) < hoje ? ' <span class="badge badge-danger">VENCIDO</span>' : ''}
+                    </li>
+                `).join('')}
+            </ul>
+            <button class="btn btn-sm btn-success" onclick="changeModule('contas')">
+                <i class="fas fa-eye"></i> Ver Contas
+            </button>
+            <button class="btn btn-sm btn-info" onclick="changeModule('compras')" style="margin-left:8px;">
+                <i class="fas fa-shopping-cart"></i> Ver Compras
+            </button>
         </div>
     </div>
 ` : ''}
@@ -6076,19 +6109,21 @@ ${(currentUser.permissoes &&
             }
         });
         document.getElementById('logoutBtn').addEventListener('click', function() {
-            if (confirm('Deseja realmente sair do sistema?')) {
-                if (presenceRef) {
-                    presenceRef.update({
-                        online: false,
-                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                currentCondominio = null;
-                showLoginPage();
-            }
-        });
+    if (confirm('Deseja realmente sair do sistema?')) {
+        // ✅ Remove o aviso ao sair corretamente
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        if (presenceRef) {
+            presenceRef.update({
+                online: false,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        localStorage.removeItem('currentUser');
+        currentUser = null;
+        currentCondominio = null;
+        showLoginPage();
+    }
+});
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -6329,33 +6364,30 @@ ${(currentUser.permissoes &&
         }
         // ========== RELATÓRIO DE COMPRAS ==========
         function generateComprasReport(startDate, endDate) {
-            let filteredCompras = compras.filter(c =>
-                c.condominioId === (currentCondominio ? currentCondominio.id : '')
-            );
-            if (startDate) {
-                filteredCompras = filteredCompras.filter(c => c.dataFatura >= startDate);
-            }
-            if (endDate) {
-                filteredCompras = filteredCompras.filter(c => c.dataFatura <= endDate);
-            }
-            const total = filteredCompras.reduce((sum, compra) => sum + compra.itens.reduce((itemSum, item) => itemSum + (item.quantidade * item.valorUnitario), 0), 0);
-            let report = `<h4>Relatório de Compras</h4>`;
-            report += `<p>Período: ${startDate || 'Início'} a ${endDate || 'Fim'}</p>`;
-            report += `<p>Condomínio: ${currentCondominio ? currentCondominio.nome : 'Todos'}</p>`;
-            report += `<p>Total de compras: ${filteredCompras.length}</p>`;
-            report += `<p>Valor total: R$ ${total.toFixed(2)}</p>`;
-            report += `<div class="report-line"><strong>Data Fatura | Fornecedor | Valor Total | Status</strong></div>`;
-            filteredCompras.forEach(compra => {
-                const totalCompra = compra.itens.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
-                report += `<div class="report-line">`;
-                report += `${formatDate(compra.dataFatura)} | `;
-                report += `${compra.fornecedor} | `;
-                report += `R$ ${totalCompra.toFixed(2)} | `;
-                report += `${formatStatusCompra(compra.status)}`;
-                report += `</div>`;
-            });
-            return report;
-        }
+    let filteredCompras = compras.filter(c => c.condominioId === (currentCondominio ? currentCondominio.id : ''));
+    if (startDate) filteredCompras = filteredCompras.filter(c => c.dataFatura >= startDate);
+    if (endDate) filteredCompras = filteredCompras.filter(c => c.dataFatura <= endDate);
+
+    const total = filteredCompras.reduce((sum, c) => sum + (c.valorTotal || c.itens.reduce((s, i) => s + i.quantidade * i.valorUnitario, 0)), 0);
+    let report = `<h4>Relatório de Compras</h4>`;
+    report += `<p>Período: ${startDate || 'Início'} a ${endDate || 'Fim'}</p>`;
+    report += `<p>Condomínio: ${currentCondominio ? currentCondominio.nome : 'Todos'}</p>`;
+    report += `<p>Total de compras: ${filteredCompras.length}</p>`;
+    report += `<p>Valor total: R$ ${total.toFixed(2)}</p>`;
+    report += `<div class="report-line"><strong>Fornecedor | Data Fatura | Vencimento | Valor | Status | Obs.</strong></div>`;
+    filteredCompras.forEach(c => {
+        const valor = c.valorTotal || c.itens.reduce((s, i) => s + i.quantidade * i.valorUnitario, 0);
+        report += `<div class="report-line">`;
+        report += `${c.fornecedor} | `;
+        report += `${formatDate(c.dataFatura)} | `;
+        report += `${formatDate(c.vencimento)} | `;
+        report += `R$ ${valor.toFixed(2)} | `;
+        report += `${formatStatusCompra(c.status)} | `;
+        report += `${(c.observacoes || '').substring(0, 50)}${c.observacoes && c.observacoes.length > 50 ? '...' : ''}`;
+        report += `</div>`;
+    });
+    return report;
+}
 
         function exportReport() {
             const reportPreview = document.getElementById('reportPreview').innerText;
@@ -7320,8 +7352,24 @@ function tableToWordXML(table) {
     xml += '</w:tbl>';
     return xml;
 }
-    </script>
-    
-
+// ✅ AVISO AO FECHAR A PÁGINA SEM LOGOUT
+window.addEventListener('beforeunload', function(e) {
+    if (currentUser && currentUser.id) {
+        const mensagem = 'Atenção: ao fechar esta página, sua sessão será encerrada automaticamente.';
+        e.returnValue = mensagem; // compatibilidade com browsers antigos
+        return mensagem;
+    }
+});
+ // Função nomeada para poder removê-la depois
+function beforeUnloadHandler(e) {
+    if (currentUser && currentUser.id) {
+        const mensagem = 'Atenção: ao fechar esta página, sua sessão será encerrada automaticamente.';
+        e.returnValue = mensagem;
+        return mensagem;
+    }
+}
+// Registra o listener
+window.addEventListener('beforeunload', beforeUnloadHandler);
+ </script>
 </body>
 </html>
