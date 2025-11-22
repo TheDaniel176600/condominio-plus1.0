@@ -1922,13 +1922,15 @@
 </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAhx_I1Wg0RncK_XTTOVjKrRkeD8-wDoMw",
             authDomain: "condominio-amaranthus.firebaseapp.com",
             projectId: "condominio-amaranthus",
-            storageBucket: "condominio-amaranthus.firebasestorage.app",
+            storageBucket: "condominio-amaranthus.appspot.com",
             messagingSenderId: "233912918531",
             appId: "1:233912918531:web:6850381663623ef1282436"
         };
@@ -6932,7 +6934,10 @@ function filterAgendamentosConcluidos() {
                             <div class="form-group"><label>Morador</label><input type="text" id="ocorrenciaMorador" class="form-control" required></div>
                             <div class="form-group"><label>Apartamento</label><input type="text" id="ocorrenciaApto" class="form-control" required></div>
                             <div class="form-group"><label>Descrição</label><textarea id="ocorrenciaDescricao" class="form-control" rows="3"></textarea></div>
-                            <div class="form-group"><label>Status</label>
+<div class="form-group">
+    <label>Anexo (imagem ou PDF)</label>
+    <input type="file" id="ocorrenciaArquivo" accept="image/*,application/pdf">
+</div>                            <div class="form-group"><label>Status</label>
                                 <select id="ocorrenciaStatus" class="form-control">
                                     <option value="aberta">Aberta</option>
                                     <option value="andamento">Em andamento</option>
@@ -6961,6 +6966,16 @@ function filterAgendamentosConcluidos() {
                         <td>${doc.apto || ''}</td>
                         <td>${doc.dataHora ? new Date(doc.dataHora.seconds ? doc.dataHora.toDate() : doc.dataHora).toLocaleString() : ''}</td>
                         <td>${(doc.descricao||'').substring(0,120)}</td>
+                        <td>
+    ${doc.arquivo ? 
+        (doc.arquivo.endsWith('.pdf')
+            ? `<button class="btn btn-sm btn-info" onclick="abrirAnexo('${doc.arquivo}')">Ver PDF</button>`
+            : `<img src="${doc.arquivo}" onclick="abrirAnexo('${doc.arquivo}')" style="width:70px;cursor:pointer;border-radius:6px;">`
+        )
+    : '—'}
+</td>
+
+                        
                         <td>${doc.status || ''}</td>
                         <td>
                             <button class="btn btn-sm btn-info" onclick="editOcorrencia('${doc.id}')"><i class="fas fa-edit"></i></button>
@@ -6996,6 +7011,21 @@ function filterAgendamentosConcluidos() {
                     dataHora: new Date()
                 };
                 try {
+                 const fileInput = document.getElementById('ocorrenciaArquivo');
+let arquivoURL = null;
+
+if (fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const storageRef = firebase.storage().ref('ocorrencias/' + Date.now() + '_' + file.name);
+    await storageRef.put(file);
+    arquivoURL = await storageRef.getDownloadURL();
+}
+
+// adiciona o link ao documento
+if (arquivoURL) {
+    doc.arquivo = arquivoURL;
+}
+
                     if (id) {
                         await db.collection('ocorrencias').doc(id).update(doc);
                     } else {
@@ -7042,6 +7072,8 @@ function filterAgendamentosConcluidos() {
                 document.getElementById('ocorrenciaDescricao').value = data.descricao || '';
                 document.getElementById('ocorrenciaStatus').value = data.status || 'aberta';
                 document.getElementById('ocorrenciaModal').style.display = 'flex';
+          
+
             });
         }
         async function safeDeleteOcorrencia(id) {
@@ -7053,6 +7085,10 @@ function filterAgendamentosConcluidos() {
             await db.collection('ocorrencias').doc(id).delete();
             await loadOcorrenciasContent();
         }
+        function abrirAnexo(url) {
+    window.open(url, '_blank');
+}
+
         // --- Módulo: Prestadores de Serviço (básico) ---
         async function loadPrestadoresContent() {
             currentModule = 'prestadores';
@@ -7910,6 +7946,31 @@ function exportarRelatorioWord() {
             alert('❌ Falha ao gerar relatório. Verifique o console.');
         });
 }
+async function salvarOcorrencia() {
+    const id = document.getElementById("editingOcorrenciaId").value;
+
+    const data = {
+        morador: document.getElementById("ocorrenciaMorador").value,
+        apto: document.getElementById("ocorrenciaApto").value,
+        descricao: document.getElementById("ocorrenciaDescricao").value,
+        status: document.getElementById("ocorrenciaStatus").value,
+        condominioId: currentCondominio.id,
+        dataRegistro: new Date().toISOString()
+    };
+
+    // Upload do arquivo (se existir)
+    const urlArquivo = await uploadArquivoOcorrencia();
+    if (urlArquivo) data.arquivo = urlArquivo;
+
+    if (id) {
+        await db.collection("ocorrencias").doc(id).update(data);
+    } else {
+        await db.collection("ocorrencias").add(data);
+    }
+
+    document.getElementById("ocorrenciaModal").style.display = "none";
+    loadOcorrenciasContent();
+}
 
 // ✨ Função auxiliar: converte <table> HTML → XML de tabela do Word
 function tableToWordXML(table) {
@@ -7968,6 +8029,19 @@ function beforeUnloadHandler(e) {
 
 // Registra o listener
 window.addEventListener('beforeunload', beforeUnloadHandler);
+// UPLOAD DE ARQUIVO (imagem ou PDF) PARA FIREBASE STORAGE
+async function uploadArquivoOcorrencia() {
+    const arquivo = document.getElementById("ocorrenciaArquivo").files[0];
+    if (!arquivo) return null;
+
+    const storageRef = firebase.storage().ref();
+    const caminho = `ocorrencias/${Date.now()}_${arquivo.name}`;
+    const fileRef = storageRef.child(caminho);
+
+    await fileRef.put(arquivo);
+    return await fileRef.getDownloadURL();
+}
+
  </script>
 </body>
 </html>
