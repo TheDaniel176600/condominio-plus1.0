@@ -1998,6 +1998,7 @@
                         setupPresence();
                         setupRealtimeListeners();
                         // ✅ INICIAR VERIFICAÇÃO AUTOMÁTICA DE STATUS
+                setInterval(updateOnlineCount, 10000);
                 setInterval(atualizarStatusAutomatico, 60000); // Verifica a cada 1 minuto
                 atualizarStatusAutomatico(); // Executa imediatamente ao carregar
                         setInterval(updateOnlineCount, 10000);
@@ -2274,6 +2275,11 @@ function calcularDiferencaHoras(horario1, horario2) {
             loadModuleContent(currentModule);
             loadTickerContent();
         }
+      // Inicia o menu recolhido por padrão
+document.querySelector('.sidebar').style.width = '70px';
+document.querySelector('.main-content').style.marginLeft = '70px';
+document.querySelectorAll('.sidebar-menu a span').forEach(el => el.style.display = 'none');
+document.querySelectorAll('.sidebar-menu a i').forEach(el => el.style.marginRight = '0');
         // ========== FUNÇÕES DE HORAS EXTRAS ==========
     function openHoraExtraModal() {
     document.getElementById('horaExtraModalTitle').textContent = 'Nova Hora Extra';
@@ -2886,7 +2892,7 @@ palavrasChaveSnapshot.forEach(doc => {
                     lembretes = [];
                     compras = []; // <-- Limpar Compras
                 }
-                await createDouglasUser();
+                
                 updateCondominioSelector();
                 updateConnectionStatus(true);
             } catch (error) {
@@ -3030,39 +3036,7 @@ palavrasChaveSnapshot.forEach(doc => {
                 }, 10);
             }, 100);
         }
-        let douglasCheckDone = false;  // 👈 Flag para evitar repetição
-        async function createDouglasUser() {
-    if (douglasCheckDone) return; // 👈 Evita execução repetida
-    try {
-        const userQuery = await db.collection('usuarios')
-            .where('usuario', '==', 'Douglas')
-            .limit(1)
-            .get();
-        if (userQuery.empty) {
-            console.log('📝 Criando usuário Douglas...');
-            const userData = {
-                usuario: 'Douglas',
-                senha: '0000',
-                nome: 'Douglas Correia',
-                tipo: 'sindico',
-                primeiroLogin: false,
-                email: 'douglas@email.com',
-                telefone: '',
-                ativo: true,
-                condominios: ['*'],
-                permissoes: ['*'],
-                dataCriacao: new Date()
-            };
-            await db.collection('usuarios').add(userData);
-            console.log('✅ Usuário Douglas criado com sucesso!');
-        } else {
-            console.log('✅ Usuário Douglas já existe');
-        }
-        douglasCheckDone = true; // 👈 Marca como já verificado
-    } catch (error) {
-        console.error('❌ Erro ao criar usuário Douglas:', error);
-    }
-}
+                
         function updateCondominioSelector() {
             const condominioSelectTop = document.getElementById('condominioSelectTop');
             const currentCondominioBadge = document.getElementById('currentCondominioBadge');
@@ -3521,6 +3495,7 @@ function formatStatusVale(status) {
     });
 
    // ✅ Status dos espaços (salão, churrasqueira, quiosque, pergolado) - ATUALIZADO
+// ✅ Status dos espaços (salão, churrasqueira, quiosque, pergolado) - ATUALIZADO
 const espacosParaStatus = [
     { id: 'salao-social', nome: 'Salão Social', cor: '#3498db', icon: 'fas fa-warehouse' },
     { id: 'churrasqueira', nome: 'Churrasqueira', cor: '#e74c3c', icon: 'fas fa-fire' },
@@ -3534,23 +3509,55 @@ const espacosStatus = espacosParaStatus.map(espaco => {
     const horaAtual = agora.getHours().toString().padStart(2, '0') + ':' + 
                       agora.getMinutes().toString().padStart(2, '0');
     
-    // Encontra agendamentos ativos para este espaço
-    const agendamentoAtivo = filteredAgendamentos.find(a => 
+    let statusInfo = {
+        status: '🟢 DISPONÍVEL',
+        cor: '#2ecc71',
+        texto: 'LIVRE AGORA',
+        emUso: null
+    };
+
+    // Encontrar agendamentos para este espaço hoje
+    const agendamentosHoje = filteredAgendamentos.filter(a => 
         a.espaco === espaco.id && 
-        a.status !== 'liberado' && 
-        a.status !== 'cancelado' &&
         a.data === dataAtual &&
-        a.horaInicio <= horaAtual && 
-        a.horaFim >= horaAtual
+        a.status !== 'liberado' && 
+        a.status !== 'cancelado'
     );
-    
+
+    // Verificar status para cada agendamento
+    agendamentosHoje.forEach(agendamento => {
+        const seisHorasAntes = subtrairHoras(agendamento.horaInicio, 6);
+        const umaHoraAntes = subtrairHoras(agendamento.horaInicio, 1);
+        
+        if (horaAtual >= agendamento.horaInicio && horaAtual <= agendamento.horaFim) {
+            statusInfo = {
+                status: '🔴 EM USO',
+                cor: '#e74c3c',
+                texto: 'EM USO AGORA',
+                emUso: agendamento
+            };
+        } else if (horaAtual >= umaHoraAntes && horaAtual < agendamento.horaInicio) {
+            statusInfo = {
+                status: '🟡 PREPARANDO',
+                cor: '#f39c12',
+                texto: 'PREPARANDO',
+                emUso: agendamento
+            };
+        } else if (horaAtual >= seisHorasAntes && horaAtual < umaHoraAntes) {
+            statusInfo = {
+                status: '🔵 AGENDADO',
+                cor: '#3498db',
+                texto: 'AGENDADO',
+                emUso: agendamento
+            };
+        }
+    });
+
     return { 
         ...espaco, 
-        emUso: agendamentoAtivo,
-        statusAutomatico: agendamentoAtivo ? '🔴 EM USO' : '🟢 DISPONÍVEL'
+        statusInfo: statusInfo
     };
 });
-
     // ✅ Status das saunas (já existia, mantido)
     const saunaUmidaEmUso = filteredSaunas.find(s =>
         s.status === 'em-uso' && s.tipo === 'umida'
@@ -3793,7 +3800,47 @@ ${currentCondominio ? `
     </div>
     <div class="card-body">
         <div class="stats-container" style="gap: 15px; justify-content: center;">
-            ${espacosStatus.map(espaco => `
+            ${[
+                { id: 'salao-social', nome: 'Salão Social', cor: '#3498db', icon: 'fas fa-warehouse' },
+                { id: 'churrasqueira', nome: 'Churrasqueira', cor: '#e74c3c', icon: 'fas fa-fire' },
+                { id: 'quiosque', nome: 'Quiosque', cor: '#2ecc71', icon: 'fas fa-tree' },
+                { id: 'pergolado', nome: 'Pergolado', cor: '#9b59b6', icon: 'fas fa-umbrella' }
+            ].map(espaco => {
+                const agora = new Date();
+                const dataAtual = getCurrentDate();
+                const horaAtual = agora.getHours().toString().padStart(2, '0') + ':' + 
+                                  agora.getMinutes().toString().padStart(2, '0');
+                
+                let statusAutomatico = '🟢 DISPONÍVEL';
+                let emUso = null;
+
+                // Encontrar agendamentos para este espaço hoje
+                const agendamentosHoje = agendamentos.filter(a => 
+                    a.condominioId === currentCondominio.id &&
+                    a.espaco === espaco.id && 
+                    a.data === dataAtual &&
+                    a.status !== 'liberado' && 
+                    a.status !== 'cancelado'
+                );
+
+                // Verificar status para cada agendamento
+                agendamentosHoje.forEach(agendamento => {
+                    const seisHorasAntes = subtrairHoras(agendamento.horaInicio, 6);
+                    const umaHoraAntes = subtrairHoras(agendamento.horaInicio, 1);
+                    
+                    if (horaAtual >= agendamento.horaInicio && horaAtual <= agendamento.horaFim) {
+                        statusAutomatico = '🔴 EM USO';
+                        emUso = agendamento;
+                    } else if (horaAtual >= umaHoraAntes && horaAtual < agendamento.horaInicio) {
+                        statusAutomatico = '🟡 PREPARANDO';
+                        emUso = agendamento;
+                    } else if (horaAtual >= seisHorasAntes && horaAtual < umaHoraAntes) {
+                        statusAutomatico = '🔵 AGENDADO';
+                        emUso = agendamento;
+                    }
+                });
+
+                return `
 <div class="sauna-card-reduzido" onclick="changeModule('agendamentos')" 
      style="background: linear-gradient(135deg, ${espaco.cor}99 0%, ${espaco.cor}dd 100%);">
     <div class="sauna-card-header-reduzido">
@@ -3801,26 +3848,29 @@ ${currentCondominio ? `
         <h3>${espaco.nome}</h3>
     </div>
     <div class="sauna-card-content-reduzido">
-        <div class="sauna-status-reduzido ${espaco.emUso ? 'in-use' : 'available'}" 
-             style="background: rgba(${espaco.emUso ? '231, 76, 60, 0.9' : '46, 204, 113, 0.9'});">
-            ${espaco.statusAutomatico}
+        <div class="sauna-status-reduzido" 
+             style="background: ${statusAutomatico.includes('EM USO') ? 'rgba(231, 76, 60, 0.9)' : 
+                               statusAutomatico.includes('PREPARANDO') ? 'rgba(243, 156, 18, 0.9)' : 
+                               statusAutomatico.includes('AGENDADO') ? 'rgba(52, 152, 219, 0.9)' : 
+                               'rgba(46, 204, 113, 0.9)'};">
+            ${statusAutomatico}
         </div>
         <div class="user-details-reduzido">
-            ${espaco.emUso ?
-                `<strong>${espaco.emUso.responsavel}</strong>
-                <div class="apto-info-reduzido">Apto: ${espaco.emUso.unidade}</div>
-                <div class="time-info-reduzido">${espaco.emUso.horaInicio} - ${espaco.emUso.horaFim}</div>` :
+            ${emUso ?
+                `<strong>${emUso.responsavel}</strong>
+                <div class="apto-info-reduzido">Apto: ${emUso.unidade}</div>
+                <div class="time-info-reduzido">${emUso.horaInicio} - ${emUso.horaFim}</div>` :
                 '<div class="available-text-reduzido">LIVRE AGORA</div>'
             }
         </div>
     </div>
 </div>
-`).join('')}
+`;
+            }).join('')}
         </div>
     </div>
 </div>
 ` : ''}
-
        
 ${(currentUser.permissoes &&
   (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
@@ -4035,6 +4085,7 @@ ${(currentUser.permissoes &&
     font-size: 0.75em;
     color: #7f8c8d;
 }
+
         </style>
     `;
 
@@ -6077,34 +6128,42 @@ function filterAgendamentosConcluidos() {
             }
         });
         function editUser(id) {
-            const usuario = usuarios.find(u => u.id === id);
-            if (!usuario) return;
-            document.getElementById('userModalTitle').textContent = 'Editar Usuário';
-            document.getElementById('editingUserId').value = usuario.id;
-            document.getElementById('userNome').value = usuario.nome;
-            document.getElementById('userUsuario').value = usuario.usuario;
-            document.getElementById('userEmail').value = usuario.email || '';
-            document.getElementById('userTelefone').value = usuario.telefone || '';
-            document.getElementById('userSenha').value = '';
-            document.getElementById('userSenha').required = false;
-            document.getElementById('senhaObrigatoria').style.display = 'none';
-            document.getElementById('senhaInfo').style.display = 'block';
-            loadCondominiosForPermissions();
-            if (usuario.condominios) {
-                usuario.condominios.forEach(condominioId => {
-                    const checkbox = document.getElementById(`condominio-${condominioId}`);
-                    if (checkbox) checkbox.checked = true;
-                });
-            }
-            loadModulesForPermissions();
-            if (usuario.permissoes) {
-                usuario.permissoes.forEach(moduleId => {
-                    const checkbox = document.getElementById(`module-${moduleId}`);
-                    if (checkbox) checkbox.checked = true;
-                });
-            }
-            document.getElementById('userModal').style.display = 'flex';
-        }
+    const usuario = usuarios.find(u => u.id === id);
+    if (!usuario) return;
+
+    document.getElementById('userModalTitle').textContent = 'Editar Usuário';
+    document.getElementById('editingUserId').value = usuario.id;
+    document.getElementById('userNome').value = usuario.nome;
+    document.getElementById('userUsuario').value = usuario.usuario;
+    document.getElementById('userEmail').value = usuario.email || '';
+    document.getElementById('userTelefone').value = usuario.telefone || '';
+    document.getElementById('userSenha').value = '';
+    document.getElementById('userSenha').required = false;
+    document.getElementById('senhaObrigatoria').style.display = 'none';
+    document.getElementById('senhaInfo').style.display = 'block';
+
+    // ✅ CORREÇÃO: Define o tipo de usuário salvo no <select>
+    const tipoSelect = document.getElementById('userTipo');
+    tipoSelect.value = usuario.tipo || '';  // ← Define o valor salvo
+
+    loadCondominiosForPermissions();
+    if (usuario.condominios) {
+        usuario.condominios.forEach(condominioId => {
+            const checkbox = document.getElementById(`condominio-${condominioId}`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+
+    loadModulesForPermissions();
+    if (usuario.permissoes) {
+        usuario.permissoes.forEach(moduleId => {
+            const checkbox = document.getElementById(`module-${moduleId}`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+
+    document.getElementById('userModal').style.display = 'flex';
+}
         async function deleteUser(id) {
             if (!podeExcluirRegistros()) {
                 alert('Somente síndico ou subsíndico podem excluir registros.');
@@ -6280,6 +6339,46 @@ function filterAgendamentosConcluidos() {
                 alert('Erro ao excluir morador. Tente novamente.');
             }
         }
+        // ✅ Logout automático ao fechar/sair — sem popup irritante
+let unloadTriggered = false;
+
+function autoLogout() {
+    if (!currentUser || unloadTriggered) return;
+    unloadTriggered = true;
+
+    // Atualiza status no Firebase (marca como offline)
+    if (presenceRef) {
+        presenceRef.update({
+            online: false,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.warn("Erro ao atualizar presença:", err));
+    }
+
+    // Limpa dados locais
+    localStorage.removeItem('currentUser');
+
+    // Reseta estado da aplicação
+    currentUser = null;
+    currentCondominio = null;
+    vales = []; usuarios = []; horasExtras = []; moradores = [];
+    agendamentos = []; limpezas = []; saunas = []; contas = [];
+    lembretes = []; compras = []; palavrasChave = [];
+
+    // Mostra login se ainda estiver na página
+    if (document.readyState !== 'unloading') {
+        showLoginPage();
+    }
+}
+
+// Detecta saída silenciosa (recarregar, fechar aba, navegar para outro site)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') autoLogout();
+});
+
+window.addEventListener('pagehide', () => autoLogout());
+
+// Remove aviso antigo (opcional, mas recomendado para evitar conflito)
+window.removeEventListener('beforeunload', beforeUnloadHandler);
         // ========== PRESENCE SYSTEM ==========
         function setupPresence() {
             if (!currentUser) return;
@@ -6519,16 +6618,26 @@ function filterAgendamentosConcluidos() {
     }
 });
         document.getElementById('sidebarToggle').addEventListener('click', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const mainContent = document.querySelector('.main-content');
-            if (sidebar.style.width === '280px' || sidebar.style.width === '') {
-                sidebar.style.width = '70px';
-                mainContent.style.marginLeft = '70px';
-            } else {
-                sidebar.style.width = '280px';
-                mainContent.style.marginLeft = '280px';
-            }
-        });
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const isExpanded = sidebar.classList.contains('expanded');
+
+    if (isExpanded) {
+        // Fecha o menu
+        sidebar.classList.remove('expanded');
+        sidebar.style.width = '70px';
+        mainContent.style.marginLeft = '70px';
+        document.querySelectorAll('.sidebar-menu a span').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.sidebar-menu a i').forEach(el => el.style.marginRight = '0');
+    } else {
+        // Abre o menu
+        sidebar.classList.add('expanded');
+        sidebar.style.width = '280px';
+        mainContent.style.marginLeft = '280px';
+        document.querySelectorAll('.sidebar-menu a span').forEach(el => el.style.display = 'inline');
+        document.querySelectorAll('.sidebar-menu a i').forEach(el => el.style.marginRight = '10px');
+    }
+});
         async function handleCondominioChange(condominioId) {
             if (!condominioId) {
                 currentCondominio = null;
@@ -7566,43 +7675,17 @@ async function confirmarPagamentoConfraternizacao(id) {
 }
 // ========== FUNÇÕES PARA PALAVRAS-CHAVE MERCADO LIVRE ==========
 
-// ✅ Função corrigida — SEM aninhamento
+// ========== FUNÇÕES PARA PALAVRAS-CHAVE MERCADO LIVRE ==========
+
 function openPalavraChaveModal() {
-    if (!currentCondominio) {
-        alert('Selecione um condomínio primeiro!');
-        return;
-    }
-
-    const titulo = document.getElementById('palavraChaveModalTitle');
-    if (!titulo) {
-        console.error("❌ #palavraChaveModalTitle não encontrado. Verifique se o modal está no HTML.");
-        return;
-    }
-
-    titulo.textContent = "Nova Palavra-chave";
+    document.getElementById('palavraChaveModalTitle').textContent = 'Nova Palavra-chave';
     document.getElementById('editingPalavraChaveId').value = '';
     document.getElementById('palavraChaveForm').reset();
-
+    document.getElementById('palavraChaveCount').textContent = '0';
+    
     // Carregar moradores no select
-    const select = document.getElementById('palavraChaveMorador');
-    select.innerHTML = '<option value="">Selecione...</option>';
-    const moradoresFiltrados = moradores.filter(m => m.condominioId === currentCondominio.id);
-    moradoresFiltrados.sort((a, b) => extractNumberFromApto(a.apto) - extractNumberFromApto(b.apto));
-    moradoresFiltrados.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.id;
-        opt.textContent = `${m.nome} — ${m.apto}`;
-        select.appendChild(opt);
-    });
-
-    // Atualizar contador
-    const campo = document.getElementById('palavraChaveTexto');
-    if (campo) {
-        campo.removeEventListener('input', atualizarContadorPalavras);
-        campo.addEventListener('input', atualizarContadorPalavras);
-        atualizarContadorPalavras(); // zera ao abrir
-    }
-
+    carregarMoradoresNoSelect();
+    
     document.getElementById('palavraChaveModal').style.display = 'flex';
 }
 
@@ -7610,90 +7693,44 @@ function closePalavraChaveModal() {
     document.getElementById('palavraChaveModal').style.display = 'none';
 }
 
-function atualizarContadorPalavras() {
-    const texto = document.getElementById('palavraChaveTexto')?.value || '';
-    const palavras = texto.split(',').map(p => p.trim()).filter(p => p.length > 0);
-    document.getElementById('palavraChaveCount').textContent = palavras.length;
+// Função para carregar moradores no select
+function carregarMoradoresNoSelect() {
+    const select = document.getElementById('palavraChaveMorador');
+    select.innerHTML = '<option value="">Selecione...</option>';
+    
+    if (!currentCondominio) return;
+    
+    const moradoresFiltrados = moradores.filter(m => m.condominioId === currentCondominio.id);
+    
+    moradoresFiltrados.forEach(morador => {
+        const option = document.createElement('option');
+        option.value = morador.id;
+        option.textContent = `${morador.nome} - Apto ${morador.apto}`;
+        option.setAttribute('data-apto', morador.apto);
+        select.appendChild(option);
+    });
 }
+
 function editPalavraChave(id) {
     const palavraChave = palavrasChave.find(pc => pc.id === id);
     if (!palavraChave) return;
 
-    document.getElementById('palavraChaveModalTitle').textContent = 'Editar Palavras-chave';
+    document.getElementById('palavraChaveModalTitle').textContent = 'Editar Palavra-chave';
     document.getElementById('editingPalavraChaveId').value = palavraChave.id;
-    document.getElementById('palavraChaveMorador').value = palavraChave.moradorId;
-    document.getElementById('palavraChaveTexto').value = palavraChave.palavrasChave.join(', ');
-    document.getElementById('palavraChaveObservacoes').value = palavraChave.observacoes || '';
     
-    atualizarContadorPalavras();
+    // Carregar moradores primeiro
+    carregarMoradoresNoSelect();
+    
+    // Aguardar um pouco para garantir que o select foi carregado
+    setTimeout(() => {
+        document.getElementById('palavraChaveMorador').value = palavraChave.moradorId;
+        document.getElementById('palavraChaveTexto').value = palavraChave.palavrasChave.join(', ');
+        document.getElementById('palavraChaveObservacoes').value = palavraChave.observacoes || '';
+        document.getElementById('palavraChaveCount').textContent = palavraChave.palavrasChave.length;
+    }, 100);
+    
     document.getElementById('palavraChaveModal').style.display = 'flex';
 }
-
-// Event listener para o formulário
-document.getElementById('palavraChaveForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    if (!currentCondominio) {
-        alert('Selecione um condomínio primeiro!');
-        return;
-    }
-
-    const editingId = document.getElementById('editingPalavraChaveId').value;
-    const moradorId = document.getElementById('palavraChaveMorador').value;
-    const texto = document.getElementById('palavraChaveTexto').value;
-    const observacoes = document.getElementById('palavraChaveObservacoes').value;
-
-    // Validar
-    if (!moradorId || !texto.trim()) {
-        alert('Preencha todos os campos obrigatórios!');
-        return;
-    }
-
-    const palavrasArray = texto.split(',')
-        .map(p => p.trim())
-        .filter(p => p.length > 0);
-
-    if (palavrasArray.length === 0) {
-        alert('Digite pelo menos uma palavra-chave!');
-        return;
-    }
-
-    // Encontrar dados do morador
-    const morador = moradores.find(m => m.id === moradorId);
-    if (!morador) {
-        alert('Morador não encontrado!');
-        return;
-    }
-
-    const palavraChaveData = {
-        moradorId: moradorId,
-        moradorNome: morador.nome,
-        moradorApto: morador.apto,
-        palavrasChave: palavrasArray,
-        observacoes: observacoes,
-        condominioId: currentCondominio.id,
-        condominioNome: currentCondominio.nome,
-        criadoPor: currentUser.id || currentUser.usuario,
-        criadoEm: new Date().toISOString(),
-        atualizadoEm: new Date().toISOString()
-    };
-
-    try {
-        if (editingId) {
-            await db.collection('palavrasChave').doc(editingId).update(palavraChaveData);
-        } else {
-            await db.collection('palavrasChave').add(palavraChaveData);
-        }
-        
-        await loadSystemData();
-        closePalavraChaveModal();
-        loadDashboardContent(); // Recarregar o dashboard
-        alert('Palavras-chave salvas com sucesso!');
-    } catch (error) {
-        console.error('Erro ao salvar palavras-chave:', error);
-        alert('Erro ao salvar palavras-chave. Tente novamente.');
-    }
-});
 
 async function deletePalavraChave(id) {
     if (!podeExcluirRegistros()) {
@@ -7706,7 +7743,9 @@ async function deletePalavraChave(id) {
     try {
         await db.collection('palavrasChave').doc(id).delete();
         await loadSystemData();
-        loadDashboardContent();
+        if (currentModule === 'palavras-chave') {
+            loadPalavrasChaveContent();
+        }
         alert('Palavras-chave excluídas com sucesso!');
     } catch (error) {
         console.error('Erro ao excluir palavras-chave:', error);
@@ -7714,6 +7753,80 @@ async function deletePalavraChave(id) {
     }
 }
 
+// Contador de palavras-chave
+document.getElementById('palavraChaveTexto').addEventListener('input', function() {
+    const texto = this.value;
+    const palavras = texto.split(',').filter(p => p.trim() !== '');
+    document.getElementById('palavraChaveCount').textContent = palavras.length;
+});
+
+// Submit do formulário de palavras-chave
+document.getElementById('palavraChaveForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+    
+    const editingId = document.getElementById('editingPalavraChaveId').value;
+    const moradorId = document.getElementById('palavraChaveMorador').value;
+    const textoPalavras = document.getElementById('palavraChaveTexto').value;
+    const observacoes = document.getElementById('palavraChaveObservacoes').value;
+    
+    if (!moradorId) {
+        alert('Selecione um morador!');
+        return;
+    }
+    
+    const palavrasArray = textoPalavras.split(',')
+        .map(p => p.trim())
+        .filter(p => p !== '');
+    
+    if (palavrasArray.length === 0) {
+        alert('Digite pelo menos uma palavra-chave!');
+        return;
+    }
+    
+    // Encontrar dados do morador
+    const morador = moradores.find(m => m.id === moradorId);
+    if (!morador) {
+        alert('Morador não encontrado!');
+        return;
+    }
+    
+    const palavraChaveData = {
+        moradorId: moradorId,
+        moradorNome: morador.nome,
+        moradorApto: morador.apto,
+        palavrasChave: palavrasArray,
+        observacoes: observacoes || '',
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        criadoPor: currentUser.id || currentUser.usuario,
+        criadoEm: new Date().toISOString()
+    };
+    
+    try {
+        if (editingId) {
+            await db.collection('palavrasChave').doc(editingId).update(palavraChaveData);
+        } else {
+            await db.collection('palavrasChave').add(palavraChaveData);
+        }
+        
+        await loadSystemData();
+        closePalavraChaveModal();
+        
+        if (currentModule === 'palavras-chave') {
+            loadPalavrasChaveContent();
+        }
+        
+        alert('Palavras-chave salvas com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar palavras-chave:', error);
+        alert('Erro ao salvar palavras-chave. Tente novamente.');
+    }
+});
 // Gerar relatório visual
 function gerarRelatorioConfraternizacao() {
     const modal = document.getElementById('relatorioConfraternizacaoModal');
@@ -7786,56 +7899,6 @@ function gerarRelatorioConfraternizacao() {
         .catch(err => {
             content.innerHTML = `<p style="color: red;">Erro ao gerar relatório: ${err.message}</p>`;
         });
-}
-// ========== ATUALIZAÇÃO AUTOMÁTICA DE STATUS ==========
-
-function atualizarStatusAutomatico() {
-    const agora = new Date();
-    const dataAtual = getCurrentDate();
-    const horaAtual = agora.getHours().toString().padStart(2, '0') + ':' + 
-                      agora.getMinutes().toString().padStart(2, '0');
-
-    agendamentos.forEach(async (agendamento) => {
-        // Só processa agendamentos do condomínio atual
-        if (agendamento.condominioId !== currentCondominio?.id) return;
-        
-        // Só processa se for "agendado" ou "em-uso"
-        if (agendamento.status !== 'agendado' && agendamento.status !== 'em-uso') return;
-
-        const estaHoje = agendamento.data === dataAtual;
-        const horarioIniciou = estaHoje && horaAtual >= agendamento.horaInicio;
-        const horarioTerminou = estaHoje && horaAtual >= agendamento.horaFim;
-
-        try {
-            if (agendamento.status === 'agendado' && horarioIniciou && !horarioTerminou) {
-                // Muda para "Em Uso" automaticamente
-                await db.collection('agendamentos').doc(agendamento.id).update({
-                    status: 'em-uso',
-                    atualizadoEm: new Date().toISOString()
-                });
-                console.log(`Agendamento ${agendamento.id} mudou para EM USO automaticamente`);
-                
-            } else if (agendamento.status === 'em-uso' && horarioTerminou) {
-                // Muda para "Liberado" automaticamente
-                await db.collection('agendamentos').doc(agendamento.id).update({
-                    status: 'liberado',
-                    atualizadoEm: new Date().toISOString()
-                });
-                console.log(`Agendamento ${agendamento.id} mudou para LIBERADO automaticamente`);
-            }
-        } catch (error) {
-            console.error('Erro ao atualizar status automático:', error);
-        }
-    });
-
-    // Atualiza a dashboard se estiver nela
-    if (currentModule === 'dashboard') {
-        loadDashboardContent();
-    }
-    // Atualiza o módulo de agendamentos se estiver nele
-    if (currentModule === 'agendamentos') {
-        loadAgendamentosList();
-    }
 }
 
 // Exportar para Word
@@ -7968,6 +8031,126 @@ function beforeUnloadHandler(e) {
 
 // Registra o listener
 window.addEventListener('beforeunload', beforeUnloadHandler);
- </script>
+// ========== FUNÇÃO AUXILIAR PARA ATUALIZAR CARD ==========
+function atualizarCardEspaco(nomeEspaco, status, agendamento) {
+    // Encontrar todos os cards de espaço
+    const cards = document.querySelectorAll('.sauna-card-reduzido');
+    
+    cards.forEach(card => {
+        const titulo = card.querySelector('h3');
+        if (titulo && titulo.textContent === nomeEspaco) {
+            const statusElement = card.querySelector('.sauna-status-reduzido');
+            const userDetails = card.querySelector('.user-details-reduzido');
+            
+            if (statusElement && userDetails) {
+                // Atualizar status
+                statusElement.textContent = status;
+                
+                // Atualizar cor baseada no status
+                if (status.includes('EM USO')) {
+                    statusElement.style.background = 'rgba(231, 76, 60, 0.9)';
+                } else if (status.includes('PREPARANDO')) {
+                    statusElement.style.background = 'rgba(243, 156, 18, 0.9)';
+                } else if (status.includes('AGENDADO')) {
+                    statusElement.style.background = 'rgba(52, 152, 219, 0.9)';
+                } else {
+                    statusElement.style.background = 'rgba(46, 204, 113, 0.9)';
+                }
+                
+                // Atualizar detalhes do usuário
+                if (agendamento) {
+                    userDetails.innerHTML = `
+                        <strong>${agendamento.responsavel}</strong>
+                        <div class="apto-info-reduzido">Apto: ${agendamento.unidade}</div>
+                        <div class="time-info-reduzido">${agendamento.horaInicio} - ${agendamento.horaFim}</div>
+                    `;
+                } else {
+                    userDetails.innerHTML = '<div class="available-text-reduzido">LIVRE AGORA</div>';
+                }
+            }
+        }
+    });
+}
+
+// ========== FUNÇÃO AUXILIAR PARA SUBTRAIR HORAS ==========
+function subtrairHoras(hora, horas) {
+    const [h, m] = hora.split(':').map(Number);
+    let totalMinutos = h * 60 + m;
+    totalMinutos -= horas * 60;
+    
+    if (totalMinutos < 0) totalMinutos += 24 * 60;
+    
+    const novaHora = Math.floor(totalMinutos / 60).toString().padStart(2, '0');
+    const novosMinutos = (totalMinutos % 60).toString().padStart(2, '0');
+    
+    return `${novaHora}:${novosMinutos}`;
+}
+
+// ========== FUNÇÃO PARA OBTER COR DO ESPAÇO ==========
+function getEspacoColor(espacoId) {
+    const colors = {
+        'salao-social': '#3498db',
+        'churrasqueira': '#e74c3c',
+        'quiosque': '#2ecc71',
+        'pergolado': '#9b59b6'
+    };
+    return colors[espacoId] || '#95a5a6';
+}
+
+// ========== FUNÇÃO PARA OBTER ÍCONE DO ESPAÇO ==========
+function getEspacoIcon(espacoId) {
+    const icons = {
+        'salao-social': 'fas fa-warehouse',
+        'churrasqueira': 'fas fa-fire',
+        'quiosque': 'fas fa-tree',
+        'pergolado': 'fas fa-umbrella'
+    };
+    return icons[espacoId] || 'fas fa-question';
+// ========== FUNÇÃO PARA CARREGAR MORADORES NO SELECT ==========
+function carregarMoradoresNoSelect() {
+    const selectMorador = document.getElementById('palavraChaveMorador');
+    if (!selectMorador) return;
+    
+    // Limpar options existentes (exceto a primeira)
+    selectMorador.innerHTML = '<option value="">Selecione...</option>';
+    
+    if (!currentCondominio) {
+        console.log('❌ Nenhum condomínio selecionado');
+        return;
+    }
+    
+    // Filtrar moradores do condomínio atual
+    const moradoresFiltrados = moradores.filter(m => m.condominioId === currentCondominio.id);
+    
+    if (moradoresFiltrados.length === 0) {
+        selectMorador.innerHTML += '<option value="" disabled>Nenhum morador cadastrado</option>';
+        return;
+    }
+    
+    // Ordenar moradores por apartamento
+    const moradoresOrdenados = moradoresFiltrados.sort((a, b) => {
+        const numA = extractNumberFromApto(a.apto);
+        const numB = extractNumberFromApto(b.apto);
+        return numA - numB;
+    });
+    
+    // Adicionar moradores ao select
+    moradoresOrdenados.forEach(morador => {
+        const option = document.createElement('option');
+        option.value = morador.id; // Usar ID do morador
+        option.textContent = `${morador.nome} - Apto ${morador.apto}`;
+        option.setAttribute('data-apto', morador.apto); // Guardar apto como data attribute
+        selectMorador.appendChild(option);
+    });
+    
+    console.log(`✅ ${moradoresOrdenados.length} moradores carregados no select`);
+}
+// ========== FUNÇÃO PARA ATUALIZAR CONTADOR DE PALAVRAS ==========
+function atualizarContadorPalavrasChave() {
+    const texto = document.getElementById('palavraChaveTexto').value;
+    const palavras = texto.split(',').filter(p => p.trim() !== '');
+    document.getElementById('palavraChaveCount').textContent = palavras.length;
+}
+} </script>
 </body>
 </html>
