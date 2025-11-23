@@ -1176,10 +1176,8 @@
         <!-- Sidebar -->
         <div class="sidebar">
     <div class="sidebar-header">
-        <h3>Multi Condomínios</h3>
-        <div id="connectionStatus" class="connection-status" title="Desconectado"></div>
-        <i class="fas fa-chevron-right toggle-icon" id="sidebarExpandBtn" title="Expandir menu"></i>
-    </div>
+    <div id="connectionStatus" class="connection-status" title="Desconectado"></div>
+</div>
     <ul class="sidebar-menu" id="moduleMenu">
         <!-- Os módulos serão carregados dinamicamente aqui -->
     </ul>
@@ -6575,14 +6573,20 @@ window.addEventListener('beforeunload', function(e) {
 });
 
 // ✅ Usa `pagehide` com `persisted` para diferenciar:
+// ✅ Logout automático só ao FECHAR a aba/janela — NÃO ao recarregar ou trocar aba
+window.addEventListener('beforeunload', function(e) {
+    if (currentUser && currentUser.id && !userManuallyLoggedOut) {
+        // Marca que vai sair — mas só desloga de fato se for fechamento real (via pagehide)
+        return; // não mostra popup
+    }
+});
+
 window.addEventListener('pagehide', function(event) {
-    // `event.persisted` é true em troca de aba / minimizar
-    // É false **apenas** ao fechar/recarregar a aba
-    if (!event.persisted) {
+    // Só desloga se for fechamento (não recarregar, não trocar aba)
+    if (!event.persisted && !userManuallyLoggedOut) {
         safeAutoLogout();
     }
-});// Remove aviso antigo (opcional, mas recomendado para evitar conflito)
-window.removeEventListener('beforeunload', beforeUnloadHandler);
+});
         // ========== PRESENCE SYSTEM ==========
         function setupPresence() {
             if (!currentUser) return;
@@ -6707,18 +6711,26 @@ window.removeEventListener('beforeunload', beforeUnloadHandler);
                 });
             });
             if (currentCondominio) {
-                const condominioCollections = ['moradores', 'confraternizacoes', 'horasExtras', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
+                const condominioCollections = ['moradores', 'confraternizacoes', 'horasExtras', 'palavrasChave', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
                 condominioCollections.forEach(collection => {
                     db.collection(collection)
-                        .where('condominioId', '==', currentCondominio.id)
-                        .onSnapshot(() => {
-                            if (document.getElementById('mainSystem').style.display !== 'none') {
-                                loadSystemData().then(() => {
-                                    if (currentModule) loadModuleContent(currentModule);
-                                    loadTickerContent();
-                                });
-                            }
-                        });
+    .where('condominioId', '==', currentCondominio.id)
+    .onSnapshot(() => {
+        if (document.getElementById('mainSystem').style.display !== 'none') {
+            loadSystemData().then(() => {
+                if (currentModule) loadModuleContent(currentModule);
+                loadTickerContent();
+                // ✅ Atualiza os cards da Dashboard se estiver nela
+                if (currentModule === 'dashboard') {
+                    atualizarCardsPalavrasChave(); // ← sua função já existe!
+                }
+                // ✅ Atualiza a tabela se estiver no módulo de palavras-chave
+                if (currentModule === 'palavras-chave') {
+                    loadPalavrasChaveContent();
+                }
+            });
+        }
+    });
                 });
             }
             db.collection('presence').onSnapshot(() => {
