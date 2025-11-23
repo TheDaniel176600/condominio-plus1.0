@@ -1194,7 +1194,7 @@
                     <!-- SELETOR DE CONDOMÍNIO E BADGE -->
                     <div class="condominio-selector-top" style="margin-left: 15px; display: flex; align-items: center;">
                         <select id="condominioSelectTop" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
-                            <option value="">Selecione um condomínio</option>
+                            <option value="" disabled selected hidden>Selecione um condomínio</option>
                         </select>
                         <span id="currentCondominioBadge" class="condominio-badge" style="margin-left: 10px;">
                             Nenhum condomínio selecionado
@@ -3133,7 +3133,7 @@ palavrasChaveSnapshot.forEach(doc => {
         function updateCondominioSelector() {
             const condominioSelectTop = document.getElementById('condominioSelectTop');
             const currentCondominioBadge = document.getElementById('currentCondominioBadge');
-            condominioSelectTop.innerHTML = '<option value="">Selecione um condomínio</option>';
+            condominioSelectTop.innerHTML = '<option value="" disabled selected hidden>Selecione um condomínio</option>';
             let allowedCondominios = [...condominios];
             if (currentUser.condominios && !currentUser.condominios.includes('*')) {
                 allowedCondominios = condominios.filter(condominio =>
@@ -6572,21 +6572,6 @@ window.addEventListener('beforeunload', function(e) {
     }
 });
 
-// ✅ Usa `pagehide` com `persisted` para diferenciar:
-// ✅ Logout automático só ao FECHAR a aba/janela — NÃO ao recarregar ou trocar aba
-window.addEventListener('beforeunload', function(e) {
-    if (currentUser && currentUser.id && !userManuallyLoggedOut) {
-        // Marca que vai sair — mas só desloga de fato se for fechamento real (via pagehide)
-        return; // não mostra popup
-    }
-});
-
-window.addEventListener('pagehide', function(event) {
-    // Só desloga se for fechamento (não recarregar, não trocar aba)
-    if (!event.persisted && !userManuallyLoggedOut) {
-        safeAutoLogout();
-    }
-});
         // ========== PRESENCE SYSTEM ==========
         function setupPresence() {
             if (!currentUser) return;
@@ -6823,8 +6808,7 @@ window.addEventListener('pagehide', function(event) {
         });
         document.getElementById('logoutBtn').addEventListener('click', function() {
     if (confirm('Deseja realmente sair do sistema?')) {
-        // ✅ Remove o aviso ao sair corretamente
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        
         if (presenceRef) {
             presenceRef.update({
                 online: false,
@@ -8225,8 +8209,6 @@ function beforeUnloadHandler(e) {
     }
 }
 
-// Registra o listener
-window.addEventListener('beforeunload', beforeUnloadHandler);
 // ========== FUNÇÃO AUXILIAR PARA ATUALIZAR CARD ==========
 function atualizarCardEspaco(nomeEspaco, status, agendamento) {
     // Encontrar todos os cards de espaço
@@ -8444,6 +8426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         mainContent.style.marginLeft = '70px';
     }
 });
+  
 </script>
 </body>
 </html>
