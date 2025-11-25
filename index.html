@@ -655,6 +655,8 @@
             border: 1px solid #bee5eb;
             color: #0c5460;
         }
+         .alert-info { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
+.alert-warning { background-color: #fff8e1; border-left: 4px solid #ffc107; }
         .badge {
             padding: 4px 8px;
             border-radius: 12px;
@@ -1139,6 +1141,8 @@
   }
 </script>
 </head>
+<!-- Biblioteca jsPDF para gerar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <body>
     <!-- Letreiro de Lembretes -->
     <div id="tickerContainer" class="ticker-container" style="display: none;">
@@ -4366,86 +4370,117 @@ ${(currentUser.permissoes &&
         }
         // ========== MÓDULO HORAS EXTRAS ==========
         function loadHorasExtrasContent() {
-            const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes &&
-                !currentUser.permissoes.includes('*') &&
-                !currentUser.permissoes.includes('horas-extras')) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
-                    </div>
-                `;
-                return;
-            }
-            if (!currentCondominio) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Selecione um condomínio</strong> para acessar o módulo de horas extras.
-                    </div>
-                `;
-                return;
-            }
-            const filteredHorasExtras = horasExtras.filter(h => h.condominioId === currentCondominio.id);
-            moduleContent.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Horas Extras - ${currentCondominio.nome}</h3>
-                        <button class="btn btn-primary" onclick="openHoraExtraModal()">
-                            <i class="fas fa-plus"></i> Nova Hora Extra
-                        </button>
-                    </div>
+    const moduleContent = document.getElementById('moduleContent');
+    if (currentUser.permissoes &&
+        !currentUser.permissoes.includes('*') &&
+        !currentUser.permissoes.includes('horas-extras')) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+            </div>
+        `;
+        return;
+    }
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de horas extras.
+            </div>
+        `;
+        return;
+    }
+    const filteredHorasExtras = horasExtras.filter(h => h.condominioId === currentCondominio.id);
+
+    // Data de hoje para valores padrão
+    const hoje = new Date();
+    const dataHoje = hoje.toISOString().split('T')[0];
+    const dataMesPassado = new Date();
+    dataMesPassado.setMonth(hoje.getMonth() - 1);
+    const dataInicioPadrao = dataMesPassado.toISOString().split('T')[0];
+
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Horas Extras - ${currentCondominio.nome}</h3>
+                <button class="btn btn-primary" onclick="openHoraExtraModal()">
+                    <i class="fas fa-plus"></i> Nova Hora Extra
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- 🔹 SEÇÃO DE RELATÓRIO -->
+                <div class="card" style="margin-bottom: 20px; background: #f8f9fa; border-left: 4px solid #3498db;">
                     <div class="card-body">
-                        <div class="form-row">
+                        <h4><i class="fas fa-file-pdf" style="color:#e74c3c;"></i> Relatório de Horas Extras</h4>
+                        <div class="form-row" style="margin-top: 10px;">
                             <div class="form-group">
-                                <label>Filtrar por Funcionário</label>
-                                <input type="text" class="form-control" id="filtroFuncionario" onkeyup="filterHorasExtras()" placeholder="Digite o nome do funcionário">
-                                <input type="hidden" id="horaExtraQuantidade">
+                                <label>Data Inicial</label>
+                                <input type="date" class="form-control" id="relatorioDataInicio" value="${dataInicioPadrao}">
                             </div>
                             <div class="form-group">
-                                <label>Filtrar por Data</label>
-                                <input type="month" class="form-control" id="filtroMesHoraExtra" onchange="filterHorasExtras()">
+                                <label>Data Final</label>
+                                <input type="date" class="form-control" id="relatorioDataFim" value="${dataHoje}">
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: end;">
+                                <button class="btn btn-success" onclick="gerarRelatorioHorasExtrasPDF()">
+                                    <i class="fas fa-file-pdf"></i> Gerar Relatório em PDF
+                                </button>
                             </div>
                         </div>
-                        <table class="table" id="horasExtrasTable">
-                            
-    <tr>
-        <th>Funcionário</th>
-        <th>Matrícula</th>
-        <th>Data</th>
-        <th>Regime</th>
-        <th>Horário</th>
-        <th>Horas Extras</th>
-        <th>Condomínio</th>
-        <th>Ações</th>
-    </tr>
-</thead>
-<tbody>
-    ${filteredHorasExtras.map(horaExtra => `
-        <tr>
-            <td>${horaExtra.funcionario}</td>
-            <td>${horaExtra.matricula}</td>
-            <td>${formatDate(horaExtra.data)}</td>
-            <td>${horaExtra.regime === '12-36' ? '12/36' : horaExtra.regime === '8h' ? '8h' : 'Personalizado'}</td>
-            <td>${horaExtra.entradaReal || ''} - ${horaExtra.saidaReal || ''}</td>
-            <td>${horaExtra.quantidade ? horaExtra.quantidade.toFixed(2) + 'h' : '0h'}</td>
-            <td>${horaExtra.condominioNome}</td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
-                    <i class="fas fa-edit"></i>
-                </button>
-                ${podeExcluirRegistros() ? `
-                <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
-                    <i class="fas fa-trash"></i>
-                </button>` : ''}
-            </td>
-        </tr>
-    `).join('')}
-</tbody>
-                        </table>
                     </div>
                 </div>
-            `;
-        }
+
+                <!-- 🔹 FILTROS EXISTENTES -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filtrar por Funcionário</label>
+                        <input type="text" class="form-control" id="filtroFuncionario" onkeyup="filterHorasExtras()" placeholder="Digite o nome do funcionário">
+                    </div>
+                    <div class="form-group">
+                        <label>Filtrar por Mês</label>
+                        <input type="month" class="form-control" id="filtroMesHoraExtra" onchange="filterHorasExtras()">
+                    </div>
+                </div>
+
+                <table class="table" id="horasExtrasTable">
+                    <thead>
+                        <tr>
+                            <th>Funcionário</th>
+                            <th>Matrícula</th>
+                            <th>Data</th>
+                            <th>Regime</th>
+                            <th>Horário</th>
+                            <th>Horas Extras</th>
+                            <th>Condomínio</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredHorasExtras.map(horaExtra => `
+                            <tr>
+                                <td>${horaExtra.funcionario}</td>
+                                <td>${horaExtra.matricula}</td>
+                                <td>${formatDate(horaExtra.data)}</td>
+                                <td>${horaExtra.regime === '12-36' ? '12/36' : horaExtra.regime === '8h' ? '8h' : 'Personalizado'}</td>
+                                <td>${horaExtra.entradaReal || ''} - ${horaExtra.saidaReal || ''}</td>
+                                <td>${horaExtra.quantidade ? horaExtra.quantidade.toFixed(2) + 'h' : '0h'}</td>
+                                <td>${horaExtra.condominioNome}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    ${podeExcluirRegistros() ? `
+                                    <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
         // ========== MÓDULO USUÁRIOS ==========
         function loadUsuariosContent() {
             const moduleContent = document.getElementById('moduleContent');
@@ -7258,7 +7293,73 @@ window.addEventListener('beforeunload', function(e) {
                             </div>
                         </form>
                     </div>
+                </div> 
+                     <!-- Modal Detalhado de Ocorrência (COLOQUE DIRETAMENTE NO HTML, após #prestadorModal) -->
+<div id="ocorrenciaDetailModal" class="modal">
+    <div class="modal-content" style="max-width: 90%; max-height: 90vh;">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Detalhes da Ocorrência</h3>
+            <button type="button" onclick="closeOcorrenciaDetailModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Morador *</label>
+                        <input type="text" id="ocorrenciaDetailMorador" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apartamento *</label>
+                        <input type="text" id="ocorrenciaDetailApto" class="form-control" required>
+                    </div>
                 </div>
+                <div class="form-group">
+                    <label>Descrição *</label>
+                    <textarea id="ocorrenciaDetailDescricao" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data/Hora da Ocorrência</label>
+                        <input type="text" id="ocorrenciaDetailDataHora" class="form-control" readonly>
+                        <small class="text-muted">Esta data não pode ser alterada</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="ocorrenciaDetailStatus" class="form-control">
+                            <option value="aberta">Aberta</option>
+                            <option value="andamento">Em andamento</option>
+                            <option value="resolvida">Resolvida</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observações (interna — equipe)</label>
+                    <textarea id="ocorrenciaDetailObservacoes" class="form-control" rows="3" placeholder="Ex: contato realizado, providências tomadas..."></textarea>
+                </div>
+                <input type="hidden" id="ocorrenciaDetailId">
+                <input type="hidden" id="ocorrenciaDetailDataOriginal"> <!-- preserva timestamp original -->
+            </div>
+        </div>
+        <!-- Histórico -->
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-header">
+                <h4><i class="fas fa-history"></i> Histórico</h4>
+            </div>
+            <div class="card-body" id="ocorrenciaDetailHistorico">
+                <p class="text-muted">Carregando histórico...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="saveOcorrenciaDetail()">
+                <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeOcorrenciaDetailModal()">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
             `;
             const tbody = document.querySelector('#ocorrenciasTable tbody');
             tbody.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
@@ -7346,17 +7447,17 @@ window.addEventListener('beforeunload', function(e) {
             }
         });
         function editOcorrencia(id) {
-            db.collection('ocorrencias').doc(id).get().then(doc => {
-                if (!doc.exists) return alert('Registro não encontrado');
-                const data = doc.data();
-                document.getElementById('editingOcorrenciaId').value = id;
-                document.getElementById('ocorrenciaMorador').value = data.morador || '';
-                document.getElementById('ocorrenciaApto').value = data.apto || '';
-                document.getElementById('ocorrenciaDescricao').value = data.descricao || '';
-                document.getElementById('ocorrenciaStatus').value = data.status || 'aberta';
-                document.getElementById('ocorrenciaModal').style.display = 'flex';
-            });
-        }
+    db.collection('ocorrencias').doc(id).get().then(doc => {
+        if (!doc.exists) return alert('Registro não encontrado');
+        const data = doc.data();
+
+        // ✅ Abre um modal dedicado só para essa ocorrência
+        openOcorrenciaDetailModal(id, data);
+    }).catch(err => {
+        console.error('Erro ao carregar ocorrência:', err);
+        alert('Erro ao carregar os dados da ocorrência.');
+    });
+}
         async function safeDeleteOcorrencia(id) {
             if (!podeExcluirRegistros()) {
                 alert('Somente síndico ou subsíndico podem excluir registros.');
@@ -7417,6 +7518,74 @@ window.addEventListener('beforeunload', function(e) {
                         </form>
                     </div>
                 </div>
+                   <!-- Modal Detalhado de Ocorrência -->
+<div id="ocorrenciaDetailModal" class="modal">
+    <div class="modal-content" style="max-width: 90%; max-height: 90vh;">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Detalhes da Ocorrência</h3>
+            <button type="button" onclick="closeOcorrenciaDetailModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Morador *</label>
+                        <input type="text" id="ocorrenciaDetailMorador" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apartamento *</label>
+                        <input type="text" id="ocorrenciaDetailApto" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descrição *</label>
+                    <textarea id="ocorrenciaDetailDescricao" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data/Hora da Ocorrência</label>
+                        <input type="text" id="ocorrenciaDetailDataHora" class="form-control" readonly>
+                        <small class="text-muted">Esta data não pode ser alterada</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="ocorrenciaDetailStatus" class="form-control">
+                            <option value="aberta">Aberta</option>
+                            <option value="andamento">Em andamento</option>
+                            <option value="resolvida">Resolvida</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observações (interna — equipe)</label>
+                    <textarea id="ocorrenciaDetailObservacoes" class="form-control" rows="3" placeholder="Ex: contato realizado, providências tomadas..."></textarea>
+                </div>
+                <input type="hidden" id="ocorrenciaDetailId">
+                <input type="hidden" id="ocorrenciaDetailDataOriginal"> <!-- preserva timestamp original -->
+            </div>
+        </div>
+
+        <!-- Histórico -->
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-header">
+                <h4><i class="fas fa-history"></i> Histórico</h4>
+            </div>
+            <div class="card-body" id="ocorrenciaDetailHistorico">
+                <p class="text-muted">Carregando histórico...</p>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="saveOcorrenciaDetail()">
+                <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeOcorrenciaDetailModal()">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
             `;
             const tbody = document.querySelector('#prestadoresTable tbody');
             tbody.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
@@ -7526,6 +7695,8 @@ if (doc.data) {
             originalLoadModuleContent.apply(this, arguments);
             setTimeout(()=> updateDeleteButtonsState(), 100);
         };
+    
+
     // ========== FUNÇÕES DE CONFRATERNIZAÇÃO ==========
 
 function openConfraternizacaoModal() {
@@ -7767,6 +7938,7 @@ function loadConfraternizacaoContent() {
                 </table>
             </div>
         </div>
+         
         <!-- Modal de Relatório -->
         <div id="relatorioConfraternizacaoModal" class="modal">
             <div class="modal-content" style="max-width: 90%; max-height: 90vh;">
@@ -8426,7 +8598,271 @@ document.addEventListener('DOMContentLoaded', function() {
         mainContent.style.marginLeft = '70px';
     }
 });
-  
+ // 📄 Função para gerar relatório de Horas Extras em PDF
+async function gerarRelatorioHorasExtrasPDF() {
+    // 🔹 1. Pegar datas do formulário
+    const dataInicioStr = document.getElementById('relatorioDataInicio').value;
+    const dataFimStr = document.getElementById('relatorioDataFim').value;
+
+    if (!dataInicioStr || !dataFimStr) {
+        alert('⚠️ Preencha as datas de início e fim.');
+        return;
+    }
+
+    const dataInicio = new Date(dataInicioStr);
+    const dataFim = new Date(dataFimStr);
+    dataFim.setHours(23, 59, 59, 999); // Inclui todo o dia final
+
+    if (dataInicio > dataFim) {
+        alert('⚠️ A data inicial não pode ser maior que a final.');
+        return;
+    }
+
+    // 🔹 2. Filtrar horas extras no período
+    const horasFiltradas = horasExtras.filter(h => {
+        const dataH = new Date(h.data);
+        return h.condominioId === currentCondominio.id && dataH >= dataInicio && dataH <= dataFim;
+    });
+
+    if (horasFiltradas.length === 0) {
+        alert('🔍 Nenhuma hora extra encontrada no período selecionado.');
+        return;
+    }
+
+    // 🔹 3. Calcular total
+    const totalHoras = horasFiltradas.reduce((sum, h) => sum + (h.quantidade || 0), 0);
+
+    // 🔹 4. Preparar dados para o PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // ✅ Estilos e cores
+    const primary = '#2c3e50';
+    const secondary = '#3498db';
+    const accent = '#e74c3c';
+    const light = '#ecf0f1';
+
+    // 🔹 Cabeçalho
+    doc.setFillColor(primary);
+    doc.rect(0, 0, 210, 40, 'F'); // Fundo escuro no topo (210mm = largura A4)
+    doc.setTextColor('#ffffff');
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Relatório de Horas Extras', 15, 20);
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Condomínio: ${currentCondominio.nome}`, 15, 28);
+    doc.text(`Período: ${formatDate(dataInicioStr)} a ${formatDate(dataFimStr)}`, 15, 34);
+
+    doc.setTextColor(accent);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total de Horas: ${totalHoras.toFixed(2)} h`, 150, 20);
+
+    // 🔹 Linha divisória
+    doc.setDrawColor(secondary);
+    doc.setLineWidth(0.5);
+    doc.line(10, 42, 200, 42);
+
+    // 🔹 Tabela
+    doc.setTextColor('#333');
+    doc.setFontSize(10);
+    let y = 50;
+
+    // Cabeçalhos da tabela
+    const headers = ['Funcionário', 'Data', 'Regime', 'Horário', 'Horas'];
+    const colWidths = [50, 25, 25, 35, 20];
+    const startX = 10;
+
+    doc.setFillColor('#f0f3f5');
+    doc.rect(startX, y - 5, 190, 8, 'F'); // Fundo cinza claro
+    doc.setTextColor('#2c3e50');
+    doc.setFont('helvetica', 'bold');
+    let cursorX = startX;
+    headers.forEach((header, i) => {
+        doc.text(header, cursorX + 2, y);
+        cursorX += colWidths[i];
+    });
+    y += 8;
+
+    // Linhas de dados
+    doc.setFont('helvetica', 'normal');
+    for (let i = 0; i < horasFiltradas.length; i++) {
+        const h = horasFiltradas[i];
+        const bgColor = i % 2 === 0 ? '#ffffff' : '#fafafa';
+        doc.setFillColor(bgColor);
+        doc.rect(startX, y - 4, 190, 7, 'F');
+
+        doc.text(h.funcionario || '—', startX + 2, y);
+        doc.text(formatDate(h.data), startX + 52, y);
+        doc.text(h.regime === '12-36' ? '12/36' : h.regime === '8h' ? '8h' : 'Outro', startX + 77, y);
+        doc.text(`${h.entradaReal || ''} - ${h.saidaReal || ''}`, startX + 102, y);
+        doc.text(`${(h.quantidade || 0).toFixed(2)}h`, startX + 137, y);
+
+        y += 7;
+
+        // Quebra de página se necessário
+        if (y > 280) {
+            doc.addPage();
+            y = 20;
+        }
+    }
+
+    // 🔹 Rodapé
+    doc.setFontSize(9);
+    doc.setTextColor('#7f8c8d');
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const usuario = currentUser.nome || currentUser.usuario;
+    doc.text(`Relatório gerado por ${usuario} em ${dataAtual}`, 15, 290);
+
+    // 🔹 Adicionar logotipo/texto discreto (opcional)
+    doc.setFontSize(8);
+    doc.text('Sistema Multi Condomínios — Relatório Confidencial', 150, 290);
+
+    // 🔹 Salvar PDF
+    const nomeArquivo = `HorasExtras_${currentCondominio.nome.replace(/\s+/g, '_')}_${dataInicioStr}_a_${dataFimStr}.pdf`;
+    doc.save(nomeArquivo);
+
+    alert(`✅ Relatório gerado com sucesso!\nTotal: ${horasFiltradas.length} registros\nHoras: ${totalHoras.toFixed(2)} h`);
+} 
+// ✅ Abre o modal detalhado com os dados da ocorrência
+function openOcorrenciaDetailModal(id, data) {
+    document.getElementById('ocorrenciaDetailId').value = id;
+    
+    // ✅ Preserva a data/hora original como timestamp (Firestore Timestamp)
+    document.getElementById('ocorrenciaDetailDataOriginal').value = JSON.stringify({
+        seconds: data.dataHora?.seconds || data.dataHora?._seconds,
+        nanoseconds: data.dataHora?.nanoseconds || 0
+    });
+
+    // Formata data para exibição legível (não editável)
+    const dataOriginal = data.dataHora?.toDate 
+        ? data.dataHora.toDate() 
+        : data.dataHora?._seconds 
+            ? new Date(data.dataHora._seconds * 1000)
+            : new Date(data.dataHora || Date.now());
+    
+    document.getElementById('ocorrenciaDetailDataHora').value = dataOriginal.toLocaleString('pt-BR');
+
+    // Preenche campos
+    document.getElementById('ocorrenciaDetailMorador').value = data.morador || '';
+    document.getElementById('ocorrenciaDetailApto').value = data.apto || '';
+    document.getElementById('ocorrenciaDetailDescricao').value = data.descricao || '';
+    document.getElementById('ocorrenciaDetailStatus').value = data.status || 'aberta';
+    document.getElementById('ocorrenciaDetailObservacoes').value = data.observacoes || '';
+
+    // Carrega histórico (se houver)
+    loadOcorrenciaHistorico(id);
+
+    // Mostra modal
+    document.getElementById('ocorrenciaDetailModal').style.display = 'flex';
+}
+
+// ✅ Fecha o modal detalhado
+function closeOcorrenciaDetailModal() {
+    document.getElementById('ocorrenciaDetailModal').style.display = 'none';
+}
+
+// ✅ Salva edição SEM alterar data original
+async function saveOcorrenciaDetail() {
+    const id = document.getElementById('ocorrenciaDetailId').value;
+    if (!id) return alert('ID da ocorrência não encontrado.');
+
+    const dataOriginalStr = document.getElementById('ocorrenciaDetailDataOriginal').value;
+    let dataOriginal = null;
+    try {
+        const parsed = JSON.parse(dataOriginalStr);
+        dataOriginal = new Date(parsed.seconds * 1000);
+    } catch (e) {
+        console.warn('⚠️ Data original inválida — usando agora');
+        dataOriginal = new Date();
+    }
+
+    const docData = {
+        morador: document.getElementById('ocorrenciaDetailMorador').value.trim(),
+        apto: document.getElementById('ocorrenciaDetailApto').value.trim(),
+        descricao: document.getElementById('ocorrenciaDetailDescricao').value.trim(),
+        status: document.getElementById('ocorrenciaDetailStatus').value,
+        observacoes: document.getElementById('ocorrenciaDetailObservacoes').value.trim(),
+        // ✅ dataHora ORIGINAL PRESERVADA
+        dataHora: firebase.firestore.Timestamp.fromDate(dataOriginal),
+        // ✅ dataEdicao registrada apenas se mudou algo
+        editadoEm: firebase.firestore.Timestamp.now(),
+        editadoPor: currentUser.id,
+        editadoPorNome: currentUser.nome || currentUser.usuario
+    };
+
+    try {
+        await db.collection('ocorrencias').doc(id).update(docData);
+        alert('✅ Ocorrência atualizada com sucesso!');
+        closeOcorrenciaDetailModal();
+        loadOcorrenciasContent(); // recarrega tabela
+    } catch (err) {
+        console.error('Erro ao salvar ocorrência:', err);
+        alert('❌ Erro ao salvar. Verifique sua conexão.');
+    }
+}
+
+// ✅ Carrega histórico (melhorar depois com subcoleção, mas já mostra edição)
+async function loadOcorrenciaHistorico(id) {
+    const historicoDiv = document.getElementById('ocorrenciaDetailHistorico');
+    try {
+        const doc = await db.collection('ocorrencias').doc(id).get();
+        if (!doc.exists) {
+            historicoDiv.innerHTML = '<p class="text-muted">Registro não encontrado.</p>';
+            return;
+        }
+        const data = doc.data();
+        let html = '';
+
+        // Registro original
+        const dataAbertura = data.dataHora?.toDate 
+            ? data.dataHora.toDate().toLocaleString('pt-BR')
+            : 'Data inválida';
+        
+        html += `
+            <div class="alert alert-info">
+                <strong>✅ Aberta em:</strong> ${dataAbertura}<br>
+                <strong>Morador:</strong> ${data.morador || '—'} — Apto ${data.apto || '—'}<br>
+                <strong>Descrição:</strong> ${data.descricao || '—'}
+            </div>
+        `;
+
+        // Se foi editada
+        if (data.editadoEm) {
+            const dataEdicao = data.editadoEm?.toDate 
+                ? data.editadoEm.toDate().toLocaleString('pt-BR')
+                : 'Data inválida';
+            html += `
+                <div class="alert alert-warning">
+                    <strong>✏️ Editada em:</strong> ${dataEdicao}<br>
+                    <strong>Por:</strong> ${data.editadoPorNome || '—'}<br>
+                    <strong>Status atual:</strong> 
+                    <span class="badge badge-${data.status === 'resolvida' ? 'success' : data.status === 'andamento' ? 'warning' : data.status === 'cancelada' ? 'danger' : 'info'}">
+                        ${formatStatusOcorrencia(data.status)}
+                    </span>
+                </div>
+            `;
+        }
+
+        historicoDiv.innerHTML = html || '<p class="text-muted">Sem histórico disponível.</p>';
+    } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+        historicoDiv.innerHTML = '<p class="text-danger">❌ Erro ao carregar histórico.</p>';
+    }
+}
+
+// ✅ Função auxiliar para formatar status
+function formatStatusOcorrencia(status) {
+    const map = {
+        'aberta': 'Aberta',
+        'andamento': 'Em andamento',
+        'resolvida': 'Resolvida',
+        'cancelada': 'Cancelada'
+    };
+    return map[status] || status;
+}
 </script>
 </body>
 </html>
