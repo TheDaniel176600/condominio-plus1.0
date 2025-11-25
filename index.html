@@ -5427,26 +5427,29 @@ function isFeriadoJaragua(dataStr) {
         const ehFeriadoNacional = isFeriadoNacional(dateStr);
         const ehFeriadoJaragua = isFeriadoJaragua(dateStr);
 
-        // ✅ Define classes e estilos
-        let classes = 'calendar-day';
-        let bgColor = '#ffffff';      // branco (padrão)
-        let borderColor = '#e0e0e0';  // cinza claro (padrão)
-        let borderStyle = '1px solid';
+     // ✅ Define classes e estilos
+let classes = 'calendar-day';
+let bgColor = '#ffffff';      // branco (padrão)
+let borderColor = '#e0e0e0';  // cinza claro (padrão)
+let borderStyle = '1px solid';
 
-        if (ehFeriadoNacional) {
-            bgColor = '#ffebee';
-            borderColor = '#f44336';
-        } else if (ehFeriadoJaragua) {
-            bgColor = '#fff3e0';
-            borderColor = '#ff9800';
-        } else if (temAgendamento) {
-            bgColor = '#e3f2fd';
-            borderColor = '#2196f3';
-        }
+if (ehFeriadoNacional) {
+    bgColor = '#ffebee';
+    borderColor = '#f44336';
+} else if (ehFeriadoJaragua) {
+    bgColor = '#fff3e0';
+    borderColor = '#ff9800';
+} else if (temAgendamento) {
+    bgColor = '#e3f2fd';
+    borderColor = '#2196f3';
+}
 
-        if (isToday) {
-            classes += ' today';
-        }
+// ✅ PRIORIDADE: HOJE — sempre destaca, mesmo em feriado ou com agendamento
+if (isToday) {
+    classes += ' today';
+    bgColor = '#fffde7';       // 🟡 Amarelo suave (Yellow 50)
+    borderColor = '#ffd54f';   // 🟡 Borda amarela suave (Yellow 300)
+}
 
         const dayDiv = document.createElement('div');
         dayDiv.className = classes;
