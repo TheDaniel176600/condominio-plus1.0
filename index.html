@@ -5264,8 +5264,11 @@ function filterAgendamentosConcluidos() {
                                     <i class="fas fa-chart-bar"></i> Gerar Relatório
                                 </button>
                                 <button class="btn btn-success" onclick="exportReport()">
-                                    <i class="fas fa-download"></i> Exportar
-                                </button>
+    <i class="fas fa-download"></i> Exportar TXT
+</button>
+<button class="btn btn-info" onclick="exportBackupJSON()" style="margin-left: 8px;">
+    <i class="fas fa-file-export"></i> Backup JSON
+</button>
                             </div>
                         </div>
                         <div class="report-preview" id="reportPreview">
@@ -5766,6 +5769,68 @@ if (isToday) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum agendamento de sauna encontrado com os filtros aplicados.</td></tr>';
             }
         }
+        // ✅ Função para fazer backup completo do condomínio atual (JSON)
+async function exportBackupJSON() {
+    if (!currentCondominio) {
+        alert('⚠️ Selecione um condomínio primeiro.');
+        return;
+    }
+    
+    try {
+        alert('🔍 Iniciando backup... Isso pode levar alguns segundos.');
+        
+        const backup = {
+            metadata: {
+                condominio: currentCondominio.nome,
+                dataBackup: new Date().toISOString(),
+                geradoPor: currentUser.nome || currentUser.usuario,
+                versao: '1.0'
+            },
+            dados: {}
+        };
+
+        // 🔁 Listar coleções por condomínio
+        const colecoes = [
+            'moradores', 'agendamentos', 'limpezas', 'saunas', 'contas',
+            'lembretes', 'horasExtras', 'compras', 'vales', 'ocorrencias',
+            'prestadores', 'palavrasChave', 'confraternizacoes'
+        ];
+
+        for (let colecao of colecoes) {
+            const snapshot = await db.collection(colecao)
+                .where('condominioId', '==', currentCondominio.id)
+                .get();
+            backup.dados[colecao] = [];
+            snapshot.forEach(doc => {
+                backup.dados[colecao].push({ id: doc.id, ...doc.data() });
+            });
+        }
+
+        // 🔁 Coleções globais (se necessário)
+        const usuarioSnapshot = await db.collection('usuarios').doc(currentUser.id).get();
+        backup.dados.usuarioLogado = usuarioSnapshot.exists ? { id: usuarioSnapshot.id, ...usuarioSnapshot.data() } : null;
+
+        // 💾 Exportar como arquivo JSON
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup_${currentCondominio.nome.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`✅ Backup concluído!
+Arquivo: ${a.download}
+Coleções: ${Object.keys(backup.dados).length}
+Registros: ${Object.values(backup.dados).reduce((sum, arr) => sum + arr.length, 0)}`);
+
+    } catch (err) {
+        console.error('Erro no backup:', err);
+        alert('❌ Falha ao gerar backup. Verifique sua conexão.');
+    }
+}
         // ========== FUNÇÕES DE AGENDAMENTOS ==========
         function openAgendamentoModal() {
             document.getElementById('agendamentoModalTitle').textContent = 'Novo Agendamento';
