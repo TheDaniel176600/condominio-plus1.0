@@ -5461,21 +5461,34 @@ if (isToday) {
         dayDiv.style.borderRadius = '4px';
         dayDiv.innerHTML = `<div class="day-number">${dia}</div>`;
 
-        // ✅ Adiciona eventos do dia (pequenos marcadores)
-        agendamentosDoDia.forEach(event => {
-            const eventElement = document.createElement('div');
-            eventElement.className = `event-item ${event.espaco}`;
-            eventElement.textContent = `${event.unidade} ${event.horaInicio}`;
-            eventElement.title = `${getEspacoNome(event.espaco)}: ${event.responsavel} (${event.unidade})`;
-            eventElement.style.fontSize = '10px';
-            eventElement.style.padding = '2px 4px';
-            eventElement.style.margin = '1px 0';
-            eventElement.style.borderRadius = '2px';
-            eventElement.style.overflow = 'hidden';
-            eventElement.style.textOverflow = 'ellipsis';
-            eventElement.style.whiteSpace = 'nowrap';
-            dayDiv.appendChild(eventElement);
-        });
+       // ✅ Adiciona eventos do dia — com PRIMEIRO NOME do responsável
+agendamentosDoDia.forEach(event => {
+    // Extrai primeiro nome (ex: "João Silva" → "João")
+    const primeiroNome = event.responsavel.split(' ')[0] || event.responsavel;
+    
+    const eventElement = document.createElement('div');
+    eventElement.className = `event-item ${event.espaco}`;
+    
+    // ✅ Agora mostra: "João — 101 — 14:00"
+    eventElement.textContent = `${primeiroNome} — ${event.unidade} — ${event.horaInicio}`;
+    
+    // Tooltip completo ao passar o mouse
+    eventElement.title = `${getEspacoNome(event.espaco)}: ${event.responsavel} (${event.unidade}) | ${event.horaInicio}–${event.horaFim}`;
+    
+    // Estilo compacto para caber no calendário
+    Object.assign(eventElement.style, {
+        fontSize: '9px',
+        padding: '1px 3px',
+        margin: '1px 0',
+        borderRadius: '3px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        fontWeight: '500'
+    });
+    
+    dayDiv.appendChild(eventElement);
+});
 
         dayDiv.addEventListener('click', function() {
             openAgendamentoModalForDate(dateStr);
