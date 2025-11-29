@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -2093,8 +2094,8 @@
                         setupRealtimeListeners();
                         // ✅ INICIAR VERIFICAÇÃO AUTOMÁTICA DE STATUS
                 setInterval(updateOnlineCount, 10000);
-               // setInterval(atualizarStatusAutomatico, 60000); // removido temporariamente
-               // atualizarStatusAutomatico(); // removido temporariamente
+               setInterval(atualizarStatusAutomatico, 30000); // ← 30.000 ms = 30s
+atualizarStatusAutomatico(); // ← executa imediatamente ao carregar
                         setInterval(updateOnlineCount, 10000);
                         return;
                     }
@@ -7361,6 +7362,43 @@ window.addEventListener('beforeunload', function(e) {
                     : 'fas fa-sort-down';
             }
         }
+        // ✅ Função para atualizar status de agendamentos automaticamente
+async function atualizarStatusAutomatico() {
+    if (!currentCondominio) return;
+
+    const agora = new Date();
+    const dataHoje = agora.toISOString().split('T')[0]; // ex: "2025-11-29"
+    const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + 
+                      agora.getMinutes().toString().padStart(2, '0'); // ex: "12:05"
+
+    // Filtra agendamentos ATIVOS de HOJE no condomínio atual
+    const agendamentosAtivos = agendamentos.filter(a => 
+        a.condominioId === currentCondominio.id &&
+        a.data === dataHoje &&
+        ['agendado', 'em-uso'].includes(a.status)
+    );
+
+    for (const ag of agendamentosAtivos) {
+        // Compara horaAgora com ag.horaFim (ambos no formato "HH:mm")
+        if (horaAgora >= ag.horaFim) {
+            try {
+                // Atualiza no Firestore
+                await db.collection('agendamentos').doc(ag.id).update({
+                    status: 'liberado',
+                    dataAtualizacao: new Date().toISOString()
+                });
+                console.log(`✅ Agendamento ${ag.id} atualizado para 'liberado' automaticamente.`);
+            } catch (err) {
+                console.error('Erro ao atualizar agendamento automaticamente:', ag.id, err);
+            }
+        }
+    }
+
+    // Após atualizar, recarrega os dados para manter a interface sincronizada
+    await loadSystemData();
+    if (currentModule === 'dashboard') loadDashboardContent();
+    if (currentModule === 'agendamentos') loadAgendamentosList(); // ← Usa a função correta!
+}
         // ========== INICIALIZAÇÃO ==========
         document.getElementById('newPassword')?.addEventListener('input', function() {
             const password = this.value;
