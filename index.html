@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1569,6 +1568,11 @@
                         <input type="text" class="form-control" id="moradorVaga">
                     </div>
                 </div>
+                 <div class="form-group">
+    <label>Placa do Veículo</label>
+    <input type="text" class="form-control" id="moradorPlaca" maxlength="8" placeholder="ex: ABC1234">
+    <small class="text-muted">Formato: ABC1234 ou ABC-1234</small>
+</div>
                 <div class="form-group">
                     <label>Observações</label>
                     <textarea class="form-control" id="moradorObservacoes" rows="3"></textarea>
@@ -4592,6 +4596,7 @@ ${(currentUser.permissoes &&
                                     <th>Telefone</th>
                                     <th>Garagem</th>
                                     <th>Vaga</th>
+                                    <th>Placa</th>  
                                     <th>Observações</th>
                                     <th>Ações</th>
                                 </tr>
@@ -6638,6 +6643,7 @@ Registros: ${Object.values(backup.dados).reduce((sum, arr) => sum + arr.length, 
                 telefone: document.getElementById('moradorTelefone').value,
                 garagem: document.getElementById('moradorGaragem').value,
                 vaga: document.getElementById('moradorVaga').value,
+                placa: document.getElementById('moradorPlaca').value.trim().toUpperCase(),
                 observacoes: document.getElementById('moradorObservacoes').value,
                 condominioId: currentCondominio.id,
                 condominioNome: currentCondominio.nome,
@@ -6671,6 +6677,7 @@ Registros: ${Object.values(backup.dados).reduce((sum, arr) => sum + arr.length, 
             document.getElementById('moradorTelefone').value = morador.telefone || '';
             document.getElementById('moradorGaragem').value = morador.garagem || '';
             document.getElementById('moradorVaga').value = morador.vaga || '';
+            document.getElementById('moradorPlaca').value = morador.placa || '';
             document.getElementById('moradorObservacoes').value = morador.observacoes || '';
             document.getElementById('moradorModal').style.display = 'flex';
         }
@@ -7310,6 +7317,7 @@ window.addEventListener('beforeunload', function(e) {
                     <td>${morador.telefone || '-'}</td>
                     <td>${morador.garagem || '-'}</td>
                     <td>${morador.vaga || '-'}</td>
+                    <td>${morador.placa || '—'}</td> 
                     <td>${morador.observacoes || '-'}</td>
                     <td>
                         <button class="btn btn-sm btn-info" onclick="editMorador('${morador.id}')">
