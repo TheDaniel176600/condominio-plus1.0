@@ -1125,12 +1125,33 @@
         .compra-itens-lista .compras-item {
             padding: 6px 0;
         }
+         @media print {
+    body * {
+        visibility: hidden;
+    }
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    .no-print {
+        display: none !important;
+    }
+}
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- JSZip (necessário para criar .docx) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+</script>
 <!-- FileSaver (para download do arquivo) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js">
+</script>
 <script>
   // Garantir compatibilidade: alguns bundles só expõem via .default
   if (typeof htmlDocx === 'undefined' && typeof htmlDocxJs !== 'undefined') {
@@ -1141,8 +1162,23 @@
   }
 </script>
 </head>
-<!-- Biblioteca jsPDF para gerar PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ✅ jsPDF correta — compatível com UMD e expõe jsPDF globalmente -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.js">
+</script>
+<script>
+  // Garante compatibilidade com UMD bundle
+  if (typeof window.jsPDF === 'undefined' && window.jspdf && window.jspdf.jsPDF) {
+    window.jsPDF = window.jspdf.jsPDF;
+  }
+ // ✅ Garante que `jsPDF` esteja disponível globalmente, de forma confiável
+  if (typeof jsPDF === 'undefined') {
+    if (typeof window.jspdf !== 'undefined') {
+      window.jsPDF = window.jspdf.jsPDF;
+    } else if (typeof window.default !== 'undefined') {
+      window.jsPDF = window.default;
+    }
+  }
+</script>
 <body>
     <!-- Letreiro de Lembretes -->
     <div id="tickerContainer" class="ticker-container" style="display: none;">
@@ -1950,21 +1986,40 @@
         </div>
         <div class="card-body">
             <div class="form-row">
-                <div class="form-group">
-                    <label>Filtrar por Espaço</label>
-                    <select id="filtroConcluidosEspaco" class="form-control" onchange="filterAgendamentosConcluidos()">
-                        <option value="">Todos os espaços</option>
-                        <option value="salao-social">Salão Social</option>
-                        <option value="churrasqueira">Churrasqueira</option>
-                        <option value="quiosque">Quiosque</option>
-                        <option value="pergolado">Pergolado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Filtrar por Data</label>
-                    <input type="month" id="filtroConcluidosMes" class="form-control" onchange="filterAgendamentosConcluidos()">
-                </div>
-            </div>
+    <div class="form-group">
+        <label>Espaço</label>
+        <select id="filtroConcluidosEspaco" class="form-control" onchange="filterAgendamentosConcluidos()">
+            <option value="">Todos</option>
+            <option value="salao-social">Salão Social</option>
+            <option value="churrasqueira">Churrasqueira</option>
+            <option value="quiosque">Quiosque</option>
+            <option value="pergolado">Pergolado</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>De</label>
+        <input type="date" id="filtroConcluidosDataIni" class="form-control" onchange="filterAgendamentosConcluidos()">
+    </div>
+    <div class="form-group">
+        <label>Até</label>
+        <input type="date" id="filtroConcluidosDataFim" class="form-control" onchange="filterAgendamentosConcluidos()">
+    </div>
+    <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="filtroConcluidosNome" class="form-control" placeholder="Ex: João" onkeyup="filterAgendamentosConcluidos()">
+    </div>
+    <div class="form-group">
+        <label>Apto</label>
+        <input type="text" id="filtroConcluidosApto" class="form-control" placeholder="Ex: 101" onkeyup="filterAgendamentosConcluidos()">
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-group">
+        <button class="btn btn-success" onclick="exportarAgendamentosConcluidosPDF()">
+            <i class="fas fa-file-pdf"></i> Exportar PDF
+        </button>
+    </div>
+</div>
             
             <table class="table">
                 <thead>
@@ -1975,6 +2030,7 @@
                         <th>Horário</th>
                         <th>Unidade</th>
                         <th>Status</th>
+                        <th>Ações</th> 
                     </tr>
                 </thead>
                 <tbody id="agendamentosConcluidosTbody">
@@ -1984,6 +2040,122 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAgendamentosConcluidosModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+<!-- Modal Detalhado do Agendamento -->
+<div id="detalhesAgendamentoModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; width: 95%;">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-check"></i> Detalhes do Agendamento</h3>
+            <button type="button" onclick="closeDetalhesAgendamentoModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-body">
+                <div class="form-group">
+                    <label><strong>Espaço:</strong></label>
+                    <p id="detalheEspaco" class="form-control-plaintext"></p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label><strong>Solicitante:</strong></label>
+                        <p id="detalheResponsavel" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label><strong>Unidade:</strong></label>
+                        <p id="detalheUnidade" class="form-control-plaintext"></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><strong>Data:</strong></label>
+                        <p id="detalheData" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Horário:</strong></label>
+                        <p id="detalheHorario" class="form-control-plaintext"></p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><strong>Status:</strong></label>
+                    <p><span id="detalheStatus" class="status-badge"></span></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Observações:</strong></label>
+                    <p id="detalheObservacoes" class="form-control-plaintext" style="white-space: pre-wrap;"></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Criado por:</strong></label>
+                    <p id="detalheCriadoPor" class="form-control-plaintext"></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Data de Criação:</strong></label>
+                    <p id="detalheCriadoEm" class="form-control-plaintext"></p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDetalhesAgendamentoModal()">
+                <i class="fas fa-times"></i> Fechar
+            </button>
+        </div>
+    </div>
+</div>
+      <!-- Modal Detalhado do Agendamento -->
+<div id="detalhesAgendamentoModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; width: 95%;">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-check"></i> Detalhes do Agendamento</h3>
+            <button type="button" onclick="closeDetalhesAgendamentoModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="card" style="margin-top: 15px;">
+            <div class="card-body">
+                <div class="form-group">
+                    <label><strong>Espaço:</strong></label>
+                    <p id="detalheEspaco" class="form-control-plaintext"></p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label><strong>Solicitante:</strong></label>
+                        <p id="detalheResponsavel" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label><strong>Unidade:</strong></label>
+                        <p id="detalheUnidade" class="form-control-plaintext"></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><strong>Data:</strong></label>
+                        <p id="detalheData" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Horário:</strong></label>
+                        <p id="detalheHorario" class="form-control-plaintext"></p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><strong>Status:</strong></label>
+                    <p><span id="detalheStatus" class="status-badge"></span></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Observações:</strong></label>
+                    <p id="detalheObservacoes" class="form-control-plaintext" style="white-space: pre-wrap;"></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Criado por:</strong></label>
+                    <p id="detalheCriadoPor" class="form-control-plaintext"></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Data de Criação:</strong></label>
+                    <p id="detalheCriadoEm" class="form-control-plaintext"></p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDetalhesAgendamentoModal()">
+                <i class="fas fa-times"></i> Fechar
+            </button>
         </div>
     </div>
 </div>
@@ -2019,7 +2191,55 @@
         </form>
     </div>
 </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+     <!-- Modal para Tarefas -->
+<div id="tarefaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="tarefaModalTitle">Nova Tarefa</h3>
+            <button type="button" onclick="closeTarefaModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <form id="tarefaForm">
+            <input type="hidden" id="editingTarefaId">
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" class="form-control" id="tarefaTitulo" placeholder="Ex: Varrer corredor" required>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea class="form-control" id="tarefaDescricao" rows="3" placeholder="Detalhes opcionais..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select class="form-control" id="tarefaTipo" required onchange="toggleDiasSemana()">
+                        <option value="unica">Única</option>
+                        <option value="recorrente">Recorrente (dias da semana)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" class="form-control" id="tarefaDataUnica">
+                </div>
+            </div>
+            <div class="form-group" id="diasSemanaContainer" style="display: none;">
+                <label>Dias da Semana</label><br>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="dom"> Domingo</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="seg"> Segunda</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="ter"> Terça</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="qua"> Quarta</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="qui"> Quinta</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="sex"> Sexta</label>
+                <label class="permission-item"><input type="checkbox" name="diaSemana" value="sab"> Sábado</label>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salvar Tarefa</button>
+                <button type="button" class="btn" onclick="closeTarefaModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js">
+</script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
         // Configuração do Firebase
@@ -2053,6 +2273,7 @@
             { id: 'relatorios', name: 'Relatórios', icon: 'fas fa-chart-bar' },
             { id: 'usuarios', name: 'Usuários', icon: 'fas fa-users' },
             { id: 'moradores', name: 'Moradores', icon: 'fas fa-user-friends' },
+            { id: 'tarefas', name: 'Tarefas', icon: 'fas fa-tasks' },
         ];
         // Estado da aplicação
         let currentUser = null;
@@ -2807,6 +3028,9 @@ function closeHoraExtraModal() {
         case 'condominios':
             loadCondominiosContent();
             break;
+                case 'tarefas':
+            loadTarefasContent();
+            break;
         case 'usuarios':
             loadUsuariosContent();
             break;
@@ -2860,6 +3084,59 @@ function closeHoraExtraModal() {
         function changeModule(moduleId) {
             loadModuleContent(moduleId);
         }
+        function atualizarCardsPalavrasChave() {
+    if (!currentCondominio) return;
+    const cards = document.querySelectorAll('.card');
+    let targetCard = null;
+    for (let card of cards) {
+        const h3 = card.querySelector('.card-header h3');
+        if (h3 && h3.textContent.includes('Palavras-chave Mercado Livre')) {
+            targetCard = card;
+            break;
+        }
+    }
+    if (!targetCard) return;
+    const container = targetCard.querySelector('.stats-container');
+    if (!container) return;
+    const pcs = palavrasChave.filter(pc => pc.condominioId === currentCondominio.id);
+    const btnVerTodas = targetCard.querySelector('button[onclick*="palavras-chave"]');
+    if (pcs.length === 0) {
+        container.innerHTML = `
+            <div class="mercado-livre-card" onclick="openPalavraChaveModal()" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
+                <div class="mercado-livre-header">
+                    <i class="fas fa-plus-circle" style="font-size: 2em; margin-bottom: 8px; color: #2c3e50;"></i>
+                    <h3>Adicionar Primeira</h3>
+                </div>
+                <div class="mercado-livre-content">
+                    <div style="text-align: center; color: #2c3e50; font-size: 0.9em;">
+                        Clique para cadastrar sua primeira palavra-chave
+                    </div>
+                </div>
+            </div>
+        `;
+        if (btnVerTodas) btnVerTodas.style.display = 'none';
+        return;
+    }
+    const htmlCards = pcs.slice(0, 3).map(pc => `
+        <div class="mercado-livre-card" onclick="editPalavraChave('${pc.id}')">
+            <div class="mercado-livre-header">
+                <i class="fas fa-tags" style="font-size: 1.5em; margin-bottom: 8px; color: #2c3e50;"></i>
+                <h3>Palavras-chave</h3>
+            </div>
+            <div class="mercado-livre-content">
+                <div class="morador-info">${pc.moradorNome}</div>
+                <div class="apto-info">Apto: ${pc.moradorApto}</div>
+                ${pc.palavrasChave.slice(0, 2).map(p => `<div class="palavra-chave-item">${p}</div>`).join('')}
+                ${pc.palavrasChave.length > 2 ? `<div class="palavra-chave-item">+${pc.palavrasChave.length - 2} mais...</div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    container.innerHTML = htmlCards;
+    if (btnVerTodas) {
+        btnVerTodas.style.display = pcs.length > 3 ? 'inline-block' : 'none';
+        btnVerTodas.textContent = `Ver todas (${pcs.length})`;
+    }
+}
         async function loadSystemData() {
             try {
                 const condominiosSnapshot = await db.collection('condominios').get();
@@ -2994,6 +3271,8 @@ palavrasChaveSnapshot.forEach(doc => {
                     lembretes = [];
                     compras = []; // <-- Limpar Compras
                 }
+                        // Carregar Tarefas
+        await loadTarefas();
                 
                 updateCondominioSelector();
                 updateConnectionStatus(true);
@@ -3540,951 +3819,828 @@ function formatStatusVale(status) {
         </div>
     `;
 }  
-        // ========== MÓDULO DASHBOARD ==========
-        function loadDashboardContent() {
-    const moduleContent = document.getElementById('moduleContent');
-    const filteredAgendamentos = currentCondominio ?
-        agendamentos.filter(a => a.condominioId === currentCondominio.id) : [];
-    const filteredContas = currentCondominio ?
-        contas.filter(c => c.condominioId === currentCondominio.id) : [];
-    const filteredLembretes = currentCondominio ?
-        lembretes.filter(l => l.condominioId === currentCondominio.id) : [];
-    const filteredMoradores = currentCondominio ?
-        moradores.filter(m => m.condominioId === currentCondominio.id) : [];
-    const filteredLimpezas = currentCondominio ?
-        limpezas.filter(l => l.condominioId === currentCondominio.id) : [];
-    const filteredSaunas = currentCondominio ?
-        saunas.filter(s => s.condominioId === currentCondominio.id) : [];
-    const filteredCompras = currentCondominio ?
-        compras.filter(c => c.condominioId === currentCondominio.id) : [];
-
-    let totalCondominios;
-    if (currentUser.condominios && currentUser.condominios.includes('*')) {
-        totalCondominios = condominios.length;
-    } else if (currentUser.condominios) {
-        totalCondominios = condominios.filter(cond =>
-            currentUser.condominios.includes(cond.id)
-        ).length;
-    } else {
-        totalCondominios = condominios.length;
-    }
-    const totalUsuarios = usuarios.length;
-    const totalMoradores = filteredMoradores.length;
-    const totalAgendamentos = filteredAgendamentos.length;
-    const totalLimpezas = filteredLimpezas.length;
-    const totalSaunas = filteredSaunas.length;
-    const totalCompras = filteredCompras.length;
-
-    const agendamentosHoje = filteredAgendamentos.filter(a => {
-        const hoje = new Date().toISOString().split('T')[0];
-        return a.data === hoje;
-    }).length;
-
-    const hoje = new Date();
-
-    // ✅ Alertas de contas/compras
-    const alertaContas = filteredContas.filter(conta => {
-        if (conta.status === 'pago') return false;
-        const vencimento = new Date(conta.vencimento);
-        const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-        return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
-    });
-    const alertaCompras = filteredCompras.filter(compra => {
-        if (!compra.vencimento || compra.status === 'pago') return false;
-        const vencimento = new Date(compra.vencimento);
-        const diferencaDias = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-        return (diferencaDias <= 4 && diferencaDias >= 0) || diferencaDias < 0;
-    });
-
-   // ✅ Status dos espaços (salão, churrasqueira, quiosque, pergolado) - ATUALIZADO
-// ✅ Status dos espaços (salão, churrasqueira, quiosque, pergolado) - ATUALIZADO
-const espacosParaStatus = [
-    { id: 'salao-social', nome: 'Salão Social', cor: '#3498db', icon: 'fas fa-warehouse' },
-    { id: 'churrasqueira', nome: 'Churrasqueira', cor: '#e74c3c', icon: 'fas fa-fire' },
-    { id: 'quiosque', nome: 'Quiosque', cor: '#2ecc71', icon: 'fas fa-tree' },
-    { id: 'pergolado', nome: 'Pergolado', cor: '#9b59b6', icon: 'fas fa-umbrella' }
-];
-
-const espacosStatus = espacosParaStatus.map(espaco => {
-    const agora = new Date();
-    const dataAtual = getCurrentDate();
-    const horaAtual = agora.getHours().toString().padStart(2, '0') + ':' + 
-                      agora.getMinutes().toString().padStart(2, '0');
-    
-    let statusInfo = {
-        status: '🟢 DISPONÍVEL',
-        cor: '#2ecc71',
-        texto: 'LIVRE AGORA',
-        emUso: null
-    };
-
-    // Encontrar agendamentos para este espaço hoje
-    const agendamentosHoje = filteredAgendamentos.filter(a => 
-        a.espaco === espaco.id && 
-        a.data === dataAtual &&
-        a.status !== 'liberado' && 
-        a.status !== 'cancelado'
-    );
-
-    // Verificar status para cada agendamento
-    agendamentosHoje.forEach(agendamento => {
-        const seisHorasAntes = subtrairHoras(agendamento.horaInicio, 6);
-        const umaHoraAntes = subtrairHoras(agendamento.horaInicio, 1);
         
-        if (horaAtual >= agendamento.horaInicio && horaAtual <= agendamento.horaFim) {
-            statusInfo = {
-                status: '🔴 EM USO',
-                cor: '#e74c3c',
-                texto: 'EM USO AGORA',
-                emUso: agendamento
-            };
-        } else if (horaAtual >= umaHoraAntes && horaAtual < agendamento.horaInicio) {
-            statusInfo = {
-                status: '🟡 PREPARANDO',
-                cor: '#f39c12',
-                texto: 'PREPARANDO',
-                emUso: agendamento
-            };
-        } else if (horaAtual >= seisHorasAntes && horaAtual < umaHoraAntes) {
-            statusInfo = {
-                status: '🔵 AGENDADO',
-                cor: '#3498db',
-                texto: 'AGENDADO',
-                emUso: agendamento
-            };
+    // ========== MÓDULO DASHBOARD (REVISADO E MODERNIZADO) ==========
+function loadDashboardContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    
+    // Dados filtrados por condomínio
+    const filteredAgendamentos = currentCondominio ? agendamentos.filter(a => a.condominioId === currentCondominio.id) : [];
+    const filteredContas = currentCondominio ? contas.filter(c => c.condominioId === currentCondominio.id) : [];
+    const filteredCompras = currentCondominio ? compras.filter(c => c.condominioId === currentCondominio.id) : [];
+    const filteredMoradores = currentCondominio ? moradores.filter(m => m.condominioId === currentCondominio.id) : [];
+    const filteredSaunas = currentCondominio ? saunas.filter(s => s.condominioId === currentCondominio.id) : [];
+    const filteredPalavras = currentCondominio ? palavrasChave.filter(p => p.condominioId === currentCondominio.id) : [];
+    const filteredTarefas = currentCondominio ? tarefas.filter(t => t.condominioId === currentCondominio.id) : [];
+
+    // ⏰ Hoje e cálculos
+    const hoje = new Date();
+    const hojeStr = hoje.toISOString().split('T')[0]; // "2025-12-18"
+    const hojeSemana = hoje.getDay(); // 0 = dom, 1 = seg ... 6 = sab
+    const diasMap = { dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6 };
+
+    // ✅ Tarefas de HOJE (filtradas e com status de conclusão)
+    const tarefasHoje = filteredTarefas.filter(t => {
+        if (t.tipo === 'unica') return t.dataUnica === hojeStr;
+        if (t.tipo === 'recorrente') return t.diasSemana.some(d => diasMap[d] === hojeSemana);
+        return false;
+    }).map(t => ({
+        ...t,
+        jaConcluiuHoje: t.historicoConclusao?.some(h => h.dataReal === hojeStr) || false
+    }));
+
+    // ⚠️ Alertas de contas/compras (vencidas ou ≤ 3 dias)
+    const alertaContas = filteredContas.filter(c => {
+        if (c.status === 'pago') return false;
+        const venc = new Date(c.vencimento);
+        const diff = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+        return diff <= 3;
+    });
+    const alertaCompras = filteredCompras.filter(c => {
+        if (!c.vencimento || c.status === 'pago') return false;
+        const venc = new Date(c.vencimento);
+        const diff = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+        return diff <= 3;
+    });
+    const totalAlertas = alertaContas.length + alertaCompras.length;
+
+    // 🔴 Status dos espaços
+    const espacos = [
+        { id: 'salao-social', nome: 'Salão Social', icon: 'fas fa-warehouse', cor: '#3498db' },
+        { id: 'churrasqueira', nome: 'Churrasqueira', icon: 'fas fa-fire', cor: '#e74c3c' },
+        { id: 'quiosque', nome: 'Quiosque', icon: 'fas fa-tree', cor: '#2ecc71' },
+        { id: 'pergolado', nome: 'Pergolado', icon: 'fas fa-umbrella', cor: '#9b59b6' }
+    ].map(espaco => {
+        const ags = filteredAgendamentos.filter(a =>
+            a.espaco === espaco.id && a.status !== 'liberado' && a.status !== 'cancelado'
+        );
+        const agora = new Date();
+const pad = (num) => String(num).padStart(2, '0');
+const horaAtual = `${pad(agora.getHours())}:${pad(agora.getMinutes())}`;        let status = { label: 'Livre', cor: '#27ae60', icone: '🟢' };
+        let agendamentoAtivo = null;
+
+        for (const ag of ags) {
+            if (ag.data !== hojeStr) continue;
+           const [hIniH, hIniM] = ag.horaInicio.split(':').map(Number);
+const [hFimH, hFimM] = ag.horaFim.split(':').map(Number);
+// ✅ Correção de fuso horário: força data no horário local (não UTC)
+const dataLocal = new Date(ag.data + 'T00:00:00-03:00'); // -03:00 para horário de Brasília
+const inicio = new Date(dataLocal);
+inicio.setHours(hIniH, hIniM, 0, 0);
+const fim = new Date(dataLocal);
+fim.setHours(hFimH, hFimM, 0, 0);
+
+            if (agora >= inicio && agora <= fim) {
+                status = { label: 'Em uso', cor: '#e74c3c', icone: '🔴' };
+                agendamentoAtivo = ag;
+                break;
+            } else if (agora >= new Date(inicio.getTime() - 60*60*1000) && agora < inicio) { // 1h antes
+                status = { label: 'Preparando', cor: '#f39c12', icone: '🟡' };
+                agendamentoAtivo = ag;
+                break;
+            } else if (agora >= new Date(inicio.getTime() - 6*60*60*1000) && agora < inicio) { // 6h antes
+                status = { label: 'Agendado', cor: '#3498db', icone: '🔵' };
+            }
         }
+        return { ...espaco, status, agendamentoAtivo, totalAgendado: ags.length };
     });
 
-    return { 
-        ...espaco, 
-        statusInfo: statusInfo
-    };
-});
-    // ✅ Status das saunas (já existia, mantido)
-    const saunaUmidaEmUso = filteredSaunas.find(s =>
-        s.status === 'em-uso' && s.tipo === 'umida'
-    );
-    const saunaSecaEmUso = filteredSaunas.find(s =>
-        s.status === 'em-uso' && s.tipo === 'seca'
-    );
+    // ♨ Saunas
+    const saunaUmida = filteredSaunas.find(s => s.tipo === 'umida' && s.status === 'em-uso');
+    const saunaSeca = filteredSaunas.find(s => s.tipo === 'seca' && s.status === 'em-uso');
 
-    // ✅ Agendamentos recentes com toggle de finalizados
-    const dataLimite = new Date();
-    dataLimite.setMonth(dataLimite.getMonth() - 18);
-    const agendamentosAtivos = filteredAgendamentos
-        .filter(a => !['liberado', 'cancelado'].includes(a.status))
-        .sort((a, b) => new Date(b.data) - new Date(a.data));
-    const agendamentosFinalizados = filteredAgendamentos
-        .filter(a => 
-            ['liberado', 'cancelado'].includes(a.status) &&
-            new Date(a.data) >= dataLimite
-        )
-        .sort((a, b) => new Date(b.data) - new Date(a.data));
-    let agendamentosRecentes = agendamentosAtivos.slice(0, 5);
-    let mostrarFinalizados = false;
+    // 📊 Estatísticas
+    const stats = [
+        { label: 'Moradores', valor: filteredMoradores.length, cor: '#9b59b6', icone: 'fas fa-users' },
+        { label: 'Agendamentos', valor: filteredAgendamentos.length, cor: '#3498db', icone: 'fas fa-calendar-check' },
+        { label: 'Contas em aberto', valor: alertaContas.length, cor: '#e74c3c', icone: 'fas fa-file-invoice-dollar' },
+        { label: 'Tarefas do dia', valor: tarefasHoje.length, cor: '#2ecc71', icone: 'fas fa-tasks' }
+    ];
 
+    // ✅ Monta HTML
     moduleContent.innerHTML = `
-        <div class="card">
-            <div class="card-header">
-                <h3>Dashboard - ${currentCondominio ? currentCondominio.nome : 'Selecione um condomínio'}</h3>
-                <span>Bem-vindo, ${currentUser.nome || currentUser.usuario}!</span>
-            </div>
-            <div class="card-body">
-                ${!currentCondominio ? `
-                    <div class="alert alert-warning">
-                        <strong>Atenção!</strong> Selecione um condomínio no menu acima para visualizar os dados específicos.
-                    </div>
-                ` : ''}
-                 <!-- ✅ Alertas de contas/compras -->
-                ${(currentUser.permissoes &&
-                  (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('contas'))) &&
-                  (alertaContas.length > 0 || alertaCompras.length > 0) ? `
-                <div class="dashboard-alerts">
-                    <div class="alert alert-warning">
-                        <h4><i class="fas fa-exclamation-triangle"></i> Contas e Compras em Aberto</h4>
-                        <p>Você tem 
-                            <strong>${alertaContas.length + alertaCompras.length}</strong> 
-                            itens com vencimento próximo ou vencidos:
-                        </p>
-                        <ul style="margin-top:10px;">
-                            ${alertaContas.map(conta => `
-                                <li>
-                                    <strong>CONTA</strong> — ${conta.descricao} 
-                                    (vence ${formatDate(conta.vencimento)}) — R$ ${conta.valor.toFixed(2)}
-                                    ${new Date(conta.vencimento) < hoje ? ' <span class="badge badge-danger">VENCIDO</span>' : ''}
-                                </li>
-                            `).join('')}
-                            ${alertaCompras.map(compra => `
-                                <li>
-                                    <strong>COMPRA</strong> — ${compra.fornecedor}
-                                    ${compra.vencimento ? ` (vence ${formatDate(compra.vencimento)})` : ''}
-                                    — R$ ${(compra.valorTotal || compra.itens.reduce((s,i)=>s+i.quantidade*i.valorUnitario,0)).toFixed(2)}
-                                    ${new Date(compra.vencimento) < hoje ? ' <span class="badge badge-danger">VENCIDO</span>' : ''}
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <button class="btn btn-sm btn-success" onclick="changeModule('contas')">
-                            <i class="fas fa-eye"></i> Ver Contas
-                        </button>
-                        <button class="btn btn-sm btn-info" onclick="changeModule('compras')" style="margin-left:8px;">
-                            <i class="fas fa-shopping-cart"></i> Ver Compras
-                        </button>
-                    </div>
+        <div class="dashboard-container">
+            <!-- Cabeçalho -->
+            <div class="dashboard-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Bem-vindo, <strong>${currentUser.nome || currentUser.usuario}</strong> • ${currentCondominio ? currentCondominio.nome : 'Selecione um condomínio'}</p>
                 </div>
-                ` : ''}
-              
-${currentCondominio ? `
-<div class="card">
-    <div class="card-header">
-        <h3>Controle de Piscina</h3>
-    </div>
-    <div class="card-body">
-        <div class="stats-container" style="gap: 15px; justify-content: center;">
-            <!-- Piscina Reduzida -->
-            <div class="sauna-card-reduzido stat-card-piscina ${currentCondominio.statusPiscina ? 'ligada' : ''}" 
-                 onclick="togglePiscina()" 
-                 style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
-                <div class="sauna-card-header-reduzido">
-                    <i class="fas fa-swimmer" style="font-size: 1.5em; margin-bottom: 8px; color: white;"></i>
-                    <h3>Piscina</h3>
+                ${currentCondominio ? `
+                <div class="quick-actions">
+                    <button class="btn btn-sm btn-primary" onclick="openTarefaModal()">
+                        <i class="fas fa-plus"></i> Nova Tarefa
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="changeModule('tarefas')">
+                        <i class="fas fa-tasks"></i> Todas as Tarefas
+                    </button>
                 </div>
-                <div class="sauna-card-content-reduzido">
-                    <div class="sauna-status-reduzido" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.9em;">
-                        ${currentCondominio.statusPiscina ? '🟢 LIGADA' : '🔴 DESLIGADA'}
-                    </div>
-                    <div class="user-details-reduzido">
-                        <div class="available-text-reduzido">Clique para alternar</div>
-                    </div>
-                </div>
-                ${currentCondominio.statusPiscina ? `
-                <div class="piscina-ondas" style="
-                    position: absolute; bottom: 0; left: 0; width: 100%; height: 25%;
-                    background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.3) 0%, transparent 70%);
-                    animation: piscina-ondas 4s ease-in-out infinite;
-                "></div>
                 ` : ''}
             </div>
 
-            <!-- Aquecedor Reduzido -->
-            <div class="sauna-card-reduzido stat-card-aquecedor ${currentCondominio.statusAquecedor ? 'ligado' : ''}" 
-                 onclick="toggleAquecedor()" 
-                 style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">
-                <div class="sauna-card-header-reduzido">
-                    <i class="fas fa-fire" style="font-size: 1.5em; margin-bottom: 8px; color: white;"></i>
-                    <h3>Aquecedor</h3>
+            ${!currentCondominio ? `
+                <div class="alert alert-warning dashboard-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção!</strong> Selecione um condomínio no menu superior para visualizar os dados.
                 </div>
-                <div class="sauna-card-content-reduzido">
-                    <div class="sauna-status-reduzido" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.9em;">
-                        ${currentCondominio.statusAquecedor ? '🔥 LIGADO' : '❄️ DESLIGADO'}
-                    </div>
-                    <div class="user-details-reduzido">
-                        <div class="available-text-reduzido">Clique para alternar</div>
-                    </div>
+            ` : ''}
+
+            <!-- ⚠️ ALERTAS -->
+            ${totalAlertas > 0 ? `
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Alertas Urgentes</h2>
                 </div>
-                ${currentCondominio.statusAquecedor ? `
-                <div class="chama" style="
-                    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-                    width: 15px; height: 20px;
-                    background: linear-gradient(to top, #ff5722, #ff9800, #ffd54f);
-                    border-radius: 50% 50% 15% 15%;
-                    filter: blur(1px);
-                    animation: chama-pulse 1.8s ease-in-out infinite;
-                "></div>
-                ` : ''}
-            </div>
-        </div>
-    </div>
-</div>
-` : ''}
- 
-
-${currentCondominio ? `
-<div class="card">
-    <div class="card-header">
-        <h3>Palavras-chave Mercado Livre</h3>
-        <button class="btn btn-primary btn-sm" onclick="openPalavraChaveModal()">
-            <i class="fas fa-plus"></i> Nova Palavra-chave
-        </button>
-    </div>
-    <div class="card-body">
-        <div class="stats-container" style="gap: 15px; justify-content: center;">
-            ${palavrasChave.filter(pc => pc.condominioId === currentCondominio.id).length > 0 ? 
-                palavrasChave.filter(pc => pc.condominioId === currentCondominio.id)
-                    .slice(0, 3) // Mostra apenas os 3 primeiros
-                    .map(palavraChave => `
-                    <div class="mercado-livre-card" onclick="editPalavraChave('${palavraChave.id}')">
-                        <div class="mercado-livre-header">
-                            <i class="fas fa-tags" style="font-size: 1.5em; margin-bottom: 8px; color: #2c3e50;"></i>
-                            <h3>Palavras-chave</h3>
-                        </div>
-                        <div class="mercado-livre-content">
-                            <div class="morador-info">${palavraChave.moradorNome}</div>
-                            <div class="apto-info">Apto: ${palavraChave.moradorApto}</div>
-                            ${palavraChave.palavrasChave.slice(0, 2).map(palavra => `
-                                <div class="palavra-chave-item">${palavra}</div>
-                            `).join('')}
-                            ${palavraChave.palavrasChave.length > 2 ? 
-                                `<div class="palavra-chave-item">+${palavraChave.palavrasChave.length - 2} mais...</div>` : ''}
-                        </div>
-                    </div>
-                `).join('') 
-                : `
-                <div class="mercado-livre-card" onclick="openPalavraChaveModal()" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
-                    <div class="mercado-livre-header">
-                        <i class="fas fa-plus-circle" style="font-size: 2em; margin-bottom: 8px; color: #2c3e50;"></i>
-                        <h3>Adicionar Primeira</h3>
-                    </div>
-                    <div class="mercado-livre-content">
-                        <div style="text-align: center; color: #2c3e50; font-size: 0.9em;">
-                            Clique para cadastrar sua primeira palavra-chave
-                        </div>
-                    </div>
-                </div>
-            `}
-        </div>
-        ${palavrasChave.filter(pc => pc.condominioId === currentCondominio.id).length > 3 ? `
-        <div style="text-align: center; margin-top: 15px;">
-            <button class="btn btn-outline-primary btn-sm" onclick="changeModule('palavras-chave')">
-                Ver todas (${palavrasChave.filter(pc => pc.condominioId === currentCondominio.id).length})
-            </button>
-        </div>
-        ` : ''}
-    </div>
-</div>
-` : ''}
-<!-- ✅ ESTILOS DAS ANIMAÇÕES (injetados inline) -->
-<style>
-/* Atualize as animações para os cards reduzidos */
-@keyframes piscina-ondas {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-@keyframes chama-pulse {
-    0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
-    50% { transform: translateX(-50%) scale(1.05) translateY(-2px); opacity: 0.85; }
-}
-
-.stat-card-piscina.ligada { 
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); 
-}
-
-.stat-card-aquecedor.ligado { 
-    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4); 
-}
-
-.sauna-card-reduzido::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-    transform: rotate(45deg);
-    transition: all 0.5s ease;
-    opacity: 0;
-}
-
-.sauna-card-reduzido:hover::after {
-    opacity: 1;
-    animation: shine 1.5s ease-in-out;
-}
-</style>
-           
-${currentCondominio ? `
-<div class="card">
-    <div class="card-header">
-        <h3>Status dos Espaços Comuns <small style="font-size: 0.7em; color: #666;">(Atualização automática)</small></h3>
-        <button class="btn btn-primary btn-sm" onclick="changeModule('agendamentos')">
-            <i class="fas fa-eye"></i> Gerenciar
-        </button>
-    </div>
-    <div class="card-body">
-        <div class="stats-container" style="gap: 15px; justify-content: center;">
-            ${[
-                { id: 'salao-social', nome: 'Salão Social', cor: '#3498db', icon: 'fas fa-warehouse' },
-                { id: 'churrasqueira', nome: 'Churrasqueira', cor: '#e74c3c', icon: 'fas fa-fire' },
-                { id: 'quiosque', nome: 'Quiosque', cor: '#2ecc71', icon: 'fas fa-tree' },
-                { id: 'pergolado', nome: 'Pergolado', cor: '#9b59b6', icon: 'fas fa-umbrella' }
-            ].map(espaco => {
-                const agora = new Date();
-                const dataAtual = getCurrentDate();
-                const horaAtual = agora.getHours().toString().padStart(2, '0') + ':' + 
-                                  agora.getMinutes().toString().padStart(2, '0');
-
-                // ✅ Buscar agendamentos futuros (para próximo)
-                const agendamentosFuturos = agendamentos
-                    .filter(a => 
-                        a.condominioId === currentCondominio.id &&
-                        a.espaco === espaco.id &&
-                        a.status !== 'liberado' && 
-                        a.status !== 'cancelado'
-                    )
-                    .sort((a, b) => new Date(`${a.data}T${a.horaInicio}`) - new Date(`${b.data}T${b.horaInicio}`));
-
-                let statusInfo = {
-                    texto: '🟢 DISPONÍVEL',
-                    cor: 'rgba(46, 204, 113, 0.9)',
-                    conteudoDetalhe: '<div class="available-text-reduzido">LIVRE AGORA</div>'
-                };
-
-                // Verificar agendamentos de HOJE
-                const agendamentosHoje = agendamentosFuturos.filter(a => a.data === dataAtual);
-                for (const ag of agendamentosHoje) {
-                    const seisHorasAntes = subtrairHoras(ag.horaInicio, 6);
-                    const umaHoraAntes = subtrairHoras(ag.horaInicio, 1);
-
-                    if (horaAtual >= ag.horaInicio && horaAtual <= ag.horaFim) {
-                        // 🔴 EM USO
-                        statusInfo = {
-                            texto: '🔴 EM USO',
-                            cor: 'rgba(231, 76, 60, 0.9)',
-                            conteudoDetalhe: `
-                                <strong>${ag.responsavel}</strong>
-                                <div class="apto-info-reduzido">Apto: ${ag.unidade}</div>
-                                <div class="time-info-reduzido">${ag.horaInicio} - ${ag.horaFim}</div>
-                            `
-                        };
-                        break; // prioridade máxima
-                    } else if (horaAtual >= umaHoraAntes && horaAtual < ag.horaInicio) {
-                        // 🟡 PREPARANDO — barra de progresso!
-                        const inicioPreparo = new Date(`${dataAtual}T${umaHoraAntes}`);
-                        const inicioEvento = new Date(`${dataAtual}T${ag.horaInicio}`);
-                        const agoraMs = agora.getTime();
-                        const totalMs = inicioEvento - inicioPreparo; // 60 minutos = 3.600.000 ms
-                        const passadosMs = agoraMs - inicioPreparo;
-
-                        const segmentos = 5;
-                        const segmentoMs = totalMs / segmentos; // 12 min = 720.000 ms
-                        const segmentosPreenchidos = Math.min(segmentos, Math.floor(passadosMs / segmentoMs));
-
-                        // ✅ Barra visual com 5 pontos
-                        let pontos = '';
-                        for (let i = 0; i < segmentos; i++) {
-                            const corPonto = i < segmentosPreenchidos ? '#f39c12' : '#ddd';
-                            pontos += `<span class="progress-dot" style="background:${corPonto};"></span>`;
-                        }
-
-                        statusInfo = {
-                            texto: '🟡 PREPARANDO',
-                            cor: 'rgba(243, 156, 18, 0.9)',
-                            conteudoDetalhe: `
-                                <strong>${ag.responsavel}</strong>
-                                <div class="apto-info-reduzido">Apto: ${ag.unidade}</div>
-                                <div class="time-info-reduzido">${ag.horaInicio} - ${ag.horaFim}</div>
-                                <div class="progress-bar" style="margin-top: 8px; display: flex; gap: 2px; justify-content: center;">
-                                    ${pontos}
+                <div class="alert-grid">
+                    ${alertaContas.map(c => `
+                        <div class="alert-card alert-conta ${new Date(c.vencimento) < hoje ? 'vencida' : ''}">
+                            <div class="alert-icon" style="background: #e74c3c20; color: #e74c3c;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">${c.descricao}</div>
+                                <div class="alert-meta">
+                                    <span>Vencimento: <strong>${formatDate(c.vencimento)}</strong></span>
+                                    <span>R$ ${c.valor.toFixed(2)}</span>
                                 </div>
-                            `
-                        };
-                        break;
-                    } else if (horaAtual >= seisHorasAntes && horaAtual < umaHoraAntes) {
-                        // 🔵 AGENDADO
-                        statusInfo = {
-                            texto: '🔵 AGENDADO',
-                            cor: 'rgba(52, 152, 219, 0.9)',
-                            conteudoDetalhe: `
-                                <strong>${ag.responsavel}</strong>
-                                <div class="apto-info-reduzido">Apto: ${ag.unidade}</div>
-                                <div class="time-info-reduzido">${ag.horaInicio} - ${ag.horaFim}</div>
-                            `
-                        };
-                        break;
-                    }
-                }
-
-                // ✅ Se estiver LIVRE, mas tiver próximo agendamento futuro:
-                if (statusInfo.texto === '🟢 DISPONÍVEL') {
-                    const proximo = agendamentosFuturos.find(a => 
-                        a.data > dataAtual || (a.data === dataAtual && a.horaInicio > horaAtual)
-                    );
-                    if (proximo) {
-                        const quando = proximo.data === dataAtual ? 'hoje' : formatDate(proximo.data);
-                        statusInfo.conteudoDetalhe = `
-                            <small style="opacity: 0.8; font-size: 0.8em;">Próximo:</small><br>
-                            <strong>${proximo.responsavel}</strong>
-                            <div class="apto-info-reduzido">Apto: ${proximo.unidade}</div>
-                            <div class="time-info-reduzido">${quando} ${proximo.horaInicio}</div>
-                        `;
-                    }
-                }
-
-                return `
-<div class="sauna-card-reduzido" onclick="changeModule('agendamentos')" 
-     style="background: linear-gradient(135deg, ${espaco.cor}99 0%, ${espaco.cor}dd 100%);">
-    <div class="sauna-card-header-reduzido">
-        <i class="${espaco.icon}" style="font-size: 1.5em; margin-bottom: 8px; color: white;"></i>
-        <h3>${espaco.nome}</h3>
-    </div>
-    <div class="sauna-card-content-reduzido">
-        <div class="sauna-status-reduzido" style="background: ${statusInfo.cor};">
-            ${statusInfo.texto}
-        </div>
-        <div class="user-details-reduzido">
-            ${statusInfo.conteudoDetalhe}
-        </div>
-    </div>
-</div>
-`;
-            }).join('')}
-        </div>
-    </div>
-</div>
-` : ''}
-       
-${(currentUser.permissoes &&
-  (currentUser.permissoes.includes('*') || currentUser.permissoes.includes('sauna'))) ? `
-<div class="card">
-    <div class="card-header">
-        <h3>Status das Saunas - ${currentCondominio ? currentCondominio.nome : 'Condomínio'}</h3>
-        <button class="btn btn-primary btn-sm" onclick="changeModule('sauna')">
-            <i class="fas fa-eye"></i> Ver Detalhes
-        </button>
-    </div>
-    <div class="card-body">
-        <div class="stats-container" style="gap: 15px; justify-content: center;">
-            <div class="sauna-card-reduzido" onclick="changeModule('sauna')" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
-                <div class="sauna-card-header-reduzido">
-                    <i class="fas fa-hot-tub" style="font-size: 1.5em; margin-bottom: 8px; color: white;"></i>
-                    <h3>Sauna Úmida</h3>
-                </div>
-                <div class="sauna-card-content-reduzido">
-                    <div class="sauna-status-reduzido ${saunaUmidaEmUso ? 'in-use' : 'available'}" 
-                         style="background: rgba(${saunaUmidaEmUso ? '231, 76, 60, 0.9' : '46, 204, 113, 0.9'});">
-                        ${saunaUmidaEmUso ? '🔴 EM USO' : '🟢 DISPONÍVEL'}
-                    </div>
-                    <div class="user-details-reduzido">
-                        ${saunaUmidaEmUso ?
-                            `<strong>${saunaUmidaEmUso.morador}</strong>
-                            <div class="apto-info-reduzido">Apto: ${saunaUmidaEmUso.apto}</div>
-                            <div class="time-info-reduzido">${saunaUmidaEmUso.horaInicio}</div>` :
-                            '<div class="available-text-reduzido">LIVRE</div>'
-                        }
-                    </div>
-                </div>
-            </div>
-            <div class="sauna-card-reduzido" onclick="changeModule('sauna')" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
-                <div class="sauna-card-header-reduzido">
-                    <i class="fas fa-fire" style="font-size: 1.5em; margin-bottom: 8px; color: white;"></i>
-                    <h3>Sauna Seca</h3>
-                </div>
-                <div class="sauna-card-content-reduzido">
-                    <div class="sauna-status-reduzido ${saunaSecaEmUso ? 'in-use' : 'available'}" 
-                         style="background: rgba(${saunaSecaEmUso ? '231, 76, 60, 0.9' : '46, 204, 113, 0.9'});">
-                        ${saunaSecaEmUso ? '🔴 EM USO' : '🟢 DISPONÍVEL'}
-                    </div>
-                    <div class="user-details-reduzido">
-                        ${saunaSecaEmUso ?
-                            `<strong>${saunaSecaEmUso.morador}</strong>
-                            <div class="apto-info-reduzido">Apto: ${saunaSecaEmUso.apto}</div>
-                            <div class="time-info-reduzido">${saunaSecaEmUso.horaInicio}</div>` :
-                            '<div class="available-text-reduzido">LIVRE</div>'
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-` : ''}
-
-               
-
-               
-
-        <!-- Estilos extras para os novos cards (mesmos das saunas) -->
-        <style>
-        /* NOVO ESTILO PARA CARDS REDUZIDOS */
-.sauna-card-reduzido {
-    flex: 1;
-    min-width: 180px;
-    max-width: 200px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    color: white;
-    position: relative;
-    overflow: hidden;
-    margin: 5px;
-}
-
-.sauna-card-reduzido::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(255,255,255,0.3);
-}
-
-.sauna-card-reduzido:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-
-.sauna-card-header-reduzido {
-    margin-bottom: 12px;
-}
-
-.sauna-card-reduzido h3 {
-    font-size: 1em;
-    margin: 0;
-    font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-.sauna-card-content-reduzido {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sauna-status-reduzido {
-    padding: 6px 10px;
-    border-radius: 15px;
-    font-weight: bold;
-    font-size: 0.85em;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    backdrop-filter: blur(5px);
-}
-.progress-bar {
-    display: flex;
-    justify-content: center;
-    gap: 3px;
-    margin-top: 6px;
-}
-.progress-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ddd;
-    transition: background 0.3s ease;
-}
-.user-details-reduzido {
-    text-align: center;
-    font-size: 0.8em;
-}
-
-.user-details-reduzido strong {
-    display: block;
-    font-size: 1em;
-    margin-bottom: 4px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-.apto-info-reduzido, .time-info-reduzido {
-    font-size: 0.75em;
-    opacity: 0.9;
-    margin: 2px 0;
-}
-
-.available-text-reduzido {
-    font-size: 1em;
-    font-weight: bold;
-    opacity: 0.9;
-}
-
-/* CARD PARA MERCADO LIVRE */
-.mercado-livre-card {
-    flex: 1;
-    min-width: 180px;
-    max-width: 200px;
-    background: linear-gradient(135deg, #ffe600 0%, #ff9900 100%);
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    color: #2c3e50;
-    position: relative;
-    overflow: hidden;
-    margin: 5px;
-}
-
-.mercado-livre-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(44, 62, 80, 0.3);
-}
-
-.mercado-livre-card:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-
-.mercado-livre-header {
-    margin-bottom: 12px;
-}
-
-.mercado-livre-card h3 {
-    font-size: 1em;
-    margin: 0;
-    font-weight: 600;
-}
-
-.mercado-livre-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.palavra-chave-item {
-    background: rgba(255,255,255,0.9);
-    padding: 6px 8px;
-    border-radius: 8px;
-    font-size: 0.8em;
-    margin: 3px 0;
-    border-left: 3px solid #3483fa;
-}
-
-.morador-info {
-    font-weight: bold;
-    font-size: 0.85em;
-    color: #2c3e50;
-}
-
-.apto-info {
-    font-size: 0.75em;
-    color: #7f8c8d;
-}
-
-        </style>
-    `;
-
-    // ✅ JS inline para toggle de finalizados
-    const script = document.createElement('script');
-    script.innerHTML = `
-        window.toggleAgendamentosFinalizados = function(btn) {
-            const tbody = document.getElementById('dashboardAgendamentosList');
-            const mostrar = btn.textContent.includes('Ver');
-            let todos = ${JSON.stringify(agendamentosAtivos.slice(0, 5).concat(agendamentosFinalizados))};
-            if (mostrar) {
-                tbody.innerHTML = todos.map(a => \`
-                <tr>
-                    <td>\${getEspacoNome(a.espaco)}</td>
-                    <td>\${a.responsavel}</td>
-                    <td>\${formatDate(a.data)}</td>
-                    <td>\${a.horaInicio} - \${a.horaFim}</td>
-                    <td><span class="status-badge status-\${a.status}">\${formatStatusAgendamento(a.status)}</span></td>
-                </tr>
-                \`.trim()).join('');
-                btn.textContent = 'Esconder Finalizados';
-                btn.classList.replace('btn-outline-primary', 'btn-outline-secondary');
-            } else {
-                tbody.innerHTML = ${JSON.stringify(agendamentosAtivos.slice(0, 5))}.map(a => \`
-                <tr>
-                    <td>\${getEspacoNome(a.espaco)}</td>
-                    <td>\${a.responsavel}</td>
-                    <td>\${formatDate(a.data)}</td>
-                    <td>\${a.horaInicio} - \${a.horaFim}</td>
-                    <td><span class="status-badge status-\${a.status}">\${formatStatusAgendamento(a.status)}</span></td>
-                </tr>
-                \`.trim()).join('');
-                btn.textContent = 'Ver Finalizados (últimos 18 meses)';
-                btn.classList.replace('btn-outline-secondary', 'btn-outline-primary');
-            }
-        };
-    `;
-    moduleContent.appendChild(script);
-}
-        // ========== MÓDULO CONDOMÍNIOS ==========
-        function loadCondominiosContent() {
-            const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes &&
-                !currentUser.permissoes.includes('*') &&
-                !currentUser.permissoes.includes('condominios')) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
-                    </div>
-                `;
-                return;
-            }
-            let allowedCondominios = [...condominios];
-            if (currentUser.condominios && !currentUser.condominios.includes('*')) {
-                allowedCondominios = condominios.filter(condominio =>
-                    currentUser.condominios.includes(condominio.id)
-                );
-            }
-            moduleContent.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Gerenciar Condomínios</h3>
-                        ${(!currentUser.permissoes || currentUser.permissoes.includes('*') || currentUser.permissoes.includes('condominios')) ? `
-                        <button class="btn btn-primary" onclick="openCondominioModal()">
-                            <i class="fas fa-plus"></i> Novo Condomínio
-                        </button>
-                        ` : ''}
-                    </div>
-                    <div class="card-body">
-                        ${allowedCondominios.length > 0 ? `
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Endereço</th>
-                                    <th>Cidade/Estado</th>
-                                    <th>Unidades</th>
-                                    <th>Status</th>
-                                    ${(!currentUser.permissoes || currentUser.permissoes.includes('*') || currentUser.permissoes.includes('condominios')) ? `<th>Ações</th>` : ''}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${allowedCondominios.map(condominio => `
-                                    <tr>
-                                        <td>${condominio.nome}</td>
-                                        <td>${condominio.endereco}</td>
-                                        <td>${condominio.cidade}/${condominio.estado}</td>
-                                        <td>${condominio.unidades || 'N/A'}</td>
-                                        <td>
-                                            <span class="badge ${condominio.status === 'ativo' ? 'badge-success' : 'badge-danger'}">
-                                                ${condominio.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                                            </span>
-                                        </td>
-                                        ${(!currentUser.permissoes || currentUser.permissoes.includes('*') || currentUser.permissoes.includes('condominios')) ? `
-                                        <td>
-                                            <button class="btn btn-sm btn-info" onclick="editCondominio('${condominio.id}')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            ${podeExcluirRegistros() ? `
-                                            <button class="btn btn-sm btn-danger" onclick="deleteCondominio('${condominio.id}')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>` : ''}
-                                        </td>
-                                        ` : ''}
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                        ` : '<p>Nenhum condomínio disponível para visualização.</p>'}
-                    </div>
-                </div>
-            `;
-        }
-        // ========== MÓDULO HORAS EXTRAS ==========
-        function loadHorasExtrasContent() {
-    const moduleContent = document.getElementById('moduleContent');
-    if (currentUser.permissoes &&
-        !currentUser.permissoes.includes('*') &&
-        !currentUser.permissoes.includes('horas-extras')) {
-        moduleContent.innerHTML = `
-            <div class="alert alert-warning">
-                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
-            </div>
-        `;
-        return;
-    }
-    if (!currentCondominio) {
-        moduleContent.innerHTML = `
-            <div class="alert alert-warning">
-                <strong>Selecione um condomínio</strong> para acessar o módulo de horas extras.
-            </div>
-        `;
-        return;
-    }
-    const filteredHorasExtras = horasExtras.filter(h => h.condominioId === currentCondominio.id);
-
-    // Data de hoje para valores padrão
-    const hoje = new Date();
-    const dataHoje = hoje.toISOString().split('T')[0];
-    const dataMesPassado = new Date();
-    dataMesPassado.setMonth(hoje.getMonth() - 1);
-    const dataInicioPadrao = dataMesPassado.toISOString().split('T')[0];
-
-    moduleContent.innerHTML = `
-        <div class="card">
-            <div class="card-header">
-                <h3>Horas Extras - ${currentCondominio.nome}</h3>
-                <button class="btn btn-primary" onclick="openHoraExtraModal()">
-                    <i class="fas fa-plus"></i> Nova Hora Extra
-                </button>
-            </div>
-            <div class="card-body">
-                <!-- 🔹 SEÇÃO DE RELATÓRIO -->
-                <div class="card" style="margin-bottom: 20px; background: #f8f9fa; border-left: 4px solid #3498db;">
-                    <div class="card-body">
-                        <h4><i class="fas fa-file-pdf" style="color:#e74c3c;"></i> Relatório de Horas Extras</h4>
-                        <div class="form-row" style="margin-top: 10px;">
-                            <div class="form-group">
-                                <label>Data Inicial</label>
-                                <input type="date" class="form-control" id="relatorioDataInicio" value="${dataInicioPadrao}">
-                            </div>
-                            <div class="form-group">
-                                <label>Data Final</label>
-                                <input type="date" class="form-control" id="relatorioDataFim" value="${dataHoje}">
-                            </div>
-                            <div class="form-group" style="display: flex; align-items: end;">
-                                <button class="btn btn-success" onclick="gerarRelatorioHorasExtrasPDF()">
-                                    <i class="fas fa-file-pdf"></i> Gerar Relatório em PDF
-                                </button>
+                                <div class="alert-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${Math.min(100, Math.max(0, 100 - (new Date(c.vencimento) - hoje) / (24*60*60*1000) * 20))}%"></div>
+                                    </div>
+                                    <span class="days-left">${new Date(c.vencimento) < hoje ? 'VENCIDO' : `${Math.ceil((new Date(c.vencimento) - hoje) / (24*60*60*1000))} dias`}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    `).join('')}
+                    ${alertaCompras.map(c => `
+                        <div class="alert-card alert-compra ${new Date(c.vencimento) < hoje ? 'vencida' : ''}">
+                            <div class="alert-icon" style="background: #3498db20; color: #3498db;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">Compra: ${c.fornecedor}</div>
+                                <div class="alert-meta">
+                                    <span>${c.vencimento ? `Vencimento: ${formatDate(c.vencimento)}` : 'Sem data'}</span>
+                                    <span>R$ ${(c.valorTotal || c.itens.reduce((s,i)=>s+i.quantidade*i.valorUnitario,0)).toFixed(2)}</span>
+                                </div>
+                                <div class="alert-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${c.vencimento ? Math.min(100, Math.max(0, 100 - (new Date(c.vencimento) - hoje) / (24*60*60*1000) * 20)) : 0}%"></div>
+                                    </div>
+                                    <span class="days-left">${c.vencimento && new Date(c.vencimento) < hoje ? 'VENCIDO' : c.vencimento ? `${Math.ceil((new Date(c.vencimento) - hoje) / (24*60*60*1000))} dias` : 'Sem data'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
-
-                <!-- 🔹 FILTROS EXISTENTES -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Filtrar por Funcionário</label>
-                        <input type="text" class="form-control" id="filtroFuncionario" onkeyup="filterHorasExtras()" placeholder="Digite o nome do funcionário">
-                    </div>
-                    <div class="form-group">
-                        <label>Filtrar por Mês</label>
-                        <input type="month" class="form-control" id="filtroMesHoraExtra" onchange="filterHorasExtras()">
-                    </div>
+                <div class="section-footer">
+                    <button class="btn btn-sm btn-danger" onclick="changeModule('contas')">
+                        <i class="fas fa-file-invoice-dollar"></i> Gerenciar Contas
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="changeModule('compras')">
+                        <i class="fas fa-shopping-cart"></i> Gerenciar Compras
+                    </button>
                 </div>
+            </section>
+            ` : ''}
 
-                <table class="table" id="horasExtrasTable">
-                    <thead>
-                        <tr>
-                            <th>Funcionário</th>
-                            <th>Matrícula</th>
-                            <th>Data</th>
-                            <th>Regime</th>
-                            <th>Horário</th>
-                            <th>Horas Extras</th>
-                            <th>Condomínio</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredHorasExtras.map(horaExtra => `
-                            <tr>
-                                <td>${horaExtra.funcionario}</td>
-                                <td>${horaExtra.matricula}</td>
-                                <td>${formatDate(horaExtra.data)}</td>
-                                <td>${horaExtra.regime === '12-36' ? '12/36' : horaExtra.regime === '8h' ? '8h' : 'Personalizado'}</td>
-                                <td>${horaExtra.entradaReal || ''} - ${horaExtra.saidaReal || ''}</td>
-                                <td>${horaExtra.quantidade ? horaExtra.quantidade.toFixed(2) + 'h' : '0h'}</td>
-                                <td>${horaExtra.condominioNome}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="editHoraExtra('${horaExtra.id}')">
+            <!-- ✅ TAREFAS DO DIA -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks" style="color: #2ecc71;"></i> Tarefas de Hoje</h2>
+                    <span class="badge">${tarefasHoje.length} tarefa${tarefasHoje.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="tasks-grid">
+                    ${tarefasHoje.length > 0 ? tarefasHoje.map(t => `
+                        <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}">
+                            <div class="task-header">
+                                <h4>${t.titulo}</h4>
+                                <div class="task-type-badge ${t.tipo === 'recorrente' ? 'recorrente' : 'unica'}">
+                                    ${t.tipo === 'recorrente' ? '🔁' : '📅'}
+                                </div>
+                            </div>
+                            ${t.descricao ? `<p class="task-desc">${t.descricao}</p>` : ''}
+                            <div class="task-actions">
+                                ${t.jaConcluiuHoje ? `
+                                <span class="task-status-completed">
+                                    <i class="fas fa-check-circle"></i> Concluída hoje
+                                </span>
+                                ` : `
+                                <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
+                                    <i class="fas fa-check"></i> Concluir
+                                </button>
+                                `}
+                                <div class="task-edit-group">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="editTarefa('${t.id}')">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     ${podeExcluirRegistros() ? `
-                                    <button class="btn btn-sm btn-danger" onclick="deleteHoraExtra('${horaExtra.id}')">
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteTarefa('${t.id}')">
                                         <i class="fas fa-trash"></i>
-                                    </button>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') : `
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-check-circle"></i></div>
+                            <h4>Nenhuma tarefa pendente</h4>
+                            <p>Todas as tarefas foram concluídas ou não há nenhuma cadastrada para hoje.</p>
+                            <button class="btn btn-primary" onclick="openTarefaModal()">
+                                <i class="fas fa-plus"></i> Criar Tarefa
+                            </button>
+                        </div>
+                    `}
+                </div>
+            </section>
+
+            <!-- 🎯 STATUS DOS ESPAÇOS -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marker-alt" style="color: #3498db;"></i> Espaços Comuns</h2>
+                </div>
+                <div class="spaces-grid">
+                    ${espacos.map(e => `
+                        <div class="space-card" 
+                             onclick="changeModule('agendamentos')" 
+                             style="--space-color: ${e.status.cor}">
+                            <div class="space-icon">
+                                <i class="${e.icon}"></i>
+                            </div>
+                            <div class="space-info">
+                                <div class="space-name">${e.nome}</div>
+                                <div class="space-status">
+                                    <span class="status-dot" style="background: ${e.status.cor};"></span>
+                                    <span class="status-label">${e.status.icone} ${e.status.label}</span>
+                                </div>
+                            </div>
+                            ${e.agendamentoAtivo ? `
+                            <div class="space-user">
+                                <div><strong>${e.agendamentoAtivo.responsavel}</strong></div>
+                                <div class="space-time">${e.agendamentoAtivo.horaInicio}–${e.agendamentoAtivo.horaFim}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="section-footer">
+                    <button class="btn btn-sm btn-primary" onclick="changeModule('agendamentos')">
+                        <i class="fas fa-calendar-check"></i> Gerenciar Agendamentos
+                    </button>
+                </div>
+            </section>
+
+            <!-- ♨ SAUNAS -->
+            ${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sauna')) ? `
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-hot-tub" style="color: #e74c3c;"></i> Saunas</h2>
+                </div>
+                <div class="saunas-grid">
+                    <div class="sauna-card ${saunaUmida ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
+                        <div class="sauna-icon"><i class="fas fa-tint"></i></div>
+                        <div class="sauna-info">
+                            <div class="sauna-name">Sauna Úmida</div>
+                            <div class="sauna-status">
+                                <span class="status-dot" style="background: ${saunaUmida ? '#e74c3c' : '#27ae60'};"></span>
+                                <span>${saunaUmida ? '🔴 Em uso' : '🟢 Disponível'}</span>
+                            </div>
+                        </div>
+                        ${saunaUmida ? `
+                        <div class="sauna-user">
+                            <div><strong>${saunaUmida.morador}</strong></div>
+                            <div class="sauna-time">${saunaUmida.horaInicio}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="sauna-card ${saunaSeca ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
+                        <div class="sauna-icon"><i class="fas fa-fire"></i></div>
+                        <div class="sauna-info">
+                            <div class="sauna-name">Sauna Seca</div>
+                            <div class="sauna-status">
+                                <span class="status-dot" style="background: ${saunaSeca ? '#e74c3c' : '#27ae60'};"></span>
+                                <span>${saunaSeca ? '🔴 Em uso' : '🟢 Disponível'}</span>
+                            </div>
+                        </div>
+                        ${saunaSeca ? `
+                        <div class="sauna-user">
+                            <div><strong>${saunaSeca.morador}</strong></div>
+                            <div class="sauna-time">${saunaSeca.horaInicio}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </section>
+            ` : ''}
+
+            <!-- 🏊 PISCINA + AQUECEDOR -->
+            ${currentCondominio ? `
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-swimmer" style="color: #3498db;"></i> Piscina & Aquecedor</h2>
+                </div>
+                <div class="pool-grid">
+                    <div class="pool-card ${currentCondominio.statusPiscina ? 'on' : 'off'}" onclick="togglePiscina()">
+                        <div class="pool-icon"><i class="fas fa-swimmer"></i></div>
+                        <div class="pool-info">
+                            <div class="pool-name">Piscina</div>
+                            <div class="pool-status">
+                                <span class="status-dot" style="background: ${currentCondominio.statusPiscina ? '#2ecc71' : '#e74c3c'};"></span>
+                                <span>${currentCondominio.statusPiscina ? '🟢 Ligada' : '🔴 Desligada'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pool-card ${currentCondominio.statusAquecedor ? 'on' : 'off'}" onclick="toggleAquecedor()">
+                        <div class="pool-icon"><i class="fas fa-fire"></i></div>
+                        <div class="pool-info">
+                            <div class="pool-name">Aquecedor</div>
+                            <div class="pool-status">
+                                <span class="status-dot" style="background: ${currentCondominio.statusAquecedor ? '#e67e22' : '#95a5a6'};"></span>
+                                <span>${currentCondominio.statusAquecedor ? '🔥 Ligado' : '❄️ Desligado'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            ` : ''}
+
+            <!-- 🏷️ PALAVRAS-CHAVE -->
+            ${currentCondominio ? `
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tags" style="color: #f39c12;"></i> Palavras-chave (Mercado Livre)</h2>
+                    <span class="badge">${filteredPalavras.length}</span>
+                </div>
+                <div class="tags-grid">
+                    ${filteredPalavras.slice(0, 4).map(p => `
+                        <div class="tag-card" onclick="editPalavraChave('${p.id}')">
+                            <div class="tag-header">
+                                <div class="tag-morador">${p.moradorNome} • Apto ${p.moradorApto}</div>
+                            </div>
+                            <div class="tag-words">
+                                ${p.palavrasChave.slice(0, 2).map(w => `<span>${w}</span>`).join('')}
+                                ${p.palavrasChave.length > 2 ? `<span>+${p.palavrasChave.length - 2}</span>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                    ${filteredPalavras.length === 0 ? `
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-tags"></i></div>
+                            <p>Nenhuma palavra-chave cadastrada</p>
+                            <button class="btn btn-outline-primary" onclick="openPalavraChaveModal()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+                ${filteredPalavras.length > 4 ? `
+                <div class="section-footer">
+                    <button class="btn btn-sm btn-primary" onclick="changeModule('palavras-chave')">
+                        Ver todas (${filteredPalavras.length})
+                    </button>
+                </div>
+                ` : ''}
+            </section>
+            ` : ''}
+
+            <!-- 📊 ESTATÍSTICAS -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar" style="color: #9b59b6;"></i> Visão Geral</h2>
+                </div>
+                <div class="stats-grid">
+                    ${stats.map(s => `
+                        <div class="stat-card" style="--stat-color: ${s.cor}">
+                            <div class="stat-icon"><i class="${s.icone}"></i></div>
+                            <div class="stat-value">${s.valor}</div>
+                            <div class="stat-label">${s.label}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
         </div>
+
+        <!-- CSS INLINE MODERNO -->
+        <style>
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .dashboard-header h1 {
+            margin: 0;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .dashboard-header p {
+            margin: 4px 0 0;
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 20px 24px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        .section-header h2 {
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+        .badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .section-footer {
+            padding: 16px 24px;
+            background: #f8f9fa;
+            text-align: right;
+            border-top: 1px solid #eee;
+        }
+
+        /* ⚠️ ALERTAS */
+        .alert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .alert-card {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+            transition: all 0.2s;
+        }
+        .alert-card.alert-conta { border-left-color: #e74c3c; }
+        .alert-card.alert-compra { border-left-color: #3498db; }
+        .alert-card.vencida {
+            border-left-color: #e74c3c !important;
+            background: #fff5f5;
+        }
+        .alert-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+        .alert-content { flex: 1; }
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        .alert-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+        }
+        .alert-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        .alert-card.alert-conta .progress-fill { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+        .alert-card.vencida .progress-fill { background: #e74c3c; }
+        .days-left {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #e74c3c;
+        }
+
+        /* ✅ TAREFAS */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+            border-left: 4px solid #2ecc71;
+            transition: all 0.3s;
+        }
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .task-card.completed {
+            opacity: 0.85;
+            border-left-color: #95a5a6;
+            background: #f8f9fa;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .task-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .task-type-badge {
+            background: #ecf0f1;
+            color: #7f8c8d;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .task-type-badge.recorrente { background: #e3f2fd; color: #1976d2; }
+        .task-type-badge.unica { background: #fff3e0; color: #e65100; }
+        .task-desc {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            margin: 0 0 16px;
+            line-height: 1.5;
+        }
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-status-completed {
+            color: #27ae60;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .task-edit-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* 🎯 ESPAÇOS */
+        .spaces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .space-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--space-color);
+        }
+        .space-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .space-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            color: var(--space-color);
+        }
+        .space-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        .space-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .space-user {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #eee;
+            font-size: 0.85rem;
+            color: #2c3e50;
+        }
+        .space-time {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        /* ♨ SAUNAS */
+        .saunas-grid, .pool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .sauna-card, .pool-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .sauna-card.in-use, .pool-card.on {
+            border-left: 4px solid #e74c3c;
+        }
+        .sauna-card.available, .pool-card.off {
+            border-left: 4px solid #27ae60;
+        }
+        .sauna-card:hover, .pool-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .sauna-icon, .pool-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .sauna-name, .pool-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        .sauna-status, .pool-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        .sauna-user {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #eee;
+            font-size: 0.85rem;
+            color: #2c3e50;
+        }
+
+        /* 🏷️ TAGS */
+        .tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .tag-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #f39c12;
+        }
+        .tag-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tag-header {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .tag-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag-words span {
+            background: #fef9e7;
+            color: #b7950b;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* 📊 STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--stat-color);
+        }
+        .stat-icon {
+            font-size: 2rem;
+            color: var(--stat-color);
+            margin-bottom: 12px;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            color: #bdc3c7;
+        }
+        .empty-state h4 {
+            color: #2c3e50;
+            margin: 0 0 12px;
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .quick-actions {
+                justify-content: center;
+            }
+            .alert-grid, .tasks-grid, .spaces-grid, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
     `;
+
+    // ✅ Garante atualização das tarefas (se mudar condomínio, etc.)
+    atualizarTarefasDashboard();
 }
         // ========== MÓDULO USUÁRIOS ==========
         function loadUsuariosContent() {
@@ -4757,183 +4913,571 @@ function closeAgendamentosConcluidosModal() {
 function loadAgendamentosConcluidos() {
     const tbody = document.getElementById('agendamentosConcluidosTbody');
     if (!tbody) return;
-    
-    // Calcular data limite (18 meses atrás)
+
     const dataLimite = new Date();
     dataLimite.setMonth(dataLimite.getMonth() - 18);
-    
-    // Filtrar agendamentos concluídos E cancelados dos últimos 18 meses
+
     const agendamentosConcluidos = agendamentos.filter(a => 
         a.condominioId === currentCondominio.id &&
         (a.status === 'liberado' || a.status === 'concluido' || a.status === 'cancelado') &&
         new Date(a.data) >= dataLimite
-    );
-    
-    // Ordenar por data (mais recente primeiro)
-    agendamentosConcluidos.sort((a, b) => new Date(b.data) - new Date(a.data));
-    
+    ).sort((a, b) => new Date(b.data) - new Date(a.data));
+
     if (agendamentosConcluidos.length > 0) {
-        tbody.innerHTML = agendamentosConcluidos.map(agendamento => `
+        tbody.innerHTML = agendamentosConcluidos.map(a => `
             <tr>
-                <td>${getEspacoNome(agendamento.espaco)}</td>
-                <td>${agendamento.responsavel}</td>
-                <td>${formatDate(agendamento.data)}</td>
-                <td>${agendamento.horaInicio} - ${agendamento.horaFim}</td>
-                <td>${agendamento.unidade}</td>
-                <td><span class="status-badge status-${agendamento.status}">${formatStatusAgendamento(agendamento.status)}</span></td>
+                <td>${getEspacoNome(a.espaco)}</td>
+                <td>${a.responsavel}</td>
+                <td>${formatDate(a.data)}</td>
+                <td>${a.horaInicio} - ${a.horaFim}</td>
+                <td>${a.unidade}</td>
+                <td><span class="status-badge status-${a.status}">${formatStatusAgendamento(a.status)}</span></td>
+                <td>
+    <button class="btn btn-sm btn-info" onclick="verDetalhesAgendamento('${a.id}')">
+        <i class="fas fa-eye"></i> Ver
+    </button>
+    ${podeExcluirRegistros() ? `
+    <button class="btn btn-sm btn-warning" onclick="editAgendamento('${a.id}')">
+        <i class="fas fa-edit"></i> Editar
+    </button>` : ''}
+</td>
             </tr>
         `).join('');
     } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum agendamento concluído ou cancelado encontrado nos últimos 18 meses.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum agendamento encontrado nos últimos 18 meses.</td></tr>';
     }
 }
 
 function filterAgendamentosConcluidos() {
     const tbody = document.getElementById('agendamentosConcluidosTbody');
     if (!tbody) return;
-    
-    const filtroEspaco = document.getElementById('filtroConcluidosEspaco')?.value || '';
-    const filtroMes = document.getElementById('filtroConcluidosMes')?.value || '';
-    
-    // Calcular data limite (18 meses atrás)
+
     const dataLimite = new Date();
     dataLimite.setMonth(dataLimite.getMonth() - 18);
-    
-    let filteredAgendamentos = agendamentos.filter(a => 
+
+    let filtered = agendamentos.filter(a =>
         a.condominioId === currentCondominio.id &&
         (a.status === 'liberado' || a.status === 'concluido' || a.status === 'cancelado') &&
         new Date(a.data) >= dataLimite
     );
-    
-    // Aplicar filtros
-    if (filtroEspaco) {
-        filteredAgendamentos = filteredAgendamentos.filter(a => a.espaco === filtroEspaco);
-    }
-    if (filtroMes) {
-        filteredAgendamentos = filteredAgendamentos.filter(a => a.data.startsWith(filtroMes));
-    }
-    
-    // Ordenar por data (mais recente primeiro)
-    filteredAgendamentos.sort((a, b) => new Date(b.data) - new Date(a.data));
-    
-    if (filteredAgendamentos.length > 0) {
-        tbody.innerHTML = filteredAgendamentos.map(agendamento => `
+
+    const espaco = document.getElementById('filtroConcluidosEspaco')?.value || '';
+    const dataIni = document.getElementById('filtroConcluidosDataIni')?.value || '';
+    const dataFim = document.getElementById('filtroConcluidosDataFim')?.value || '';
+    const nome = (document.getElementById('filtroConcluidosNome')?.value || '').toLowerCase();
+    const apto = (document.getElementById('filtroConcluidosApto')?.value || '').toLowerCase();
+
+    if (espaco) filtered = filtered.filter(a => a.espaco === espaco);
+    if (dataIni) filtered = filtered.filter(a => a.data >= dataIni);
+    if (dataFim) filtered = filtered.filter(a => a.data <= dataFim);
+    if (nome) filtered = filtered.filter(a => a.responsavel.toLowerCase().includes(nome));
+    if (apto) filtered = filtered.filter(a => a.unidade.toLowerCase().includes(apto));
+
+    filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    if (filtered.length > 0) {
+        tbody.innerHTML = filtered.map(a => `
             <tr>
-                <td>${getEspacoNome(agendamento.espaco)}</td>
-                <td>${agendamento.responsavel}</td>
-                <td>${formatDate(agendamento.data)}</td>
-                <td>${agendamento.horaInicio} - ${agendamento.horaFim}</td>
-                <td>${agendamento.unidade}</td>
-                <td><span class="status-badge status-${agendamento.status}">${formatStatusAgendamento(agendamento.status)}</span></td>
+                <td>${getEspacoNome(a.espaco)}</td>
+                <td>${a.responsavel}</td>
+                <td>${formatDate(a.data)}</td>
+                <td>${a.horaInicio} - ${a.horaFim}</td>
+                <td>${a.unidade}</td>
+                <td><span class="status-badge status-${a.status}">${formatStatusAgendamento(a.status)}</span></td>
+                <td>
+    <button class="btn btn-sm btn-info" onclick="verDetalhesAgendamento('${a.id}')">
+        <i class="fas fa-eye"></i> Ver
+    </button>
+    ${podeExcluirRegistros() ? `
+    <button class="btn btn-sm btn-warning" onclick="editAgendamento('${a.id}')">
+        <i class="fas fa-edit"></i> Editar
+    </button>` : ''}
+</td>
             </tr>
         `).join('');
     } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum agendamento encontrado com os filtros aplicados.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum agendamento encontrado com os filtros aplicados.</td></tr>';
     }
-}        // ========== MÓDULO LIMPEZA ==========
+}// ========== MÓDULO LIMPEZA ==========
         function loadLimpezaContent() {
-            const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes &&
-                !currentUser.permissoes.includes('*') &&
-                !currentUser.permissoes.includes('limpeza')) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+    const moduleContent = document.getElementById('moduleContent');
+    if (currentUser.permissoes &&
+        !currentUser.permissoes.includes('*') &&
+        !currentUser.permissoes.includes('limpeza')) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+            </div>
+        `;
+        return;
+    }
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de limpeza.
+            </div>
+        `;
+        return;
+    }
+
+    // ✅ Filtra apenas limpezas do condomínio atual
+    const filteredLimpezas = limpezas.filter(l => l.condominioId === currentCondominio.id);
+
+    // ✅ Data atual (para filtrar mês atual)
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    // ✅ Limpezas do mês atual
+    const limpezasMesAtual = filteredLimpezas.filter(l => {
+        const dataLimpeza = new Date(l.data);
+        return dataLimpeza.getMonth() === mesAtual && dataLimpeza.getFullYear() === anoAtual;
+    });
+
+    // ✅ Ordena: mais recente primeiro
+    limpezasMesAtual.sort((a, b) => new Date(b.data + 'T' + (b.horaInicio || '00:00')) - new Date(a.data + 'T' + (a.horaInicio || '00:00')));
+
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Registros de Limpeza - ${currentCondominio.nome}</h3>
+                <div>
+                    <button class="btn btn-primary" onclick="openLimpezaModal()">
+                        <i class="fas fa-plus"></i> Novo Registro
+                    </button>
+                    <button class="btn btn-outline-info" style="margin-left: 8px;" onclick="openLimpezasConcluidasModal()">
+                        <i class="fas fa-history"></i> Ver últimos 18 meses
+                    </button>
+                    <button class="btn btn-success" style="margin-left: 8px;" onclick="exportarLimpezasPDF()">
+                        <i class="fas fa-file-pdf"></i> Exportar PDF (mês atual)
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filtros -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filtrar por Espaço</label>
+                        <select class="form-control" id="filtroEspacoLimpeza" onchange="filterLimpezas()">
+                            <option value="">Todos os espaços</option>
+                            <option value="salao-social">Salão Social</option>
+                            <option value="churrasqueira">Churrasqueira</option>
+                            <option value="quiosque">Quiosque</option>
+                            <option value="pergolado">Pergolado</option>
+                            <option value="sauna">Sauna</option>
+                            <option value="area-comum">Área Comum</option>
+                        </select>
                     </div>
-                `;
-                return;
-            }
-            if (!currentCondominio) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Selecione um condomínio</strong> para acessar o módulo de limpeza.
-                    </div>
-                `;
-                return;
-            }
-            const filteredLimpezas = limpezas.filter(l => l.condominioId === currentCondominio.id);
-            moduleContent.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Registros de Limpeza - ${currentCondominio.nome}</h3>
-                        <button class="btn btn-primary" onclick="openLimpezaModal()">
-                            <i class="fas fa-plus"></i> Novo Registro
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Filtrar por Espaço</label>
-                                <select class="form-control" id="filtroEspacoLimpeza" onchange="filterLimpezas()">
-                                    <option value="">Todos os espaços</option>
-                                    <option value="salao-social">Salão Social</option>
-                                    <option value="churrasqueira">Churrasqueira</option>
-                                    <option value="quiosque">Quiosque</option>
-                                    <option value="pergolado">Pergolado</option>
-                                    <option value="sauna">Sauna</option>
-                                    <option value="area-comum">Área Comum</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Filtrar por Status</label>
-                                <select class="form-control" id="filtroStatusLimpeza" onchange="filterLimpezas()">
-                                    <option value="">Todos</option>
-                                    <option value="em-andamento">Em Andamento</option>
-                                    <option value="concluido">Concluído</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Filtrar por Data</label>
-                                <input type="date" class="form-control" id="filtroDataLimpeza" onchange="filterLimpezas()">
-                            </div>
-                        </div>
-                        <table class="table" id="limpezasTable">
-                            <thead>
-                                <tr>
-                                    <th>Responsável</th>
-                                    <th>Espaço</th>
-                                    <th>Data</th>
-                                    <th>Horário</th>
-                                    <th>Tempo (min)</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredLimpezas.map(limpeza => `
-                                    <tr>
-                                        <td>${limpeza.responsavel}</td>
-                                        <td>${getEspacoNome(limpeza.espaco)}</td>
-                                        <td>${formatDate(limpeza.data)}</td>
-                                        <td>${limpeza.horaInicio} ${limpeza.horaFim ? ' - ' + limpeza.horaFim : ''}</td>
-                                        <td>${limpeza.tempoUso || '-'}</td>
-                                        <td>
-                                            <span class="badge ${limpeza.status === 'concluido' ? 'badge-success' : 'badge-warning'}">
-                                                ${limpeza.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info" onclick="editLimpeza('${limpeza.id}')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            ${limpeza.status !== 'concluido' ? `
-                                            <button class="btn btn-sm btn-success" onclick="concluirLimpeza('${limpeza.id}')">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            ` : ''}
-                                            ${podeExcluirRegistros() ? `
-                                            <button class="btn btn-sm btn-danger" onclick="deleteLimpeza('${limpeza.id}')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    <div class="form-group">
+                        <label>Filtrar por Data</label>
+                        <input type="date" class="form-control" id="filtroDataLimpeza" onchange="filterLimpezas()">
                     </div>
                 </div>
-            `;
-        }
+
+                <h5 style="margin: 15px 0;">Limpezas do mês atual (${getMonthName(mesAtual)} ${anoAtual})</h5>
+                <table class="table" id="limpezasTable">
+                    <thead>
+                        <tr>
+                            <th>Responsável</th>
+                            <th>Espaço</th>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Tempo (min)</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${limpezasMesAtual.length > 0 
+                            ? limpezasMesAtual.map(limpeza => `
+                                <tr>
+                                    <td>${limpeza.responsavel}</td>
+                                    <td>${getEspacoNome(limpeza.espaco)}</td>
+                                    <td>${formatDate(limpeza.data)}</td>
+                                    <td>${limpeza.horaInicio} ${limpeza.horaFim ? ' - ' + limpeza.horaFim : ''}</td>
+                                    <td>${limpeza.tempoUso || '-'}</td>
+                                    <td>
+                                        <span class="badge ${limpeza.status === 'concluido' ? 'badge-success' : 'badge-warning'}">
+                                            ${limpeza.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="editLimpeza('${limpeza.id}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        ${limpeza.status !== 'concluido' ? `
+                                        <button class="btn btn-sm btn-success" onclick="concluirLimpeza('${limpeza.id}')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        ` : ''}
+                                        ${podeExcluirRegistros() ? `
+                                        <button class="btn btn-sm btn-danger" onclick="deleteLimpeza('${limpeza.id}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')
+                            : '<tr><td colspan="7" class="text-center">Nenhuma limpeza registrada neste mês.</td></tr>'
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal para ver últimos 18 meses -->
+        <div id="limpezasConcluidasModal" class="modal">
+            <div class="modal-content" style="max-width: 95%; max-height: 90vh;">
+                <div class="modal-header">
+                    <h3>Limpezas dos Últimos 18 Meses - ${currentCondominio.nome}</h3>
+                    <button type="button" onclick="closeLimpezasConcluidasModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Espaço</label>
+                            <select id="filtroConcluidosEspacoLimpeza" class="form-control" onchange="filterLimpezasConcluidas()">
+                                <option value="">Todos</option>
+                                <option value="salao-social">Salão Social</option>
+                                <option value="churrasqueira">Churrasqueira</option>
+                                <option value="quiosque">Quiosque</option>
+                                <option value="pergolado">Pergolado</option>
+                                <option value="sauna">Sauna</option>
+                                <option value="area-comum">Área Comum</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>De</label>
+                            <input type="date" id="filtroConcluidosDataIniLimpeza" class="form-control" onchange="filterLimpezasConcluidas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Até</label>
+                            <input type="date" id="filtroConcluidosDataFimLimpeza" class="form-control" onchange="filterLimpezasConcluidas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Responsável</label>
+                            <input type="text" id="filtroConcluidosResponsavel" class="form-control" placeholder="Ex: João" onkeyup="filterLimpezasConcluidas()">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button class="btn btn-success" onclick="exportarLimpezasConcluidasPDF()">
+                                <i class="fas fa-file-pdf"></i> Exportar PDF Completo
+                            </button>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Responsável</th>
+                                <th>Espaço</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Tempo</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="limpezasConcluidasTbody">
+                            <!-- Carregado por JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeLimpezasConcluidasModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // ✅ Carrega os últimos 18 meses no modal (só quando necessário)
+    setTimeout(() => {
+        loadLimpezasConcluidas();
+    }, 300);
+}
+           // ✅ Abre o modal de limpezas concluídas (18 meses)
+function openLimpezasConcluidasModal() {
+    document.getElementById('limpezasConcluidasModal').style.display = 'flex';
+    loadLimpezasConcluidas();
+}
+
+function closeLimpezasConcluidasModal() {
+    document.getElementById('limpezasConcluidasModal').style.display = 'none';
+}
+
+// ✅ Carrega todas as limpezas dos últimos 18 meses
+function loadLimpezasConcluidas() {
+    const tbody = document.getElementById('limpezasConcluidasTbody');
+    if (!tbody) return;
+
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+
+    const limpezas18Meses = limpezas.filter(l =>
+        l.condominioId === currentCondominio.id &&
+        new Date(l.data) >= dataLimite
+    ).sort((a, b) => new Date(b.data + 'T' + (b.horaInicio || '00:00')) - new Date(a.data + 'T' + (a.horaInicio || '00:00')));
+
+    if (limpezas18Meses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhuma limpeza encontrada nos últimos 18 meses.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = limpezas18Meses.map(l => `
+        <tr>
+            <td>${l.responsavel}</td>
+            <td>${getEspacoNome(l.espaco)}</td>
+            <td>${formatDate(l.data)}</td>
+            <td>${l.horaInicio} ${l.horaFim ? ' - ' + l.horaFim : ''}</td>
+            <td>${l.tempoUso || '-'}</td>
+            <td>
+                <span class="badge ${l.status === 'concluido' ? 'badge-success' : 'badge-warning'}">
+                    ${l.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="editLimpeza('${l.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${podeExcluirRegistros() ? `
+                <button class="btn btn-sm btn-danger" onclick="deleteLimpeza('${l.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ✅ Filtro dinâmico dentro do modal (18 meses)
+function filterLimpezasConcluidas() {
+    const tbody = document.getElementById('limpezasConcluidasTbody');
+    if (!tbody) return;
+
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+
+    let filtered = limpezas.filter(l =>
+        l.condominioId === currentCondominio.id &&
+        new Date(l.data) >= dataLimite
+    );
+
+    const espaco = document.getElementById('filtroConcluidosEspacoLimpeza')?.value || '';
+    const dataIni = document.getElementById('filtroConcluidosDataIniLimpeza')?.value || '';
+    const dataFim = document.getElementById('filtroConcluidosDataFimLimpeza')?.value || '';
+    const responsavel = (document.getElementById('filtroConcluidosResponsavel')?.value || '').toLowerCase();
+
+    if (espaco) filtered = filtered.filter(l => l.espaco === espaco);
+    if (dataIni) filtered = filtered.filter(l => l.data >= dataIni);
+    if (dataFim) filtered = filtered.filter(l => l.data <= dataFim);
+    if (responsavel) filtered = filtered.filter(l => l.responsavel.toLowerCase().includes(responsavel));
+
+    filtered.sort((a, b) => new Date(b.data + 'T' + (b.horaInicio || '00:00')) - new Date(a.data + 'T' + (a.horaInicio || '00:00')));
+
+    tbody.innerHTML = filtered.length > 0 ? filtered.map(l => `
+        <tr>
+            <td>${l.responsavel}</td>
+            <td>${getEspacoNome(l.espaco)}</td>
+            <td>${formatDate(l.data)}</td>
+            <td>${l.horaInicio} ${l.horaFim ? ' - ' + l.horaFim : ''}</td>
+            <td>${l.tempoUso || '-'}</td>
+            <td>
+                <span class="badge ${l.status === 'concluido' ? 'badge-success' : 'badge-warning'}">
+                    ${l.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="editLimpeza('${l.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${podeExcluirRegistros() ? `
+                <button class="btn btn-sm btn-danger" onclick="deleteLimpeza('${l.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+            </td>
+        </tr>
+    `).join('') : '<tr><td colspan="7" class="text-center">Nenhum registro encontrado com os filtros.</td></tr>';
+}
+
+// ✅ Exportar PDF — mês atual
+function exportarLimpezasPDF() {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+    const mesNome = getMonthName(mesAtual);
+
+    const limpezasMes = limpezas
+        .filter(l => l.condominioId === currentCondominio.id)
+        .filter(l => {
+            const d = new Date(l.data);
+            return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+        })
+        .sort((a, b) => new Date(b.data + 'T' + (b.horaInicio || '00:00')) - new Date(a.data + 'T' + (a.horaInicio || '00:00')));
+
+    if (limpezasMes.length === 0) {
+        alert('⚠️ Nenhuma limpeza registrada neste mês.');
+        return;
+    }
+
+    const total = limpezasMes.length;
+    const concluidas = limpezasMes.filter(l => l.status === 'concluido').length;
+
+    let html = `
+    <div id="printArea">
+        <style>
+            @media print { @page { size: A4; margin: 10mm; } body { -webkit-print-color-adjust: exact; } }
+            body { font-family: Arial, sans-serif; }
+            .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
+            .title { font-size: 22px; font-weight: bold; color: #2c3e50; margin: 0; }
+            .subtitle { font-size: 14px; color: #666; margin: 5px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background-color: #2c3e50; color: white; padding: 10px; text-align: left; }
+            td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+            .badge-success { background-color: #27ae60; color: white; }
+            .badge-warning { background-color: #f39c12; color: white; }
+        </style>
+        <div class="header">
+            <h1 class="title">Relatório de Limpeza — ${mesNome} ${anoAtual}</h1>
+            <p class="subtitle">Condomínio: <strong>${currentCondominio.nome}</strong></p>
+            <p class="subtitle">Total: <strong>${total}</strong> registros | Concluídas: <strong>${concluidas}</strong></p>
+            <p class="subtitle">Gerado por: ${currentUser.nome || currentUser.usuario} em ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Espaço</th>
+                    <th>Responsável</th>
+                    <th>Horário</th>
+                    <th>Tempo (min)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${limpezasMes.map(l => `
+                <tr>
+                    <td>${formatDate(l.data)}</td>
+                    <td>${getEspacoNome(l.espaco)}</td>
+                    <td>${l.responsavel}</td>
+                    <td>${l.horaInicio} ${l.horaFim ? '–' + l.horaFim : ''}</td>
+                    <td>${l.tempoUso || '—'}</td>
+                    <td><span class="badge badge-${l.status === 'concluido' ? 'success' : 'warning'}">
+                        ${l.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
+                    </span></td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="footer" style="margin-top:30px; padding-top:15px; border-top:1px solid #ccc; text-align:right; font-size:12px; color:#777;">
+            Sistema Multi Condomínios — Confidencial
+        </div>
+    </div>
+    `;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+        win.focus();
+        win.print();
+        setTimeout(() => win.close(), 2000);
+    };
+}
+
+// ✅ Exportar PDF — últimos 18 meses (completo)
+function exportarLimpezasConcluidasPDF() {
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+
+    let registros = limpezas.filter(l =>
+        l.condominioId === currentCondominio.id &&
+        new Date(l.data) >= dataLimite
+    );
+
+    // Aplicar filtros atuais (se houver)
+    const espaco = document.getElementById('filtroConcluidosEspacoLimpeza')?.value || '';
+    const dataIni = document.getElementById('filtroConcluidosDataIniLimpeza')?.value || '';
+    const dataFim = document.getElementById('filtroConcluidosDataFimLimpeza')?.value || '';
+    const responsavel = (document.getElementById('filtroConcluidosResponsavel')?.value || '').toLowerCase();
+
+    if (espaco) registros = registros.filter(l => l.espaco === espaco);
+    if (dataIni) registros = registros.filter(l => l.data >= dataIni);
+    if (dataFim) registros = registros.filter(l => l.data <= dataFim);
+    if (responsavel) registros = registros.filter(l => l.responsavel.toLowerCase().includes(responsavel));
+
+    registros.sort((a, b) => new Date(b.data + 'T' + (b.horaInicio || '00:00')) - new Date(a.data + 'T' + (a.horaInicio || '00:00')));
+
+    if (registros.length === 0) {
+        alert('⚠️ Nenhuma limpeza para exportar.');
+        return;
+    }
+
+    const periodo = `${formatDate(dataLimite.toISOString().split('T')[0])} a ${new Date().toLocaleDateString('pt-BR')}`;
+
+    let html = `
+    <div id="printArea">
+        <style>
+            @media print { @page { size: A4; margin: 10mm; } body { -webkit-print-color-adjust: exact; } }
+            body { font-family: Arial, sans-serif; }
+            .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
+            .title { font-size: 22px; font-weight: bold; color: #2c3e50; margin: 0; }
+            .subtitle { font-size: 14px; color: #666; margin: 5px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background-color: #2c3e50; color: white; padding: 10px; text-align: left; }
+            td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+            .badge-success { background-color: #27ae60; color: white; }
+            .badge-warning { background-color: #f39c12; color: white; }
+        </style>
+        <div class="header">
+            <h1 class="title">Relatório de Limpeza — Últimos 18 Meses</h1>
+            <p class="subtitle">Condomínio: <strong>${currentCondominio.nome}</strong></p>
+            <p class="subtitle">Período: <strong>${periodo}</strong> | Total: <strong>${registros.length}</strong> registros</p>
+            <p class="subtitle">Gerado por: ${currentUser.nome || currentUser.usuario} em ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Espaço</th>
+                    <th>Responsável</th>
+                    <th>Horário</th>
+                    <th>Tempo (min)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${registros.map(l => `
+                <tr>
+                    <td>${formatDate(l.data)}</td>
+                    <td>${getEspacoNome(l.espaco)}</td>
+                    <td>${l.responsavel}</td>
+                    <td>${l.horaInicio} ${l.horaFim ? '–' + l.horaFim : ''}</td>
+                    <td>${l.tempoUso || '—'}</td>
+                    <td><span class="badge badge-${l.status === 'concluido' ? 'success' : 'warning'}">
+                        ${l.status === 'concluido' ? 'Concluído' : 'Em Andamento'}
+                    </span></td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="footer" style="margin-top:30px; padding-top:15px; border-top:1px solid #ccc; text-align:right; font-size:12px; color:#777;">
+            Sistema Multi Condomínios — Confidencial
+        </div>
+    </div>
+    `;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+        win.focus();
+        win.print();
+        setTimeout(() => win.close(), 2000);
+    };
+}
+
         // ========== MÓDULO SAUNA ==========
         function loadSaunaContent() {
             const moduleContent = document.getElementById('moduleContent');
@@ -5931,6 +6475,7 @@ Registros: ${Object.values(backup.dados).reduce((sum, arr) => sum + arr.length, 
             document.getElementById('agendamentoUnidade').value = agendamento.unidade;
             document.getElementById('agendamentoStatus').value = agendamento.status;
             document.getElementById('agendamentoObservacoes').value = agendamento.observacoes || '';
+            closeAgendamentosConcluidosModal();
             document.getElementById('agendamentoModal').style.display = 'flex';
         }
         async function deleteAgendamento(id) {
@@ -6891,7 +7436,7 @@ window.addEventListener('beforeunload', function(e) {
                 });
             });
             if (currentCondominio) {
-                const condominioCollections = ['moradores', 'confraternizacoes', 'horasExtras', 'palavrasChave', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras']; // <-- Adicionado 'compras'
+                const condominioCollections = ['moradores', 'confraternizacoes', 'horasExtras', 'palavrasChave', 'limpezas', 'saunas', 'agendamentos', 'contas', 'lembretes', 'ocorrencias', 'prestadores', 'compras', 'tarefas' ]; // <-- Adicionado 'compras'
                 condominioCollections.forEach(collection => {
                     db.collection(collection)
     .where('condominioId', '==', currentCondominio.id)
@@ -8699,7 +9244,7 @@ function atualizarContadorPalavrasChave() {
     const palavras = texto.split(',').filter(p => p.trim() !== '');
     document.getElementById('palavraChaveCount').textContent = palavras.length;
 }
-}
+
 function atualizarCardsPalavrasChave() {
     // ✅ Busca todos os cards e filtra pelo título com "Palavras-chave Mercado Livre"
     const cards = document.querySelectorAll('.card');
@@ -8760,6 +9305,8 @@ function atualizarCardsPalavrasChave() {
         btnVerTodas.style.display = pcs.length > 3 ? 'inline-block' : 'none';
         btnVerTodas.textContent = `Ver todas (${pcs.length})`;
     }
+   }
+
 
 // Atualiza o margin do conteúdo principal ao expandir/encolher
 const mainContent = document.querySelector('.main-content');
@@ -9061,6 +9608,537 @@ function formatStatusOcorrencia(status) {
     };
     return map[status] || status;
 }
+ // 📄 Exportar lista de agendamentos concluídos para PDF
+function exportarAgendamentosConcluidosPDF() {
+    // 🔹 1. Filtrar dados (como antes)
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+
+    let registros = agendamentos.filter(a =>
+        a.condominioId === currentCondominio.id &&
+        (a.status === 'liberado' || a.status === 'concluido' || a.status === 'cancelado') &&
+        new Date(a.data) >= dataLimite
+    );
+
+    const espaco = document.getElementById('filtroConcluidosEspaco')?.value || '';
+    const dataIni = document.getElementById('filtroConcluidosDataIni')?.value || '';
+    const dataFim = document.getElementById('filtroConcluidosDataFim')?.value || '';
+    const nomeFiltro = (document.getElementById('filtroConcluidosNome')?.value || '').toLowerCase();
+    const aptoFiltro = (document.getElementById('filtroConcluidosApto')?.value || '').toLowerCase();
+
+    if (espaco) registros = registros.filter(a => a.espaco === espaco);
+    if (dataIni) registros = registros.filter(a => a.data >= dataIni);
+    if (dataFim) registros = registros.filter(a => a.data <= dataFim);
+    if (nomeFiltro) registros = registros.filter(a => a.responsavel.toLowerCase().includes(nomeFiltro));
+    if (aptoFiltro) registros = registros.filter(a => a.unidade.toLowerCase().includes(aptoFiltro));
+
+    if (registros.length === 0) {
+        alert('⚠️ Nenhum agendamento para exportar.');
+        return;
+    }
+
+    registros.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    // 🔹 2. Criar HTML do relatório (estilizado, sem erros)
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const usuario = currentUser?.nome || currentUser?.usuario || 'Usuário';
+    const condominio = currentCondominio?.nome || 'Condomínio';
+
+    let html = `
+    <div id="printArea">
+        <style>
+            @media print {
+                @page { size: A4; margin: 10mm; }
+                body { -webkit-print-color-adjust: exact; }
+            }
+            body { font-family: 'Segoe UI', Arial, sans-serif; }
+            .header {
+                text-align: center;
+                border-bottom: 3px solid #2c3e50;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+            .title {
+                font-size: 22px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 0;
+            }
+            .subtitle {
+                font-size: 14px;
+                color: #666;
+                margin: 5px 0;
+            }
+            .highlight {
+                background-color: #FFF9E6;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            th {
+                background-color: #2c3e50;
+                color: white;
+                padding: 10px;
+                text-align: left;
+                font-weight: bold;
+            }
+            td {
+                padding: 8px 10px;
+                border-bottom: 1px solid #eee;
+            }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .status-liberado { color: #27ae60; font-weight: bold; }
+            .status-cancelado { color: #e74c3c; font-weight: bold; }
+            .status-concluido { color: #2980b9; font-weight: bold; }
+            .footer {
+                margin-top: 30px;
+                padding-top: 15px;
+                border-top: 1px solid #ccc;
+                font-size: 12px;
+                color: #777;
+                text-align: right;
+            }
+        </style>
+
+        <div class="header">
+            <h1 class="title">Relatório de Agendamentos Concluídos</h1>
+            <p class="subtitle">Condomínio: <strong>${condominio}</strong></p>
+            <p class="subtitle">Filtrado em: <span class="highlight">${hoje}</span> — Usuário: <strong>${usuario}</strong></p>
+            <p class="subtitle">Período: Últimos 18 meses (${registros.length} registros)</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Espaço</th>
+                    <th>Solicitante</th>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Apto</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${registros.map(a => `
+                <tr>
+                    <td>${getEspacoNome(a.espaco)}</td>
+                    <td>${a.responsavel}</td>
+                    <td>${formatDate(a.data)}</td>
+                    <td>${a.horaInicio} – ${a.horaFim}</td>
+                    <td>${a.unidade}</td>
+                    <td><span class="status-${a.status}">${formatStatusAgendamento(a.status)}</span></td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Sistema Multi Condomínios — Relatório gerado em ${hoje}
+        </div>
+    </div>
+    `;
+
+    // 🔹 3. Inserir HTML temporário e imprimir
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    // Aguarda carregar e imprime
+    printWindow.onload = function() {
+        printWindow.focus();
+        printWindow.print();
+        // Opcional: fecha janela após 2s (ou deixa aberta)
+        setTimeout(() => printWindow.close(), 2000);
+    };
+}
+// ✅ Abre o modal com os detalhes completos do agendamento
+function verDetalhesAgendamento(id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    if (!agendamento) {
+        alert('Agendamento não encontrado.');
+        return;
+    }
+
+    // Preenche os campos
+    document.getElementById('detalheEspaco').textContent = getEspacoNome(agendamento.espaco);
+    document.getElementById('detalheResponsavel').textContent = agendamento.responsavel || '—';
+    document.getElementById('detalheUnidade').textContent = agendamento.unidade || '—';
+    document.getElementById('detalheData').textContent = formatDate(agendamento.data);
+    document.getElementById('detalheHorario').textContent = `${agendamento.horaInicio} – ${agendamento.horaFim}`;
+    
+    const statusEl = document.getElementById('detalheStatus');
+    statusEl.textContent = formatStatusAgendamento(agendamento.status);
+    statusEl.className = `status-badge status-${agendamento.status}`;
+    
+    document.getElementById('detalheObservacoes').textContent = agendamento.observacoes || 'Nenhuma observação.';
+    
+    // Busca nome do criador
+    let criador = 'Sistema';
+    if (agendamento.criadoPor) {
+        const usuario = usuarios.find(u => u.id === agendamento.criadoPor);
+        criador = usuario ? (usuario.nome || usuario.usuario) : agendamento.criadoPor;
+    }
+    document.getElementById('detalheCriadoPor').textContent = criador;
+
+    // Formata data de criação
+    let dataCriacao = '—';
+    if (agendamento.criadoEm) {
+        const d = new Date(agendamento.criadoEm);
+        dataCriacao = d.toLocaleString('pt-BR');
+    }
+    document.getElementById('detalheCriadoEm').textContent = dataCriacao;
+
+    // Abre o modal
+    document.getElementById('detalhesAgendamentoModal').style.display = 'flex';
+}
+
+// ✅ Fecha o modal de detalhes
+function closeDetalhesAgendamentoModal() {
+    document.getElementById('detalhesAgendamentoModal').style.display = 'none';
+}
+// ========== MÓDULO TAREFAS ==========
+let tarefas = [];
+
+// Carrega tarefas do condomínio atual
+async function loadTarefas() {
+    if (!currentCondominio) {
+        tarefas = [];
+        return;
+    }
+    try {
+        const snapshot = await db.collection('tarefas')
+            .where('condominioId', '==', currentCondominio.id)
+            .get();
+        tarefas = [];
+        snapshot.forEach(doc => tarefas.push({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+        console.error('Erro ao carregar tarefas:', err);
+        alert('Erro ao carregar tarefas.');
+    }
+}
+
+// Abre o modal para nova tarefa
+function openTarefaModal() {
+    document.getElementById('tarefaModalTitle').textContent = 'Nova Tarefa';
+    document.getElementById('editingTarefaId').value = '';
+    document.getElementById('tarefaForm').reset();
+    document.getElementById('tarefaDataUnica').value = getCurrentDate();
+    document.getElementById('diasSemanaContainer').style.display = 'none';
+    document.getElementById('tarefaModal').style.display = 'flex';
+}
+
+// Fecha o modal
+function closeTarefaModal() {
+    document.getElementById('tarefaModal').style.display = 'none';
+}
+
+// Alterna exibição dos dias da semana conforme tipo
+function toggleDiasSemana() {
+    const tipo = document.getElementById('tarefaTipo').value;
+    const container = document.getElementById('diasSemanaContainer');
+    const dataInput = document.getElementById('tarefaDataUnica');
+    if (tipo === 'recorrente') {
+        container.style.display = 'block';
+        dataInput.required = false;
+    } else {
+        container.style.display = 'none';
+        dataInput.required = true;
+    }
+}
+
+// Salva ou edita tarefa
+document.getElementById('tarefaForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentCondominio) return alert('Selecione um condomínio primeiro!');
+    
+    const editingId = document.getElementById('editingTarefaId').value;
+    const titulo = document.getElementById('tarefaTitulo').value.trim();
+    const descricao = document.getElementById('tarefaDescricao').value.trim();
+    const tipo = document.getElementById('tarefaTipo').value;
+    
+    let dataUnica = null;
+    let diasSemana = [];
+    
+    if (tipo === 'unica') {
+        dataUnica = document.getElementById('tarefaDataUnica').value;
+        if (!dataUnica) return alert('Informe a data.');
+    } else {
+        diasSemana = Array.from(document.querySelectorAll('input[name="diaSemana"]:checked'))
+            .map(cb => cb.value);
+        if (diasSemana.length === 0) return alert('Selecione pelo menos um dia da semana.');
+    }
+
+    const tarefaData = {
+        titulo,
+        descricao,
+        tipo,
+        dataUnica,
+        diasSemana,
+        condominioId: currentCondominio.id,
+        condominioNome: currentCondominio.nome,
+        criadoPor: currentUser.id || currentUser.usuario,
+        criadoEm: new Date().toISOString(),
+        historicoConclusao: []
+    };
+
+    try {
+        if (editingId) {
+            await db.collection('tarefas').doc(editingId).update(tarefaData);
+        } else {
+            await db.collection('tarefas').add(tarefaData);
+        }
+        await loadTarefas();
+        closeTarefaModal();
+        if (currentModule === 'tarefas') loadTarefasContent();
+        if (currentModule === 'dashboard') loadDashboardContent();
+        alert(editingId ? 'Tarefa atualizada!' : 'Tarefa criada com sucesso!');
+    } catch (err) {
+        console.error('Erro ao salvar tarefa:', err);
+        alert('Erro ao salvar tarefa. Tente novamente.');
+    }
+});
+
+// Edita tarefa
+function editTarefa(id) {
+    const tarefa = tarefas.find(t => t.id === id);
+    if (!tarefa) return;
+    
+    openTarefaModal();
+    setTimeout(() => {
+        document.getElementById('tarefaModalTitle').textContent = 'Editar Tarefa';
+        document.getElementById('editingTarefaId').value = tarefa.id;
+        document.getElementById('tarefaTitulo').value = tarefa.titulo;
+        document.getElementById('tarefaDescricao').value = tarefa.descricao || '';
+        document.getElementById('tarefaTipo').value = tarefa.tipo;
+        toggleDiasSemana();
+        
+        if (tarefa.tipo === 'unica') {
+            document.getElementById('tarefaDataUnica').value = tarefa.dataUnica;
+        } else if (tarefa.tipo === 'recorrente') {
+            tarefa.diasSemana.forEach(dia => {
+                const cb = document.querySelector(`input[name="diaSemana"][value="${dia}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+    }, 100);
+}
+
+// Exclui tarefa
+async function deleteTarefa(id) {
+    if (!podeExcluirRegistros()) {
+        return alert('Somente síndico ou subsíndico podem excluir.');
+    }
+    if (!confirm('Excluir esta tarefa permanentemente?')) return;
+    
+    try {
+        await db.collection('tarefas').doc(id).delete();
+        await loadTarefas();
+        if (currentModule === 'tarefas') loadTarefasContent();
+        if (currentModule === 'dashboard') loadDashboardContent();
+        alert('Tarefa excluída.');
+    } catch (err) {
+        console.error('Erro ao excluir tarefa:', err);
+        alert('Erro ao excluir.');
+    }
+}
+
+// Marca como concluída HOJE
+async function concluirTarefa(id) {
+    const tarefa = tarefas.find(t => t.id === id);
+    if (!tarefa) return alert('Tarefa não encontrada.');
+    
+    const agora = new Date();
+    const itemConclusao = {
+        concluidoPor: currentUser.id,
+        concluidoPorNome: currentUser.nome || currentUser.usuario,
+        dataConclusao: agora.toISOString(),
+        dataReal: agora.toISOString().split('T')[0]  // apenas YYYY-MM-DD
+    };
+    
+    try {
+        const ref = db.collection('tarefas').doc(id);
+        // Adiciona ao histórico de conclusões
+        await ref.update({
+            historicoConclusao: firebase.firestore.FieldValue.arrayUnion(itemConclusao)
+        });
+        await loadTarefas();
+        if (currentModule === 'tarefas') loadTarefasContent();
+        if (currentModule === 'dashboard') loadDashboardContent();
+        alert('✅ Tarefa marcada como concluída!');
+    } catch (err) {
+        console.error('Erro ao concluir tarefa:', err);
+        alert('Erro ao concluir. Tente novamente.');
+    }
+}
+
+// Verifica se tarefa deve aparecer HOJE
+function tarefaEhHoje(tarefa) {
+    const hoje = new Date().toISOString().split('T')[0]; // ex: "2025-12-18"
+    const hojeSemana = new Date().getDay(); // 0 = dom, 1 = seg ... 6 = sab
+    const diasMap = { dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6 };
+    
+    if (tarefa.tipo === 'unica') {
+        return tarefa.dataUnica === hoje;
+    } else if (tarefa.tipo === 'recorrente') {
+        return tarefa.diasSemana.some(dia => diasMap[dia] === hojeSemana);
+    }
+    return false;
+}
+
+// Verifica se já foi concluída HOJE
+function jaConcluiuHoje(tarefa) {
+    if (!tarefa.historicoConclusao || !Array.isArray(tarefa.historicoConclusao)) return false;
+    const hoje = new Date().toISOString().split('T')[0];
+    return tarefa.historicoConclusao.some(item => 
+        item.dataReal === hoje
+    );
+}
+
+// Carrega conteúdo do módulo "Tarefas"
+function loadTarefasContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `<div class="alert alert-warning">Selecione um condomínio primeiro.</div>`;
+        return;
+    }
+    
+    // Filtra tarefas do condomínio
+    const minhasTarefas = tarefas.filter(t => t.condominioId === currentCondominio.id);
+    
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Tarefas - ${currentCondominio.nome}</h3>
+                <button class="btn btn-primary" onclick="openTarefaModal()">
+                    <i class="fas fa-plus"></i> Nova Tarefa
+                </button>
+            </div>
+            <div class="card-body">
+                ${minhasTarefas.length > 0 ? `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Dias/Data</th>
+                            <th>Concluída Hoje?</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${minhasTarefas.map(t => `
+                            <tr style="${jaConcluiuHoje(t) ? 'background-color: #ebf5fb;' : ''}">
+                                <td><strong>${t.titulo}</strong><br><small>${t.descricao || ''}</small></td>
+                                <td>${t.tipo === 'unica' ? 'Única' : 'Recorrente'}</td>
+                                <td>
+                                    ${t.tipo === 'unica' 
+                                        ? formatDate(t.dataUnica) 
+                                        : t.diasSemana.map(d => d.substring(0,3)).join(', ')}
+                                </td>
+                                <td>
+                                    ${jaConcluiuHoje(t) 
+                                        ? `<span class="badge badge-success">✅ Sim</span>` 
+                                        : `<span class="badge badge-warning">❌ Não</span>`}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="editTarefa('${t.id}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-success" 
+                                            onclick="concluirTarefa('${t.id}')" 
+                                            ${jaConcluiuHoje(t) ? 'disabled' : ''}>
+                                        ✅ Concluir
+                                    </button>
+                                    ${podeExcluirRegistros() ? `
+                                    <button class="btn btn-sm btn-danger" onclick="deleteTarefa('${t.id}')"><i class="fas fa-trash"></i></button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ` : `
+                <div class="alert alert-info">
+                    <h5>Nenhuma tarefa cadastrada</h5>
+                    <p>Clique no botão abaixo para criar sua primeira tarefa.</p>
+                    <button class="btn btn-primary" onclick="openTarefaModal()">
+                        <i class="fas fa-plus"></i> Nova Tarefa
+                    </button>
+                </div>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+// Atualiza Dashboard com tarefas do dia
+function atualizarTarefasDashboard() {
+    // Verifica se já existe seção de tarefas (evita duplicar)
+    let container = document.getElementById('dashboardTarefasContainer');
+    if (!container) {
+        // Cria container só uma vez
+        const dashboardBody = document.querySelector('#moduleContent .card-body');
+        if (!dashboardBody) return;
+        
+        container = document.createElement('div');
+        container.id = 'dashboardTarefasContainer';
+        container.innerHTML = `
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-tasks"></i> Tarefas de Hoje</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openTarefaModal()">
+                        <i class="fas fa-plus"></i> Nova
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="dashboardTarefasLista"></div>
+                </div>
+            </div>
+        `;
+        dashboardBody.appendChild(container);
+    }
+    
+    // Filtra tarefas de hoje
+    const tarefasHoje = tarefas
+        .filter(t => t.condominioId === (currentCondominio?.id || ''))
+        .filter(tarefaEhHoje);
+    
+    const lista = document.getElementById('dashboardTarefasLista');
+    if (tarefasHoje.length === 0) {
+        lista.innerHTML = `<div class="alert alert-info"><i class="fas fa-check-circle"></i> Nenhuma tarefa pendente para hoje.</div>`;
+        return;
+    }
+    
+    // Gera cards modernos
+    lista.innerHTML = tarefasHoje.map(t => `
+        <div class="stat-card-modern" style="background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); margin-bottom: 15px;">
+            <div class="stat-card-header">
+                <h3>${t.titulo}</h3>
+            </div>
+            <div class="stat-card-content">
+                <p style="font-size: 0.9em; opacity: 0.9;">${t.descricao || ''}</p>
+                <div style="margin-top: 10px;">
+                    ${jaConcluiuHoje(t) 
+                        ? `<span class="badge badge-success" style="font-size: 0.9em;">✅ Concluída hoje</span>`
+                        : `<button class="btn btn-success btn-sm" 
+                                   onclick="concluirTarefa('${t.id}')">
+                             ✅ Marcar como concluída
+                           </button>`
+                    }
+                    <button class="btn btn-info btn-sm" style="margin-left: 5px;" onclick="editTarefa('${t.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${podeExcluirRegistros() ? `
+                    <button class="btn btn-danger btn-sm" style="margin-left: 5px;" onclick="deleteTarefa('${t.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+} 
 </script>
 </body>
 </html>
