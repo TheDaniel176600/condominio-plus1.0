@@ -3866,44 +3866,79 @@ function loadDashboardContent() {
 
     // 🔴 Status dos espaços
     const espacos = [
-        { id: 'salao-social', nome: 'Salão Social', icon: 'fas fa-warehouse', cor: '#3498db' },
-        { id: 'churrasqueira', nome: 'Churrasqueira', icon: 'fas fa-fire', cor: '#e74c3c' },
-        { id: 'quiosque', nome: 'Quiosque', icon: 'fas fa-tree', cor: '#2ecc71' },
-        { id: 'pergolado', nome: 'Pergolado', icon: 'fas fa-umbrella', cor: '#9b59b6' }
-    ].map(espaco => {
-        const ags = filteredAgendamentos.filter(a =>
-            a.espaco === espaco.id && a.status !== 'liberado' && a.status !== 'cancelado'
-        );
-        const agora = new Date();
-const pad = (num) => String(num).padStart(2, '0');
-const horaAtual = `${pad(agora.getHours())}:${pad(agora.getMinutes())}`;        let status = { label: 'Livre', cor: '#27ae60', icone: '🟢' };
-        let agendamentoAtivo = null;
+    { id: 'salao-social', nome: 'Salão Social', icon: 'fas fa-warehouse', cor: '#3498db' },
+    { id: 'churrasqueira', nome: 'Churrasqueira', icon: 'fas fa-fire', cor: '#e74c3c' },
+    { id: 'quiosque', nome: 'Quiosque', icon: 'fas fa-tree', cor: '#2ecc71' },
+    { id: 'pergolado', nome: 'Pergolado', icon: 'fas fa-umbrella', cor: '#9b59b6' }
+].map(espaco => {
 
-        for (const ag of ags) {
-            if (ag.data !== hojeStr) continue;
-           const [hIniH, hIniM] = ag.horaInicio.split(':').map(Number);
-const [hFimH, hFimM] = ag.horaFim.split(':').map(Number);
-// ✅ Correção de fuso horário: força data no horário local (não UTC)
-const dataLocal = new Date(ag.data + 'T00:00:00-03:00'); // -03:00 para horário de Brasília
-const inicio = new Date(dataLocal);
-inicio.setHours(hIniH, hIniM, 0, 0);
-const fim = new Date(dataLocal);
-fim.setHours(hFimH, hFimM, 0, 0);
+    // Busca todos os agendamentos ativos (não só de hoje)
+    const ags = filteredAgendamentos
+        .filter(a =>
+            a.espaco === espaco.id &&
+            a.status !== 'liberado' &&
+            a.status !== 'cancelado'
+        )
+        .sort((a, b) => {
+            const dataA = new Date(a.data + 'T' + a.horaInicio + '-03:00');
+            const dataB = new Date(b.data + 'T' + b.horaInicio + '-03:00');
+            return dataA - dataB;
+        });
 
-            if (agora >= inicio && agora <= fim) {
-                status = { label: 'Em uso', cor: '#e74c3c', icone: '🔴' };
-                agendamentoAtivo = ag;
-                break;
-            } else if (agora >= new Date(inicio.getTime() - 60*60*1000) && agora < inicio) { // 1h antes
-                status = { label: 'Preparando', cor: '#f39c12', icone: '🟡' };
-                agendamentoAtivo = ag;
-                break;
-            } else if (agora >= new Date(inicio.getTime() - 6*60*60*1000) && agora < inicio) { // 6h antes
-                status = { label: 'Agendado', cor: '#3498db', icone: '🔵' };
-            }
-        }
-        return { ...espaco, status, agendamentoAtivo, totalAgendado: ags.length };
+    const agora = new Date();
+    const hojeStr = agora.toLocaleDateString('sv-SE'); // ex: "2025-12-19"
+
+    // Encontra o PRÓXIMO agendamento futuro
+    const proximoFuturo = ags.find(a => {
+        const dataHora = new Date(a.data + 'T' + a.horaInicio + '-03:00');
+        return dataHora > agora;
     });
+
+    // Verifica se há uso HOJE (para status dinâmico)
+    let status = { label: 'Livre', cor: '#27ae60', icone: '🟢' };
+    let agendamentoAtivo = null;
+
+    for (const ag of ags) {
+        if (ag.data !== hojeStr) continue; // só verifica agendamentos de hoje
+
+        const [hIniH, hIniM] = ag.horaInicio.split(':').map(Number);
+        const [hFimH, hFimM] = ag.horaFim.split(':').map(Number);
+
+        const dataLocal = new Date(ag.data + 'T00:00:00-03:00');
+        const inicio = new Date(dataLocal);
+        inicio.setHours(hIniH, hIniM, 0, 0);
+        const fim = new Date(dataLocal);
+        fim.setHours(hFimH, hFimM, 0, 0);
+
+        if (agora >= inicio && agora <= fim) {
+            status = { label: 'Em uso', cor: '#e74c3c', icone: '🔴' };
+            agendamentoAtivo = ag;
+            break;
+        } else if (agora >= new Date(inicio.getTime() - 60 * 60 * 1000) && agora < inicio) {
+            status = { label: 'Preparando', cor: '#f39c12', icone: '🟡' };
+            agendamentoAtivo = ag;
+            break;
+        }
+    }
+
+    // Monta o texto que vai aparecer no card
+    let detalhes = '';
+    if (agendamentoAtivo) {
+        detalhes = `${agendamentoAtivo.responsavel} — ${agendamentoAtivo.unidade} — ${agendamentoAtivo.horaInicio}`;
+    } else if (proximoFuturo) {
+        const data = new Date(proximoFuturo.data + 'T00:00-03:00');
+        const dataStr = data.toLocaleDateString('pt-BR'); // ex: "19/12/2025"
+        detalhes = `Próximo: ${proximoFuturo.responsavel} — ${proximoFuturo.unidade} — ${dataStr} às ${proximoFuturo.horaInicio}`;
+    }
+
+    return {
+        ...espaco,
+        status,
+        agendamentoAtivo,
+        totalAgendado: ags.length,
+        detalhes // ← esse é o novo campo com o texto
+    };
+});
 
     // ♨ Saunas
     const saunaUmida = filteredSaunas.find(s => s.tipo === 'umida' && s.status === 'em-uso');
@@ -4004,136 +4039,144 @@ fim.setHours(hFimH, hFimM, 0, 0);
             </section>
             ` : ''}
 
-            <!-- ✅ TAREFAS DO DIA -->
-            <section class="dashboard-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-tasks" style="color: #2ecc71;"></i> Tarefas de Hoje</h2>
-                    <span class="badge">${tarefasHoje.length} tarefa${tarefasHoje.length !== 1 ? 's' : ''}</span>
+          <!-- ✅ TAREFAS DO DIA -->
+<section class="dashboard-section">
+    <div class="section-header">
+        <h2><i class="fas fa-tasks" style="color: #2ecc71;"></i> Tarefas de Hoje</h2>
+        <span class="badge">${tarefasHoje.length} tarefa${tarefasHoje.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="tasks-grid">
+        ${tarefasHoje.length > 0 ? tarefasHoje.map(t => `
+            <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}">
+                <div class="task-header">
+                    <h4>${t.titulo}</h4>
+                    <div class="task-type-badge ${t.tipo === 'recorrente' ? 'recorrente' : 'unica'}">
+                        ${t.tipo === 'recorrente' ? '🔁' : '📅'}
+                    </div>
                 </div>
-                <div class="tasks-grid">
-                    ${tarefasHoje.length > 0 ? tarefasHoje.map(t => `
-                        <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}">
-                            <div class="task-header">
-                                <h4>${t.titulo}</h4>
-                                <div class="task-type-badge ${t.tipo === 'recorrente' ? 'recorrente' : 'unica'}">
-                                    ${t.tipo === 'recorrente' ? '🔁' : '📅'}
-                                </div>
-                            </div>
-                            ${t.descricao ? `<p class="task-desc">${t.descricao}</p>` : ''}
-                            <div class="task-actions">
-                                ${t.jaConcluiuHoje ? `
-                                <span class="task-status-completed">
-                                    <i class="fas fa-check-circle"></i> Concluída hoje
-                                </span>
-                                ` : `
-                                <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
-                                    <i class="fas fa-check"></i> Concluir
-                                </button>
-                                `}
-                                <div class="task-edit-group">
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="editTarefa('${t.id}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    ${podeExcluirRegistros() ? `
-                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteTarefa('${t.id}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('') : `
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-check-circle"></i></div>
-                            <h4>Nenhuma tarefa pendente</h4>
-                            <p>Todas as tarefas foram concluídas ou não há nenhuma cadastrada para hoje.</p>
-                            <button class="btn btn-primary" onclick="openTarefaModal()">
-                                <i class="fas fa-plus"></i> Criar Tarefa
-                            </button>
-                        </div>
-                    `}
-                </div>
-            </section>
-
-            <!-- 🎯 STATUS DOS ESPAÇOS -->
-            <section class="dashboard-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-map-marker-alt" style="color: #3498db;"></i> Espaços Comuns</h2>
-                </div>
-                <div class="spaces-grid">
-                    ${espacos.map(e => `
-                        <div class="space-card" 
-                             onclick="changeModule('agendamentos')" 
-                             style="--space-color: ${e.status.cor}">
-                            <div class="space-icon">
-                                <i class="${e.icon}"></i>
-                            </div>
-                            <div class="space-info">
-                                <div class="space-name">${e.nome}</div>
-                                <div class="space-status">
-                                    <span class="status-dot" style="background: ${e.status.cor};"></span>
-                                    <span class="status-label">${e.status.icone} ${e.status.label}</span>
-                                </div>
-                            </div>
-                            ${e.agendamentoAtivo ? `
-                            <div class="space-user">
-                                <div><strong>${e.agendamentoAtivo.responsavel}</strong></div>
-                                <div class="space-time">${e.agendamentoAtivo.horaInicio}–${e.agendamentoAtivo.horaFim}</div>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="section-footer">
-                    <button class="btn btn-sm btn-primary" onclick="changeModule('agendamentos')">
-                        <i class="fas fa-calendar-check"></i> Gerenciar Agendamentos
+                ${t.descricao ? `<p class="task-desc">${t.descricao}</p>` : ''}
+                <div class="task-actions">
+                    ${t.jaConcluiuHoje ? `
+                    <span class="task-status-completed">
+                        <i class="fas fa-check-circle"></i> Concluída hoje
+                    </span>
+                    ` : `
+                    <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
+                        <i class="fas fa-check"></i> Concluir
                     </button>
+                    `}
+                    <div class="task-edit-group">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="editTarefa('${t.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${podeExcluirRegistros() ? `
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteTarefa('${t.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ` : ''}
+                    </div>
                 </div>
-            </section>
+            </div>
+        `).join('') : `
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-check-circle"></i></div>
+                <h4>Nenhuma tarefa pendente</h4>
+                <p>Todas as tarefas foram concluídas ou não há nenhuma cadastrada para hoje.</p>
+                <button class="btn btn-primary" onclick="openTarefaModal()">
+                    <i class="fas fa-plus"></i> Criar Tarefa
+                </button>
+            </div>
+        `}
+    </div>
+</section>
+ 
 
-            <!-- ♨ SAUNAS -->
-            ${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sauna')) ? `
-            <section class="dashboard-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-hot-tub" style="color: #e74c3c;"></i> Saunas</h2>
+<!-- 🎯 STATUS DOS ESPAÇOS -->
+<section class="dashboard-section">
+    <div class="section-header">
+        <h2><i class="fas fa-map-marker-alt" style="color: #3498db;"></i> Espaços Comuns</h2>
+    </div>
+    <div class="spaces-grid">
+        ${espacos.map(e => `
+            <div class="space-card" 
+                 onclick="changeModule('agendamentos')" 
+                 style="--space-color: ${e.status.cor}">
+                <div class="space-icon">
+                    <i class="${e.icon}"></i>
                 </div>
-                <div class="saunas-grid">
-                    <div class="sauna-card ${saunaUmida ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
-                        <div class="sauna-icon"><i class="fas fa-tint"></i></div>
-                        <div class="sauna-info">
-                            <div class="sauna-name">Sauna Úmida</div>
-                            <div class="sauna-status">
-                                <span class="status-dot" style="background: ${saunaUmida ? '#e74c3c' : '#27ae60'};"></span>
-                                <span>${saunaUmida ? '🔴 Em uso' : '🟢 Disponível'}</span>
-                            </div>
-                        </div>
-                        ${saunaUmida ? `
-                        <div class="sauna-user">
-                            <div><strong>${saunaUmida.morador}</strong></div>
-                            <div class="sauna-time">${saunaUmida.horaInicio}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                    <div class="sauna-card ${saunaSeca ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
-                        <div class="sauna-icon"><i class="fas fa-fire"></i></div>
-                        <div class="sauna-info">
-                            <div class="sauna-name">Sauna Seca</div>
-                            <div class="sauna-status">
-                                <span class="status-dot" style="background: ${saunaSeca ? '#e74c3c' : '#27ae60'};"></span>
-                                <span>${saunaSeca ? '🔴 Em uso' : '🟢 Disponível'}</span>
-                            </div>
-                        </div>
-                        ${saunaSeca ? `
-                        <div class="sauna-user">
-                            <div><strong>${saunaSeca.morador}</strong></div>
-                            <div class="sauna-time">${saunaSeca.horaInicio}</div>
-                        </div>
-                        ` : ''}
+                <div class="space-info">
+                    <div class="space-name">${e.nome}</div>
+                    <div class="space-status">
+                        <span class="status-dot" style="background: ${e.status.cor};"></span>
+                        <span class="status-label">${e.status.icone} ${e.status.label}</span>
                     </div>
                 </div>
-            </section>
+                ${e.detalhes ? `
+                <div class="space-user">
+                    <div><strong>${(e.detalhes.split('—')[0] || '').trim() || '—'}</strong></div>
+                    <div class="space-time">
+                        ${(e.detalhes.split('—').slice(1).join('—') || '').trim()}
+                    </div>
+                </div>
+                ` : `
+                <div class="space-user">
+                    <div class="space-time" style="color: #95a5a6; font-style: italic;">
+                        Nenhum agendamento
+                    </div>
+                </div>
+                `}
+            </div>
+        `).join('')}
+    </div>
+    <div class="section-footer">
+        <button class="btn btn-sm btn-primary" onclick="changeModule('agendamentos')">
+            <i class="fas fa-calendar-check"></i> Gerenciar Agendamentos
+        </button>
+    </div>
+</section>
+
+<!-- ♨ SAUNAS -->
+${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sauna')) ? `
+<section class="dashboard-section">
+    <div class="section-header">
+        <h2><i class="fas fa-hot-tub" style="color: #e74c3c;"></i> Saunas</h2>
+    </div>
+    <div class="saunas-grid">
+        <div class="sauna-card ${saunaUmida ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
+            <div class="sauna-icon"><i class="fas fa-tint"></i></div>
+            <div class="sauna-info">
+                <div class="sauna-name">Sauna Úmida</div>
+                <div class="sauna-status">
+                    <span class="status-dot" style="background: ${saunaUmida ? '#e74c3c' : '#27ae60'};"></span>
+                    <span>${saunaUmida ? '🔴 Em uso' : '🟢 Disponível'}</span>
+                </div>
+            </div>
+            ${saunaUmida ? `
+            <div class="sauna-user">
+                <div><strong>${saunaUmida.morador || '—'}</strong></div>
+                <div class="sauna-time">${saunaUmida.horaInicio || ''}</div>
+            </div>
             ` : ''}
-
+        </div>
+        <div class="sauna-card ${saunaSeca ? 'in-use' : 'available'}" onclick="changeModule('sauna')">
+            <div class="sauna-icon"><i class="fas fa-fire"></i></div>
+            <div class="sauna-info">
+                <div class="sauna-name">Sauna Seca</div>
+                <div class="sauna-status">
+                    <span class="status-dot" style="background: ${saunaSeca ? '#e74c3c' : '#27ae60'};"></span>
+                    <span>${saunaSeca ? '🔴 Em uso' : '🟢 Disponível'}</span>
+                </div>
+            </div>
+            ${saunaSeca ? `
+            <div class="sauna-user">
+                <div><strong>${saunaSeca.morador || '—'}</strong></div>
+                <div class="sauna-time">${saunaSeca.horaInicio || ''}</div>
+            </div>
+            ` : ''}
+        </div>
+    </div>
+</section>
+` : ''}
             <!-- 🏊 PISCINA + AQUECEDOR -->
             ${currentCondominio ? `
             <section class="dashboard-section">
@@ -9199,6 +9242,7 @@ function getEspacoIcon(espacoId) {
         'pergolado': 'fas fa-umbrella'
     };
     return icons[espacoId] || 'fas fa-question';
+}
 // ========== FUNÇÃO PARA CARREGAR MORADORES NO SELECT ==========
 function carregarMoradoresNoSelect() {
     const selectMorador = document.getElementById('palavraChaveMorador');
@@ -9314,7 +9358,7 @@ if (!mainContent.classList.contains('expanded')) {
     mainContent.style.marginLeft = '70px';
 }
 
-}
+
 // ✅ CORREÇÃO: Toggle de expansão do menu (móvel e desktop) — posicionado corretamente
 document.addEventListener('DOMContentLoaded', function() {
     const expandBtn = document.getElementById('sidebarExpandBtn');
