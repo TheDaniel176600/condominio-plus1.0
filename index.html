@@ -4212,7 +4212,7 @@ ${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sa
             ${currentCondominio ? `
             <section class="dashboard-section">
                 <div class="section-header">
-                    <h2><i class="fas fa-tags" style="color: #f39c12;"></i> Palavras-chave (Mercado Livre)</h2>
+                    <h2><i class="fas fa-tags" style="color: #f39c12;"></i> Palavras-chave (Mercado Livre / Amazon)</h2>
                     <span class="badge">${filteredPalavras.length}</span>
                 </div>
                 <div class="tags-grid">
@@ -4679,8 +4679,34 @@ ${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sa
                 grid-template-columns: 1fr;
             }
         }
+.filtro-contas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.filtro-data label { margin-right: 10px; }
+.filtro-data input, .filtro-data button {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.grafico-pizza {
+  flex: 1;
+  min-width: 250px;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.grafico-pizza canvas {
+  max-width: 100%;
+  height: auto !important;
+}
         </style>
     `;
+
 
     // ✅ Garante atualização das tarefas (se mudar condomínio, etc.)
     atualizarTarefasDashboard();
@@ -5622,106 +5648,183 @@ function exportarLimpezasConcluidasPDF() {
                 </div>
             `;
         }
-        // ========== MÓDULO CONTAS A PAGAR ==========
-        function loadContasContent() {
-            const moduleContent = document.getElementById('moduleContent');
-            if (currentUser.permissoes &&
-                !currentUser.permissoes.includes('*') &&
-                !currentUser.permissoes.includes('contas')) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+      // ========== MÓDULO CONTAS A PAGAR (ATUALIZADO) ==========
+function loadContasContent() {
+    const moduleContent = document.getElementById('moduleContent');
+    if (currentUser.permissoes &&
+        !currentUser.permissoes.includes('*') &&
+        !currentUser.permissoes.includes('contas')) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Acesso negado!</strong> Você não tem permissão para acessar este módulo.
+            </div>
+        `;
+        return;
+    }
+    if (!currentCondominio) {
+        moduleContent.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>Selecione um condomínio</strong> para acessar o módulo de contas a pagar.
+            </div>
+        `;
+        return;
+    }
+
+    const filteredContas = contas.filter(c => 
+        c.condominioId === currentCondominio.id && 
+        c.status !== 'pago' // ✅ só mostra **não pagas** na tela principal
+    );
+
+    moduleContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3>Contas a Pagar - ${currentCondominio.nome}</h3>
+                <div>
+                    <button class="btn btn-primary" onclick="openContaModal()">
+                        <i class="fas fa-plus"></i> Nova Conta
+                    </button>
+                    <button class="btn btn-outline-info" style="margin-left: 8px;" onclick="openContasPagasModal()">
+                        <i class="fas fa-history"></i> Contas Pagas (18 meses)
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filtrar por Status</label>
+                        <select class="form-control" id="filtroStatusConta" onchange="filterContas()">
+                            <option value="">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="atrasado">Atrasado</option>
+                        </select>
                     </div>
-                `;
-                return;
-            }
-            if (!currentCondominio) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Selecione um condomínio</strong> para acessar o módulo de contas a pagar.
-                    </div>
-                `;
-                return;
-            }
-            const filteredContas = contas.filter(c => c.condominioId === currentCondominio.id);
-            moduleContent.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Contas a Pagar - ${currentCondominio.nome}</h3>
-                        <button class="btn btn-primary" onclick="openContaModal()">
-                            <i class="fas fa-plus"></i> Nova Conta
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Filtrar por Status</label>
-                                <select class="form-control" id="filtroStatusConta" onchange="filterContas()">
-                                    <option value="">Todos</option>
-                                    <option value="pendente">Pendente</option>
-                                    <option value="pago">Pago</option>
-                                    <option value="atrasado">Atrasado</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Filtrar por Categoria</label>
-                                <select class="form-control" id="filtroCategoriaConta" onchange="filterContas()">
-                                    <option value="">Todas</option>
-                                    <option value="manutencao">Manutenção</option>
-                                    <option value="limpeza">Limpeza</option>
-                                    <option value="seguranca">Segurança</option>
-                                    <option value="administrativo">Administrativo</option>
-                                    <option value="energia">Energia</option>
-                                    <option value="agua">Água</option>
-                                    <option value="outros">Outros</option>
-                                </select>
-                            </div>
-                        </div>
-                        <table class="table" id="contasTable">
-                            <thead>
-                                <tr>
-                                    <th>Descrição</th>
-                                    <th>Valor</th>
-                                    <th>Vencimento</th>
-                                    <th>Categoria</th>
-                                    <th>Fornecedor</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredContas.map(conta => `
-                                    <tr>
-                                        <td>${conta.descricao}</td>
-                                        <td>R$ ${conta.valor.toFixed(2)}</td>
-                                        <td>${formatDate(conta.vencimento)}</td>
-                                        <td>${formatCategoriaConta(conta.categoria)}</td>
-                                        <td>${conta.fornecedor || '-'}</td>
-                                        <td>
-                                            <span class="status-badge status-${conta.status}">
-                                                ${formatStatusConta(conta.status)}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info" onclick="editConta('${conta.id}')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-success" onclick="marcarContaComoPaga('${conta.id}')">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            ${podeExcluirRegistros() ? `
-                                            <button class="btn btn-sm btn-danger" onclick="deleteConta('${conta.id}')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    <div class="form-group">
+                        <label>Filtrar por Categoria</label>
+                        <select class="form-control" id="filtroCategoriaConta" onchange="filterContas()">
+                            <option value="">Todas</option>
+                            <option value="manutencao">Manutenção</option>
+                            <option value="limpeza">Limpeza</option>
+                            <option value="seguranca">Segurança</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="energia">Energia</option>
+                            <option value="agua">Água</option>
+                            <option value="outros">Outros</option>
+                        </select>
                     </div>
                 </div>
-            `;
-        }
+                <table class="table" id="contasTable">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Categoria</th>
+                            <th>Fornecedor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredContas.map(conta => `
+                            <tr>
+                                <td>${conta.descricao}</td>
+                                <td>R$ ${conta.valor.toFixed(2)}</td>
+                                <td>${formatDate(conta.vencimento)}</td>
+                                <td>${formatCategoriaConta(conta.categoria)}</td>
+                                <td>${conta.fornecedor || '-'}</td>
+                                <td>
+                                    <span class="status-badge status-${conta.status}">
+                                        ${formatStatusConta(conta.status)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="editConta('${conta.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="marcarContaComoPaga('${conta.id}')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    ${podeExcluirRegistros() ? `
+                                    <button class="btn btn-sm btn-danger" onclick="deleteConta('${conta.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ✅ MODAL DE CONTAS PAGAS (18 MESES) -->
+        <div id="contasPagasModal" class="modal">
+            <div class="modal-content" style="max-width: 95%; max-height: 90vh;">
+                <div class="modal-header">
+                    <h3>Contas Pagas — Últimos 18 Meses (${currentCondominio.nome})</h3>
+                    <button type="button" onclick="closeContasPagasModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fornecedor</label>
+                            <input type="text" id="filtroFornecedorPaga" class="form-control" placeholder="Ex: Água" onkeyup="filterContasPagas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select class="form-control" id="filtroCategoriaPaga" onchange="filterContasPagas()">
+                                <option value="">Todas</option>
+                                <option value="manutencao">Manutenção</option>
+                                <option value="limpeza">Limpeza</option>
+                                <option value="seguranca">Segurança</option>
+                                <option value="administrativo">Administrativo</option>
+                                <option value="energia">Energia</option>
+                                <option value="agua">Água</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>De</label>
+                            <input type="date" id="filtroDataIniPaga" class="form-control" onchange="filterContasPagas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Até</label>
+                            <input type="date" id="filtroDataFimPaga" class="form-control" onchange="filterContasPagas()">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button class="btn btn-success" onclick="exportarContasPagasPDF()">
+                                <i class="fas fa-file-pdf"></i> Exportar PDF
+                            </button>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Data Pgto</th>
+                                <th>Descrição</th>
+                                <th>Fornecedor</th>
+                                <th>Categoria</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contasPagasTbody">
+                            <!-- Carregado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeContasPagasModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Carrega contas pagas automaticamente ao abrir o modal
+    setTimeout(() => loadContasPagas(), 300);
+}
         // ========== MÓDULO LEMBRETES ==========
         function loadLembretesContent() {
             const moduleContent = document.getElementById('moduleContent');
@@ -7959,41 +8062,52 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
         // ✅ Função para atualizar status de agendamentos automaticamente
+// ✅ Função corrigida: atualiza status SOMENTE após o horário de término
 async function atualizarStatusAutomatico() {
     if (!currentCondominio) return;
-
     const agora = new Date();
-    const dataHoje = agora.toISOString().split('T')[0]; // ex: "2025-11-29"
-    const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + 
-                      agora.getMinutes().toString().padStart(2, '0'); // ex: "12:05"
+    const dataHoje = agora.toISOString().split('T')[0]; // ex: "2025-12-19"
+    const horaAgoraStr = agora.getHours().toString().padStart(2, '0') + ':' + 
+                         agora.getMinutes().toString().padStart(2, '0');
 
-    // Filtra agendamentos ATIVOS de HOJE no condomínio atual
+    // Converte HH:mm para minutos desde 00:00 (ex: "09:30" → 570)
+    function paraMinutos(hhmm) {
+        if (!hhmm || hhmm.length < 5) return -1;
+        const [h, m] = hhmm.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    const agoraEmMinutos = paraMinutos(horaAgoraStr);
+
+    // ✅ Filtra agendamentos ATIVOS de hoje
     const agendamentosAtivos = agendamentos.filter(a => 
         a.condominioId === currentCondominio.id &&
         a.data === dataHoje &&
-        ['agendado', 'em-uso'].includes(a.status)
+        ['agendado', 'em-uso'].includes(a.status) &&
+        paraMinutos(a.horaFim) > 0  // evita erro se campo estiver vazio
     );
 
     for (const ag of agendamentosAtivos) {
-        // Compara horaAgora com ag.horaFim (ambos no formato "HH:mm")
-        if (horaAgora >= ag.horaFim) {
+        const fimEmMinutos = paraMinutos(ag.horaFim);
+
+        // ✅ Agora compara números → correto!
+        if (agoraEmMinutos >= fimEmMinutos) {
             try {
-                // Atualiza no Firestore
                 await db.collection('agendamentos').doc(ag.id).update({
                     status: 'liberado',
                     dataAtualizacao: new Date().toISOString()
                 });
-                console.log(`✅ Agendamento ${ag.id} atualizado para 'liberado' automaticamente.`);
+                console.log(`✅ Agendamento ${ag.id} (${ag.responsavel}) atualizado para 'liberado' (agora: ${horaAgoraStr}, fim: ${ag.horaFim})`);
             } catch (err) {
-                console.error('Erro ao atualizar agendamento automaticamente:', ag.id, err);
+                console.error(`❌ Erro ao atualizar ${ag.id}:`, err);
             }
         }
     }
 
-    // Após atualizar, recarrega os dados para manter a interface sincronizada
+    // Recarrega os dados para atualizar interface
     await loadSystemData();
     if (currentModule === 'dashboard') loadDashboardContent();
-    if (currentModule === 'agendamentos') loadAgendamentosList(); // ← Usa a função correta!
+    if (currentModule === 'agendamentos') loadAgendamentosList();
 }
         // ========== INICIALIZAÇÃO ==========
         document.getElementById('newPassword')?.addEventListener('input', function() {
@@ -10183,6 +10297,214 @@ function atualizarTarefasDashboard() {
         </div>
     `).join('');
 } 
+// ========== CONTAS PAGAS — FUNÇÕES AUXILIARES ==========
+function openContasPagasModal() {
+    document.getElementById('contasPagasModal').style.display = 'flex';
+    loadContasPagas();
+}
+
+function closeContasPagasModal() {
+    document.getElementById('contasPagasModal').style.display = 'none';
+}
+
+function loadContasPagas() {
+    const hoje = new Date();
+    const dataLimite = new Date();
+    dataLimite.setMonth(hoje.getMonth() - 18);
+    
+    const contasPagas = contas.filter(c =>
+        c.condominioId === currentCondominio.id &&
+        c.status === 'pago' &&
+        new Date(c.dataAtualizacao || c.criadoEm) >= dataLimite
+    ).sort((a, b) => new Date(b.dataAtualizacao || b.criadoEm) - new Date(a.dataAtualizacao || a.criadoEm));
+
+    const tbody = document.getElementById('contasPagasTbody');
+    if (!tbody) return;
+
+    if (contasPagas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhuma conta paga nos últimos 18 meses.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = contasPagas.map(c => `
+        <tr>
+            <td>${formatDateTime(c.dataAtualizacao || c.criadoEm)}</td>
+            <td>${c.descricao}</td>
+            <td>${c.fornecedor || '—'}</td>
+            <td>${formatCategoriaConta(c.categoria)}</td>
+            <td>${formatDate(c.vencimento)}</td>
+            <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="editConta('${c.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${podeExcluirRegistros() ? `
+                <button class="btn btn-sm btn-danger" onclick="deleteConta('${c.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterContasPagas() {
+    const tbody = document.getElementById('contasPagasTbody');
+    if (!tbody) return;
+
+    const hoje = new Date();
+    const dataLimite = new Date();
+    dataLimite.setMonth(hoje.getMonth() - 18);
+
+    let filtered = contas.filter(c =>
+        c.condominioId === currentCondominio.id &&
+        c.status === 'pago' &&
+        new Date(c.dataAtualizacao || c.criadoEm) >= dataLimite
+    );
+
+    const fornecedor = document.getElementById('filtroFornecedorPaga')?.value.toLowerCase() || '';
+    const categoria = document.getElementById('filtroCategoriaPaga')?.value || '';
+    const ini = document.getElementById('filtroDataIniPaga')?.value;
+    const fim = document.getElementById('filtroDataFimPaga')?.value;
+
+    if (fornecedor) filtered = filtered.filter(c => (c.fornecedor || '').toLowerCase().includes(fornecedor));
+    if (categoria) filtered = filtered.filter(c => c.categoria === categoria);
+    if (ini) filtered = filtered.filter(c => new Date(c.dataAtualizacao || c.criadoEm) >= new Date(ini));
+    if (fim) {
+        const fimDate = new Date(fim);
+        fimDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(c => new Date(c.dataAtualizacao || c.criadoEm) <= fimDate);
+    }
+
+    filtered.sort((a, b) => new Date(b.dataAtualizacao || b.criadoEm) - new Date(a.dataAtualizacao || a.criadoEm));
+
+    tbody.innerHTML = filtered.length > 0 ? filtered.map(c => `
+        <tr>
+            <td>${formatDateTime(c.dataAtualizacao || c.criadoEm)}</td>
+            <td>${c.descricao}</td>
+            <td>${c.fornecedor || '—'}</td>
+            <td>${formatCategoriaConta(c.categoria)}</td>
+            <td>${formatDate(c.vencimento)}</td>
+            <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="editConta('${c.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${podeExcluirRegistros() ? `
+                <button class="btn btn-sm btn-danger" onclick="deleteConta('${c.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+            </td>
+        </tr>
+    `).join('') : '<tr><td colspan="7" class="text-center">Nenhum registro encontrado.</td></tr>';
+}
+
+// Formata data + hora (ex: 20/12/2025 14:30)
+function formatDateTime(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ✅ Exportar Contas Pagas para PDF
+function exportarContasPagasPDF() {
+    const hoje = new Date();
+    const dataLimite = new Date();
+    dataLimite.setMonth(hoje.getMonth() - 18);
+
+    let registros = contas.filter(c =>
+        c.condominioId === currentCondominio.id &&
+        c.status === 'pago' &&
+        new Date(c.dataAtualizacao || c.criadoEm) >= dataLimite
+    );
+
+    // Aplicar filtros ativos (se houver)
+    const fornecedor = document.getElementById('filtroFornecedorPaga')?.value.toLowerCase() || '';
+    const categoria = document.getElementById('filtroCategoriaPaga')?.value || '';
+    const ini = document.getElementById('filtroDataIniPaga')?.value;
+    const fim = document.getElementById('filtroDataFimPaga')?.value;
+
+    if (fornecedor) registros = registros.filter(c => (c.fornecedor || '').toLowerCase().includes(fornecedor));
+    if (categoria) registros = registros.filter(c => c.categoria === categoria);
+    if (ini) registros = registros.filter(c => new Date(c.dataAtualizacao || c.criadoEm) >= new Date(ini));
+    if (fim) {
+        const fimDate = new Date(fim);
+        fimDate.setHours(23, 59, 59, 999);
+        registros = registros.filter(c => new Date(c.dataAtualizacao || c.criadoEm) <= fimDate);
+    }
+
+    if (registros.length === 0) {
+        alert('⚠️ Nenhuma conta paga para exportar.');
+        return;
+    }
+
+    const total = registros.reduce((s, c) => s + c.valor, 0);
+    const periodo = `${formatDate(dataLimite.toISOString().split('T')[0])} a ${hoje.toLocaleDateString('pt-BR')}`;
+
+    let html = `
+    <div id="printArea">
+        <style>
+            @media print { @page { size: A4; margin: 10mm; } body { -webkit-print-color-adjust: exact; } }
+            body { font-family: Arial, sans-serif; }
+            .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
+            .title { font-size: 22px; font-weight: bold; color: #2c3e50; margin: 0; }
+            .subtitle { font-size: 14px; color: #666; margin: 5px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background-color: #2c3e50; color: white; padding: 10px; text-align: left; }
+            td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .status-pago { color: #27ae60; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ccc; text-align: right; font-size: 12px; color: #777; }
+        </style>
+        <div class="header">
+            <h1 class="title">Relatório de Contas Pagas</h1>
+            <p class="subtitle">Condomínio: <strong>${currentCondominio.nome}</strong></p>
+            <p class="subtitle">Período: <strong>${periodo}</strong> | Total: <strong>${registros.length}</strong> contas | Valor: <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></p>
+            <p class="subtitle">Gerado por: ${currentUser.nome || currentUser.usuario} em ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data Pgto</th>
+                    <th>Descrição</th>
+                    <th>Fornecedor</th>
+                    <th>Categoria</th>
+                    <th>Vencimento</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${registros.map(c => `
+                <tr>
+                    <td>${formatDateTime(c.dataAtualizacao || c.criadoEm)}</td>
+                    <td>${c.descricao}</td>
+                    <td>${c.fornecedor || '—'}</td>
+                    <td>${formatCategoriaConta(c.categoria)}</td>
+                    <td>${formatDate(c.vencimento)}</td>
+                    <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="footer">Sistema Multi Condomínios — Confidencial</div>
+    </div>
+    `;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+        win.focus();
+        win.print();
+        setTimeout(() => win.close(), 2000);
+    };
+}
 </script>
 </body>
 </html>
