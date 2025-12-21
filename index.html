@@ -29,6 +29,68 @@
             display: flex;
             min-height: 100vh;
         }
+    <!-- Estilos Personalizados -->
+    
+        /* Abas */
+        .nav-tabs .nav-link { cursor: pointer; }
+        .tab-content { display: none; }
+        .tab-content:first-of-type { display: block !important; }
+
+        /* Cards modernos (ex: dashboard) */
+        .stat-card-modern {
+            border-radius: 12px;
+            color: white;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stat-card-header h3 { margin: 0; font-size: 1.3em; }
+        .stat-card-content { margin-top: 12px; }
+
+        /* Botões menores em cards */
+        .stat-card-content .btn-sm { font-size: 0.85em; padding: 4px 8px; }
+/* Abas Modernas – Tarefas */
+.tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    background: white;
+    color: #555;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tab-btn:hover {
+    background: #f1f8ff;
+    color: #2980b9;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.tab-btn.active {
+    background: #3498db;
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+.tab-btn.active i {
+    color: white;
+}
+.tab-btn i {
+    font-size: 16px;
+    color: #7f8c8d;
+}
+.tab-btn.active i {
+    color: white;
+}
+    
 /* NOVOS CARDS MODERNOS */
 .stat-card-modern {
     flex: 1;
@@ -528,6 +590,8 @@
             background: #f8f9fa;
             border-radius: 4px;
         }
+        .badge-dark { background-color: #2c3e50 !important; color: white !important; }
+.mt-1 { margin-top: 0.25rem; }
         .permission-item input {
             margin-right: 8px;
         }
@@ -2192,6 +2256,7 @@
     </div>
 </div>
      <!-- Modal para Tarefas -->
+<!-- Modal para Tarefas -->
 <div id="tarefaModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -2200,40 +2265,128 @@
         </div>
         <form id="tarefaForm">
             <input type="hidden" id="editingTarefaId">
+
+            <!-- Título -->
             <div class="form-group">
-                <label>Título *</label>
-                <input type="text" class="form-control" id="tarefaTitulo" placeholder="Ex: Varrer corredor" required>
+                <label><i class="fas fa-heading"></i> Título da Tarefa *</label>
+                <input type="text" class="form-control" id="tarefaTitulo" placeholder="Ex: Varrer corredor, Lavar janelas..." required>
+                <small class="form-text text-muted">Descreva a tarefa de forma clara e objetiva.</small>
             </div>
+
+            <!-- Descrição -->
             <div class="form-group">
-                <label>Descrição</label>
-                <textarea class="form-control" id="tarefaDescricao" rows="3" placeholder="Detalhes opcionais..."></textarea>
+                <label><i class="fas fa-sticky-note"></i> Detalhes (opcional)</label>
+                <textarea class="form-control" id="tarefaDescricao" rows="3"
+                    placeholder="Ex: Usar pano úmido e detergente neutro. Verificar frestas."></textarea>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Tipo *</label>
-                    <select class="form-control" id="tarefaTipo" required onchange="toggleDiasSemana()">
-                        <option value="unica">Única</option>
-                        <option value="recorrente">Recorrente (dias da semana)</option>
-                    </select>
+
+            <!-- Tipo + Data/Dias + Turno -->
+            <div class="card" style="background: #f8f9fa; border-left: 4px solid #3498db; margin-bottom: 20px;">
+                <div class="card-body">
+                    <h5><i class="fas fa-calendar-alt"></i> Frequência e Turno</h5>
+
+                    <div class="form-row align-items-end">
+                        <div class="form-group col-md-4">
+                            <label>Tipo *</label>
+                            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                <label class="btn btn-outline-primary text-left"
+                                    onclick="document.getElementById('tarefaTipo').value='unica'; toggleDiasSemana();">
+                                    <input type="radio" name="tipoTarefa" autocomplete="off">
+                                    <i class="fas fa-calendar-day"></i> Única
+                                </label>
+                                <label class="btn btn-outline-primary text-left"
+                                    onclick="document.getElementById('tarefaTipo').value='recorrente'; toggleDiasSemana();">
+                                    <input type="radio" name="tipoTarefa" autocomplete="off">
+                                    <i class="fas fa-redo"></i> Recorrente
+                                </label>
+                            </div>
+                            <input type="hidden" id="tarefaTipo" value="unica">
+                        </div>
+
+                        <div class="form-group col-md-4" id="dataUnicaField">
+                            <label><i class="fas fa-calendar-check"></i> Data da Execução</label>
+                            <input type="date" class="form-control" id="tarefaDataUnica" required>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label>Turno *</label>
+                            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                <label class="btn btn-outline-primary text-left"
+                                    onclick="document.getElementById('tarefaTurno').value='diurno';">
+                                    <input type="radio" name="turnoTarefa" autocomplete="off">
+                                    <i class="fas fa-sun"></i> Diurno
+                                </label>
+                                <label class="btn btn-outline-primary text-left"
+                                    onclick="document.getElementById('tarefaTurno').value='noturno';">
+                                    <input type="radio" name="turnoTarefa" autocomplete="off">
+                                    <i class="fas fa-moon"></i> Noturno
+                                </label>
+                            </div>
+                            <input type="hidden" id="tarefaTurno" value="diurno" required>
+                            <small class="form-text text-muted">Diurno: 7h–19h | Noturno: 19h–7h</small>
+                        </div>
+                    </div>
+
+                    <!-- Dias da Semana -->
+                    <div class="form-group" id="diasSemanaContainer" style="display: none; margin-top: 15px;">
+                        <label><i class="fas fa-sync"></i> Dias da Semana</label>
+                        <div class="row">
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="dom" id="dia-dom">
+                                    <label class="form-check-label" for="dia-dom">Domingo</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="seg" id="dia-seg">
+                                    <label class="form-check-label" for="dia-seg">Segunda</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="ter" id="dia-ter">
+                                    <label class="form-check-label" for="dia-ter">Terça</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="qua" id="dia-qua">
+                                    <label class="form-check-label" for="dia-qua">Quarta</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="qui" id="dia-qui">
+                                    <label class="form-check-label" for="dia-qui">Quinta</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="sex" id="dia-sex">
+                                    <label class="form-check-label" for="dia-sex">Sexta</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="diaSemana" value="sab" id="dia-sab">
+                                    <label class="form-check-label" for="dia-sab">Sábado</label>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Selecione todos os dias em que essa tarefa deve aparecer.</small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" class="form-control" id="tarefaDataUnica">
-                </div>
             </div>
-            <div class="form-group" id="diasSemanaContainer" style="display: none;">
-                <label>Dias da Semana</label><br>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="dom"> Domingo</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="seg"> Segunda</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="ter"> Terça</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="qua"> Quarta</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="qui"> Quinta</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="sex"> Sexta</label>
-                <label class="permission-item"><input type="checkbox" name="diaSemana" value="sab"> Sábado</label>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Salvar Tarefa</button>
-                <button type="button" class="btn" onclick="closeTarefaModal()">Cancelar</button>
+
+            <!-- Botões -->
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="closeTarefaModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Salvar Tarefa
+                </button>
             </div>
         </form>
     </div>
@@ -2291,6 +2444,7 @@
         let lembretes = [];
         let compras = []; // <-- Novo Array
         let currentModule = 'dashboard';
+        let cronometros = {};
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         let isFirebaseConnected = false;
@@ -3823,7 +3977,8 @@ function formatStatusVale(status) {
     // ========== MÓDULO DASHBOARD (REVISADO E MODERNIZADO) ==========
 function loadDashboardContent() {
     const moduleContent = document.getElementById('moduleContent');
-    
+           // ✅ Restaura cronômetro ativo (se houver)
+        setTimeout(restaurarCronometrosAtivos, 300); 
     // Dados filtrados por condomínio
     const filteredAgendamentos = currentCondominio ? agendamentos.filter(a => a.condominioId === currentCondominio.id) : [];
     const filteredContas = currentCondominio ? contas.filter(c => c.condominioId === currentCondominio.id) : [];
@@ -3840,14 +3995,8 @@ function loadDashboardContent() {
     const diasMap = { dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6 };
 
     // ✅ Tarefas de HOJE (filtradas e com status de conclusão)
-    const tarefasHoje = filteredTarefas.filter(t => {
-        if (t.tipo === 'unica') return t.dataUnica === hojeStr;
-        if (t.tipo === 'recorrente') return t.diasSemana.some(d => diasMap[d] === hojeSemana);
-        return false;
-    }).map(t => ({
-        ...t,
-        jaConcluiuHoje: t.historicoConclusao?.some(h => h.dataReal === hojeStr) || false
-    }));
+   // ✅ Tarefas de HOJE — respeitando turno (Diurno/Noturno)
+const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
 
     // ⚠️ Alertas de contas/compras (vencidas ou ≤ 3 dias)
     const alertaContas = filteredContas.filter(c => {
@@ -4045,13 +4194,23 @@ function loadDashboardContent() {
         <h2><i class="fas fa-tasks" style="color: #2ecc71;"></i> Tarefas de Hoje</h2>
         <span class="badge">${tarefasHoje.length} tarefa${tarefasHoje.length !== 1 ? 's' : ''}</span>
     </div>
+    <div class="section-subtitle" style="margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+    <i class="${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'fas fa-sun' : 'fas fa-moon'}"></i>
+    Turno atual: <strong>${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'Diurno (7h–19h)' : 'Noturno (19h–7h)'}</strong>
+</div>
     <div class="tasks-grid">
         ${tarefasHoje.length > 0 ? tarefasHoje.map(t => `
-            <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}">
+            <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}"
+                 style="border-left: 4px solid ${t.turno === 'diurno' ? '#3498db' : '#9b59b6'}">
                 <div class="task-header">
                     <h4>${t.titulo}</h4>
-                    <div class="task-type-badge ${t.tipo === 'recorrente' ? 'recorrente' : 'unica'}">
-                        ${t.tipo === 'recorrente' ? '🔁' : '📅'}
+                    <div class="task-meta">
+                        <div class="task-type-badge ${t.tipo === 'recorrente' ? 'recorrente' : 'unica'}">
+                            ${t.tipo === 'recorrente' ? '🔁' : '📅'}
+                        </div>
+                        <span class="task-turno-badge ${t.turno === 'diurno' ? 'diurno' : 'noturno'}">
+                            ${t.turno === 'diurno' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'}
+                        </span>
                     </div>
                 </div>
                 ${t.descricao ? `<p class="task-desc">${t.descricao}</p>` : ''}
@@ -4061,9 +4220,15 @@ function loadDashboardContent() {
                         <i class="fas fa-check-circle"></i> Concluída hoje
                     </span>
                     ` : `
-                    <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
-                        <i class="fas fa-check"></i> Concluir
-                    </button>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn btn-info btn-sm" onclick="iniciarCronometroTarefa('${t.id}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <span id="tempo-${t.id}" style="font-size:0.85em; min-width:60px; text-align:center;">—</span>
+                        <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
+                            <i class="fas fa-check"></i> Concluir
+                        </button>
+                    </div>
                     `}
                     <div class="task-edit-group">
                         <button class="btn btn-outline-secondary btn-sm" onclick="editTarefa('${t.id}')">
@@ -4703,6 +4868,56 @@ ${(currentUser.permissoes?.includes('*') || currentUser.permissoes?.includes('sa
 .grafico-pizza canvas {
   max-width: 100%;
   height: auto !important;
+}
+/* Estilos extras para o formulário de tarefas */
+.btn-group-toggle .btn {
+    padding: 10px 12px;
+    margin-right: 5px;
+    border-radius: 6px !important;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-group-toggle .btn:hover,
+.btn-group-toggle .btn.active {
+    background-color: #3498db !important;
+    color: white !important;
+}
+.form-check-label {
+    font-weight: 500;
+    font-size: 0.95em;
+}
+.form-check-input:checked + .form-check-label {
+    color: #2c3e50;
+    font-weight: 600;
+}
+.form-check-input:checked {
+    border-color: #3498db;
+    background-color: #3498db;
+}
+/* Estilos botões turno/tipo */
+.btn-group-toggle .btn {
+    padding: 10px;
+    margin-right: 4px;
+    border-radius: 6px !important;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-group-toggle .btn.active,
+.btn-group-toggle .btn:hover {
+    background-color: #3498db !important;
+    color: white !important;
+}
+.form-check-label {
+    font-size: 0.95em;
+}
+.form-check-input:checked + .form-check-label {
+    font-weight: 600;
+}
+.form-check-input:checked {
+    border-color: #3498db;
+    background-color: #3498db;
 }
         </style>
     `;
@@ -9861,6 +10076,11 @@ function exportarAgendamentosConcluidosPDF() {
                 color: #777;
                 text-align: right;
             }
+ 
+        .nav-tabs .nav-link { cursor: pointer; }
+        .tab-content { display: none; }
+        .tab-content:first-of-type { display: block !important; }
+        
         </style>
 
         <div class="header">
@@ -10012,31 +10232,32 @@ function toggleDiasSemana() {
 // Salva ou edita tarefa
 document.getElementById('tarefaForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (!currentCondominio) return alert('Selecione um condomínio primeiro!');
-    
-    const editingId = document.getElementById('editingTarefaId').value;
+    if (!currentCondominio) {
+        alert('Selecione um condomínio primeiro!');
+        return;
+    }
+
     const titulo = document.getElementById('tarefaTitulo').value.trim();
     const descricao = document.getElementById('tarefaDescricao').value.trim();
     const tipo = document.getElementById('tarefaTipo').value;
-    
-    let dataUnica = null;
-    let diasSemana = [];
-    
-    if (tipo === 'unica') {
-        dataUnica = document.getElementById('tarefaDataUnica').value;
-        if (!dataUnica) return alert('Informe a data.');
-    } else {
-        diasSemana = Array.from(document.querySelectorAll('input[name="diaSemana"]:checked'))
-            .map(cb => cb.value);
-        if (diasSemana.length === 0) return alert('Selecione pelo menos um dia da semana.');
+    const dataUnica = document.getElementById('tarefaDataUnica').value;
+    const diasSemana = Array.from(document.querySelectorAll('input[name="diaSemana"]:checked'))
+        .map(el => el.value);
+
+    // ✅ CAPTURA DO TURNO (obrigatório)
+    const turno = document.getElementById('tarefaTurno').value;
+    if (!turno || (turno !== 'diurno' && turno !== 'noturno')) {
+        alert('⚠️ Por favor, selecione o turno (Diurno ou Noturno).');
+        return;
     }
 
     const tarefaData = {
         titulo,
         descricao,
         tipo,
-        dataUnica,
-        diasSemana,
+        dataUnica: tipo === 'unica' ? dataUnica : null,
+        diasSemana: tipo === 'recorrente' ? diasSemana : [],
+        turno, // ✅ SALVO!
         condominioId: currentCondominio.id,
         condominioNome: currentCondominio.nome,
         criadoPor: currentUser.id || currentUser.usuario,
@@ -10045,22 +10266,23 @@ document.getElementById('tarefaForm').addEventListener('submit', async function(
     };
 
     try {
+        const editingId = document.getElementById('editingTarefaId').value;
         if (editingId) {
             await db.collection('tarefas').doc(editingId).update(tarefaData);
+            alert('Tarefa atualizada com sucesso!');
         } else {
             await db.collection('tarefas').add(tarefaData);
+            alert('Tarefa criada com sucesso!');
         }
-        await loadTarefas();
-        closeTarefaModal();
+        await loadTarefas(); // recarrega lista global
         if (currentModule === 'tarefas') loadTarefasContent();
         if (currentModule === 'dashboard') loadDashboardContent();
-        alert(editingId ? 'Tarefa atualizada!' : 'Tarefa criada com sucesso!');
+        closeTarefaModal();
     } catch (err) {
         console.error('Erro ao salvar tarefa:', err);
         alert('Erro ao salvar tarefa. Tente novamente.');
     }
 });
-
 // Edita tarefa
 function editTarefa(id) {
     const tarefa = tarefas.find(t => t.id === id);
@@ -10074,6 +10296,17 @@ function editTarefa(id) {
         document.getElementById('tarefaDescricao').value = tarefa.descricao || '';
         document.getElementById('tarefaTipo').value = tarefa.tipo;
         toggleDiasSemana();
+        // ✅ Pré-seleciona o turno
+const turnoValue = tarefa.turno || 'diurno';
+document.getElementById('tarefaTurno').value = turnoValue;
+// Ativa visualmente o botão correto
+const labels = document.querySelectorAll('.btn-group-toggle label');
+labels.forEach(label => {
+    const input = label.querySelector('input[type="radio"]');
+    if (input && input.value === turnoValue) {
+        label.click(); // simula clique para ativar CSS
+    }
+});
         
         if (tarefa.tipo === 'unica') {
             document.getElementById('tarefaDataUnica').value = tarefa.dataUnica;
@@ -10135,19 +10368,54 @@ async function concluirTarefa(id) {
 }
 
 // Verifica se tarefa deve aparecer HOJE
+// ✅ Função corrigida: Verifica se tarefa deve aparecer HOJE NO TURNO CORRETO
 function tarefaEhHoje(tarefa) {
-    const hoje = new Date().toISOString().split('T')[0]; // ex: "2025-12-18"
-    const hojeSemana = new Date().getDay(); // 0 = dom, 1 = seg ... 6 = sab
-    const diasMap = { dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6 };
+    const agora = new Date();
+    const hojeStr = agora.toISOString().split('T')[0]; // ex: "2025-12-21"
+    const hora = agora.getHours();
     
-    if (tarefa.tipo === 'unica') {
-        return tarefa.dataUnica === hoje;
-    } else if (tarefa.tipo === 'recorrente') {
-        return tarefa.diasSemana.some(dia => diasMap[dia] === hojeSemana);
+    const diasMap = { dom: 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6 };
+    const hojeSemana = agora.getDay();
+
+    // Se NÃO tem turno, mantém comportamento antigo (compatibilidade)
+    const turno = tarefa.turno || 'diurno';
+    
+    // 🔹 LÓGICA POR TURNO:
+    if (turno === 'diurno') {
+        // Só mostra entre 7h e 19h
+        if (hora < 7 || hora >= 19) return false;
+        
+        if (tarefa.tipo === 'unica') {
+            return tarefa.dataUnica === hojeStr;
+        } else if (tarefa.tipo === 'recorrente') {
+            return tarefa.diasSemana.some(dia => diasMap[dia] === hojeSemana);
+        }
+        
+    } else if (turno === 'noturno') {
+        // Noturno: aparece das 19h até 7h do DIA SEGUINTE
+        // → então: se for antes das 7h, considera HOJE como "ontem à noite"
+        let dataReferencia;
+        if (hora < 7) {
+            // Ex: 03h de 21/dez → pertence ao turno noturno de 20/dez
+            const ontem = new Date(agora);
+            ontem.setDate(ontem.getDate() - 1);
+            dataReferencia = ontem.toISOString().split('T')[0];
+        } else {
+            // Das 7h às 23:59 → o turno noturno é o da *própria data* (ex: 20h de 21/dez)
+            dataReferencia = hojeStr;
+        }
+
+        if (tarefa.tipo === 'unica') {
+            return tarefa.dataUnica === dataReferencia && hora >= 19;
+        } else if (tarefa.tipo === 'recorrente') {
+            // Só mostra se for dia da semana certo E estiver no horário noturno (≥19h ou <7h)
+            const ehDiaCerto = tarefa.diasSemana.some(dia => diasMap[dia] === hojeSemana);
+            return ehDiaCerto && (hora >= 19 || hora < 7);
+        }
     }
+
     return false;
 }
-
 // Verifica se já foi concluída HOJE
 function jaConcluiuHoje(tarefa) {
     if (!tarefa.historicoConclusao || !Array.isArray(tarefa.historicoConclusao)) return false;
@@ -10158,79 +10426,183 @@ function jaConcluiuHoje(tarefa) {
 }
 
 // Carrega conteúdo do módulo "Tarefas"
+// ========== MÓDULO TAREFAS — VERSÃO PROFISSIONAL (com abas, cronômetro persistente e histórico) ==========
 function loadTarefasContent() {
     const moduleContent = document.getElementById('moduleContent');
     if (!currentCondominio) {
         moduleContent.innerHTML = `<div class="alert alert-warning">Selecione um condomínio primeiro.</div>`;
         return;
     }
-    
+
+    // ✅ Restaura cronômetro ao carregar o módulo
+    setTimeout(restaurarCronometrosAtivos, 500);
+
     // Filtra tarefas do condomínio
     const minhasTarefas = tarefas.filter(t => t.condominioId === currentCondominio.id);
-    
+    const hoje = new Date().toISOString().split('T')[0];
+    const hojeSemana = new Date().getDay();
+    const diasMap = { dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6 };
+
+    // ✅ Tarefas de hoje (não concluídas)
+    const tarefasHoje = minhasTarefas.filter(t => {
+        let ehHoje = false;
+        if (t.tipo === 'unica') ehHoje = t.dataUnica === hoje;
+        if (t.tipo === 'recorrente') ehHoje = t.diasSemana.some(d => diasMap[d] === hojeSemana);
+        return ehHoje && !jaConcluiuHoje(t);
+    });
+
+    // ✅ Todas as tarefas
+    const todasTarefas = minhasTarefas;
+
+    // ✅ Tarefas concluídas (últimos 18 meses)
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+    const tarefasConcluidas = todasTarefas
+        .filter(t => t.historicoConclusao?.length > 0)
+        .flatMap(t => 
+            t.historicoConclusao
+                .filter(h => new Date(h.dataReal) >= dataLimite)
+                .map(h => ({ ...h, titulo: t.titulo, tipo: t.tipo, descricao: t.descricao || '' }))
+        )
+        .sort((a, b) => new Date(b.dataReal) - new Date(a.dataReal));
+
     moduleContent.innerHTML = `
         <div class="card">
             <div class="card-header">
-                <h3>Tarefas - ${currentCondominio.nome}</h3>
+                <h3>Tarefas — ${currentCondominio.nome}</h3>
                 <button class="btn btn-primary" onclick="openTarefaModal()">
                     <i class="fas fa-plus"></i> Nova Tarefa
                 </button>
             </div>
             <div class="card-body">
-                ${minhasTarefas.length > 0 ? `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Tipo</th>
-                            <th>Dias/Data</th>
-                            <th>Concluída Hoje?</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${minhasTarefas.map(t => `
-                            <tr style="${jaConcluiuHoje(t) ? 'background-color: #ebf5fb;' : ''}">
-                                <td><strong>${t.titulo}</strong><br><small>${t.descricao || ''}</small></td>
-                                <td>${t.tipo === 'unica' ? 'Única' : 'Recorrente'}</td>
-                                <td>
-                                    ${t.tipo === 'unica' 
-                                        ? formatDate(t.dataUnica) 
-                                        : t.diasSemana.map(d => d.substring(0,3)).join(', ')}
-                                </td>
-                                <td>
-                                    ${jaConcluiuHoje(t) 
-                                        ? `<span class="badge badge-success">✅ Sim</span>` 
-                                        : `<span class="badge badge-warning">❌ Não</span>`}
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="editTarefa('${t.id}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-success" 
-                                            onclick="concluirTarefa('${t.id}')" 
-                                            ${jaConcluiuHoje(t) ? 'disabled' : ''}>
-                                        ✅ Concluir
-                                    </button>
-                                    ${podeExcluirRegistros() ? `
-                                    <button class="btn btn-sm btn-danger" onclick="deleteTarefa('${t.id}')"><i class="fas fa-trash"></i></button>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                ` : `
-                <div class="alert alert-info">
-                    <h5>Nenhuma tarefa cadastrada</h5>
-                    <p>Clique no botão abaixo para criar sua primeira tarefa.</p>
-                    <button class="btn btn-primary" onclick="openTarefaModal()">
-                        <i class="fas fa-plus"></i> Nova Tarefa
-                    </button>
+                <!-- Abas -->
+               <!-- Abas Modernas -->
+<div class="tabs-container" style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+    <button class="tab-btn active"
+            onclick="mostrarTabTarefas('andamento')">
+        <i class="fas fa-play-circle"></i>
+        Em Andamento (Hoje)
+    </button>
+    <button class="tab-btn"
+            onclick="mostrarTabTarefas('todas')">
+        <i class="fas fa-list"></i>
+        Todas as Tarefas
+    </button>
+    <button class="tab-btn"
+            onclick="mostrarTabTarefas('concluidas')">
+        <i class="fas fa-check-circle"></i>
+        Concluídas (${tarefasConcluidas.length})
+    </button>
+</div>
+
+                <!-- Aba: Em Andamento (Hoje) -->
+                <div id="tab-andamento" class="tab-content">
+                    ${tarefasHoje.length > 0 ? `
+                    <table class="table">
+                        <thead><tr><th>Tarefa</th><th>Tipo</th><th>Tempo</th><th>Ações</th></tr></thead>
+                        <tbody>
+                            ${tarefasHoje.map(t => `
+                                <tr>
+                                    <td>
+    <strong>${t.titulo}</strong><br>
+    <small>${t.descricao || ''}</small><br>
+    <span class="badge badge-${t.turno === 'diurno' ? 'primary' : 'dark'} mt-1" style="font-size:0.85em; padding:4px 8px;">
+        ${t.turno === 'diurno' ? '<i class="fas fa-sun"></i> Diurno' : '<i class="fas fa-moon"></i> Noturno'}
+    </span>
+</td>
+                                    <td>${t.tipo === 'unica' ? '📅 Única' : '🔁 Recorrente'}</td>
+                                    <td>
+                                        <span id="tempo-${t.id}" style="font-family: monospace;">—</span>
+                                        <button class="btn btn-info btn-sm" onclick="iniciarCronometroTarefa('${t.id}')">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm" onclick="concluirTarefa('${t.id}')">
+                                            ✅ Concluir
+                                        </button>
+                                        ${podeExcluirRegistros() ? `
+                                        <button class="btn btn-info btn-sm" onclick="editTarefa('${t.id}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteTarefa('${t.id}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>` : '<span class="text-muted">Sem permissão</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    ` : `<div class="alert alert-success"><i class="fas fa-check-circle"></i> Nenhuma tarefa pendente para hoje.</div>`}
                 </div>
-                `}
+
+                <!-- Aba: Todas as Tarefas -->
+                <div id="tab-todas" class="tab-content" style="display:none;">
+                    ${todasTarefas.length > 0 ? `
+                    <table class="table">
+                        <thead><tr><th>Tarefa</th><th>Tipo</th><th>Próxima Data</th><th>Status Hoje</th><th>Ações</th></tr></thead>
+                        <tbody>
+                            ${todasTarefas.map(t => {
+                                const ehHoje = t.tipo === 'unica' ? t.dataUnica === hoje 
+                                    : t.diasSemana.some(d => diasMap[d] === hojeSemana);
+                                const jaConcluiu = jaConcluiuHoje(t);
+                                const proximaData = t.tipo === 'unica' 
+                                    ? formatDate(t.dataUnica) 
+                                    : t.diasSemana.map(d => d.substring(0,3)).join(', ');
+                                return `
+                                <tr style="${jaConcluiu ? 'background-color:#ebf5fb' : ''}">
+                                    <td><strong>${t.titulo}</strong><br><small>${t.descricao || ''}</small></td>
+                                    <td>${t.tipo === 'unica' ? 'Única' : 'Recorrente'}</td>
+                                    <td>${proximaData}</td>
+                                    <td>${jaConcluiu ? '✅ Concluída' : ehHoje ? '🔴 Pendente' : '—'}</td>
+                                    <td>
+                                        ${podeExcluirRegistros() ? `
+                                        <button class="btn btn-info btn-sm" onclick="editTarefa('${t.id}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteTarefa('${t.id}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>` : '<span class="text-muted">Sem permissão</span>'}
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    ` : `<div class="alert alert-info">Nenhuma tarefa cadastrada.</div>`}
+                </div>
+
+                <!-- Aba: Concluídas -->
+                <div id="tab-concluidas" class="tab-content" style="display:none;">
+                    ${tarefasConcluidas.length > 0 ? `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        Mostrando últimas ${tarefasConcluidas.length} conclusões. 
+                        <button class="btn btn-success btn-sm" onclick="exportarTarefasConcluidasPDF()">
+                            <i class="fas fa-file-pdf"></i> Exportar PDF
+                        </button>
+                    </div>
+                    <table class="table">
+                        <thead><tr><th>Tarefa</th><th>Concluída em</th><th>Por</th><th>Tempo</th></tr></thead>
+                        <tbody>
+                            ${tarefasConcluidas.map(h => `
+                                <tr>
+                                    <td><strong>${h.titulo}</strong></td>
+                                    <td>${formatDate(h.dataReal)}<br>
+                                        <small>${new Date(h.dataConclusao).toLocaleTimeString()}</small>
+                                    </td>
+                                    <td>${h.concluidoPorNome}</td>
+                                    <td>${h.tempoFormatado || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    ` : `<div class="alert alert-info">Nenhuma tarefa concluída ainda.</div>`}
+                </div>
             </div>
         </div>
-    `;
-}
 
+                  `;
+}
 // Atualiza Dashboard com tarefas do dia
 function atualizarTarefasDashboard() {
     // Verifica se já existe seção de tarefas (evita duplicar)
@@ -10411,7 +10783,79 @@ function formatDateTime(dateStr) {
         minute: '2-digit'
     });
 }
+function exportarTarefasConcluidasPDF() {
+    const hoje = new Date();
+    const dataLimite = new Date();
+    dataLimite.setMonth(dataLimite.getMonth() - 18);
+    
+    let registros = tarefas
+        .filter(t => t.condominioId === currentCondominio.id)
+        .flatMap(t => 
+            (t.historicoConclusao || [])
+                .filter(h => new Date(h.dataReal) >= dataLimite)
+                .map(h => ({ ...h, titulo: t.titulo, tipo: t.tipo }))
+        )
+        .sort((a, b) => new Date(b.dataReal) - new Date(a.dataReal));
 
+    if (registros.length === 0) {
+        alert('Nenhuma tarefa concluída para exportar.');
+        return;
+    }
+
+    const periodo = `${formatDate(dataLimite.toISOString().split('T')[0])} a ${hoje.toLocaleDateString('pt-BR')}`;
+    let html = `
+    <div id="printArea">
+        <style>
+            @media print { @page { size: A4; margin: 10mm; } }
+            body { font-family: Arial, sans-serif; }
+            .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; }
+            .title { font-size: 22px; font-weight: bold; color: #2c3e50; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
+            td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+            tr:nth-child(even) { background: #f9f9f9; }
+        </style>
+        <div class="header">
+            <h1 class="title">Relatório de Tarefas Concluídas</h1>
+            <p>Condomínio: <strong>${currentCondominio.nome}</strong></p>
+            <p>Período: <strong>${periodo}</strong> | Total: <strong>${registros.length}</strong> conclusões</p>
+            <p>Gerado por: ${currentUser.nome || currentUser.usuario} em ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tarefa</th>
+                    <th>Data</th>
+                    <th>Responsável</th>
+                    <th>Tempo Gasto</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${registros.map(r => `
+                <tr>
+                    <td>${r.titulo}</td>
+                    <td>${formatDate(r.dataReal)} ${new Date(r.dataConclusao).toLocaleTimeString().substring(0,5)}</td>
+                    <td>${r.concluidoPorNome}</td>
+                    <td>${r.tempoFormatado || '—'}</td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div style="margin-top:30px; padding-top:15px; border-top:1px solid #ccc; text-align:right; font-size:12px; color:#777;">
+            Sistema Multi Condomínios — Confidencial
+        </div>
+    </div>
+    `;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+        win.focus();
+        win.print();
+        setTimeout(() => win.close(), 2000);
+    };
+}
 // ✅ Exportar Contas Pagas para PDF
 function exportarContasPagasPDF() {
     const hoje = new Date();
@@ -10505,6 +10949,199 @@ function exportarContasPagasPDF() {
         setTimeout(() => win.close(), 2000);
     };
 }
+// ==== CRONÔMETRO PARA TAREFAS ====
+// ✅ Substituir função: iniciarCronometroTarefa
+async function iniciarCronometroTarefa(tarefaId) {
+    // Para qualquer outro cronômetro ativo
+    Object.keys(cronometros).forEach(id => {
+        if (cronometros[id]?.ativo) {
+            clearInterval(cronometros[id].intervalo);
+        }
+    });
+    cronometros = {};
+
+    const agora = new Date().toISOString();
+    const elementoTempo = document.getElementById(`tempo-${tarefaId}`);
+    if (!elementoTempo) {
+        console.warn(`Elemento de tempo não encontrado: tempo-${tarefaId}`);
+        return;
+    }
+
+    // Inicia contagem
+    cronometros[tarefaId] = {
+        ativo: true,
+        inicio: agora,
+        intervalo: setInterval(() => {
+            const s = Math.floor((new Date() - new Date(agora)) / 1000);
+            const h = Math.floor(s / 3600).toString().padStart(2, '0');
+            const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+            const ss = (s % 60).toString().padStart(2, '0');
+            elementoTempo.textContent = `${h}:${m}:${ss}`;
+        }, 1000)
+    };
+
+    elementoTempo.style.color = '#27ae60';
+    elementoTempo.textContent = '00:00:00';
+
+    // ✅ Salva no Firebase
+    await salvarEstadoCronometro(tarefaId, cronometros[tarefaId]);
+}
+function pararCronometro(tarefaId) {
+    const crono = cronometros[tarefaId];
+    if (crono && crono.ativo) {
+        clearInterval(crono.intervalo);
+        cronometros[tarefaId] = { ...crono, ativo: false };
+        console.log(`⏹️ Cronômetro parado para tarefa ${tarefaId}`);
+    }
+}
+
+// Função expandida de concluir — agora salva o tempo!
+// ✅ Substituir função: concluirTarefa (com tempo e limpeza)
+async function concluirTarefa(id) {
+    const tarefa = tarefas.find(t => t.id === id);
+    if (!tarefa) return alert('Tarefa não encontrada.');
+
+    const hoje = new Date().toISOString().split('T')[0];
+    const jaConcluiu = tarefa.historicoConclusao?.some(h => h.dataReal === hoje);
+    if (jaConcluiu) return alert('✅ Esta tarefa já foi concluída hoje.');
+
+    // Pega tempo (se houver cronômetro ativo)
+    let tempoSegundos = 0;
+    let inicioCronometro = null;
+    const crono = cronometros[id];
+
+    if (crono && crono.ativo) {
+        clearInterval(crono.intervalo);
+        tempoSegundos = Math.floor((new Date() - new Date(crono.inicio)) / 1000);
+        inicioCronometro = crono.inicio;
+        cronometros[id] = null;
+
+        // Atualiza visual
+        const el = document.getElementById(`tempo-${id}`);
+        if (el) {
+            const h = Math.floor(tempoSegundos / 3600).toString().padStart(2, '0');
+            const m = Math.floor((tempoSegundos % 3600) / 60).toString().padStart(2, '0');
+            const s = (tempoSegundos % 60).toString().padStart(2, '0');
+            el.textContent = `${h}:${m}:${s}`;
+            el.style.color = '#7f8c8d';
+        }
+    }
+
+    // ✅ Salva conclusão
+    const itemConclusao = {
+        concluidoPor: currentUser.id,
+        concluidoPorNome: currentUser.nome || currentUser.usuario,
+        dataConclusao: new Date().toISOString(),
+        dataReal: hoje,
+        tempoSegundos: tempoSegundos,
+        tempoFormatado: tempoSegundos > 0 
+            ? `${Math.floor(tempoSegundos / 3600).toString().padStart(2, '0')}:${Math.floor((tempoSegundos % 3600) / 60).toString().padStart(2, '0')}:${(tempoSegundos % 60).toString().padStart(2, '0')}`
+            : '00:00:00',
+        inicioCronometro: inicioCronometro
+    };
+
+    try {
+        await db.collection('tarefas').doc(id).update({
+            historicoConclusao: firebase.firestore.FieldValue.arrayUnion(itemConclusao)
+        });
+
+        // ✅ Limpa cronômetro do Firebase
+        await limparEstadoCronometro();
+
+        await loadTarefas();
+        if (currentModule === 'tarefas') loadTarefasContent();
+        if (currentModule === 'dashboard') {
+            loadDashboardContent();
+            // ✅ Re-restaura caso tenha outro aberto (raro, mas seguro)
+            setTimeout(restaurarCronometrosAtivos, 500);
+        }
+
+        let msg = '✅ Tarefa concluída!';
+        if (tempoSegundos > 0) msg += ` Tempo: ${itemConclusao.tempoFormatado}`;
+        alert(msg);
+
+    } catch (err) {
+        console.error('Erro ao concluir tarefa:', err);
+        alert('❌ Erro ao salvar conclusão.');
+    }
+}
+// ==== SALVAR ESTADO DO CRONÔMETRO NO FIREBASE ====
+async function salvarEstadoCronometro(tarefaId, estado) {
+    if (!currentUser || !currentCondominio) return;
+    try {
+        const docRef = db.collection('cronometros').doc(currentUser.id);
+        await docRef.set({
+            tarefaId: tarefaId,
+            estado: estado, // { ativo: true, inicio: timestamp, historico: [] }
+            condominioId: currentCondominio.id,
+            atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (err) {
+        console.warn('Erro ao salvar estado do cronômetro:', err);
+    }
+}
+
+async function carregarEstadoCronometro() {
+    if (!currentUser) return null;
+    try {
+        const doc = await db.collection('cronometros').doc(currentUser.id).get();
+        return doc.exists ? doc.data() : null;
+    } catch (err) {
+        console.warn('Erro ao carregar estado do cronômetro:', err);
+        return null;
+    }
+}
+
+async function limparEstadoCronometro() {
+    if (!currentUser) return;
+    try {
+        await db.collection('cronometros').doc(currentUser.id).delete();
+    } catch (err) {
+        console.warn('Erro ao limpar estado do cronômetro:', err);
+    }
+}
+// ==== CRONÔMETRO PERSISTENTE ====
+// ✅ Nova função: restaura cronômetro se estiver ativo
+async function restaurarCronometrosAtivos() {
+    const estado = await carregarEstadoCronometro();
+    if (!estado || !estado.estado || !estado.estado.ativo) return;
+
+    const { tarefaId, estado: crono } = estado;
+    const tarefa = tarefas.find(t => t.id === tarefaId);
+    if (!tarefa) {
+        limparEstadoCronometro();
+        return;
+    }
+
+    const agora = new Date();
+    const inicio = new Date(crono.inicio);
+    const segundos = Math.floor((agora - inicio) / 1000);
+
+    const elementoTempo = document.getElementById(`tempo-${tarefaId}`);
+    if (!elementoTempo) return;
+
+    // Recria o cronômetro
+    cronometros[tarefaId] = {
+        ativo: true,
+        inicio: crono.inicio,
+        intervalo: setInterval(() => {
+            const s = Math.floor((new Date() - inicio) / 1000);
+            const h = Math.floor(s / 3600).toString().padStart(2, '0');
+            const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+            const ss = (s % 60).toString().padStart(2, '0');
+            elementoTempo.textContent = `${h}:${m}:${ss}`;
+        }, 1000)
+    };
+
+    elementoTempo.style.color = '#27ae60';
+}
+function mostrarTabTarefas(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById('tab-' + tab).style.display = 'block';
+            // ✅ Restaura cronômetro ao mudar para a aba de hoje
+            if (tab === 'andamento') setTimeout(restaurarCronometrosAtivos, 300);
+        }
+        
 </script>
 </body>
 </html>
