@@ -2391,22 +2391,25 @@
         </form>
     </div>
 </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js">
-</script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAhx_I1Wg0RncK_XTTOVjKrRkeD8-wDoMw",
             authDomain: "condominio-amaranthus.firebaseapp.com",
             projectId: "condominio-amaranthus",
-            storageBucket: "condominio-amaranthus.firebasestorage.app",
+            storageBucket: "condominio-amaranthus.firebasestorage.app",  // ✅ Correto!
             messagingSenderId: "233912918531",
             appId: "1:233912918531:web:6850381663623ef1282436"
         };
         // Inicializar Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();  // ✅ Adicione esta linha também!
+        
         // Módulos do sistema
         const modules = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', default: true },
@@ -8394,7 +8397,25 @@ async function atualizarStatusAutomatico() {
                             <input type="hidden" id="editingOcorrenciaId" />
                             <div class="form-group"><label>Morador</label><input type="text" id="ocorrenciaMorador" class="form-control" required></div>
                             <div class="form-group"><label>Apartamento</label><input type="text" id="ocorrenciaApto" class="form-control" required></div>
-                            <div class="form-group"><label>Descrição</label><textarea id="ocorrenciaDescricao" class="form-control" rows="3"></textarea></div>
+                                        <div class="form-group">
+                <label>Descrição *</label>
+                <textarea id="ocorrenciaDescricao" class="form-control" rows="3" required></textarea>
+            </div>
+            <!-- Campo de upload de imagem -->
+            <div class="form-group">
+                <label>Foto da Ocorrência (opcional)</label>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <input type="file" id="ocorrenciaImagem" accept="image/*" style="display: none;" onchange="previewImagemOcorrencia(this)">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('ocorrenciaImagem').click()">
+                        <i class="fas fa-camera"></i> Selecionar Imagem
+                    </button>
+                    <span id="imagemFileName" class="text-muted" style="font-size: 0.85em;"></span>
+                </div>
+                <div id="imagemPreview" style="margin-top: 8px; max-width: 200px; display: none;">
+                    <img id="previewImg" src="" alt="Pré-visualização" style="width: 100%; border-radius: 4px; border: 1px solid #ddd;">
+                </div>
+                <input type="hidden" id="ocorrenciaImagemUrl" value="">
+            </div>
                             <div class="form-group"><label>Status</label>
                                 <select id="ocorrenciaStatus" class="form-control">
                                     <option value="aberta">Aberta</option>
@@ -8514,28 +8535,95 @@ async function atualizarStatusAutomatico() {
         }
         function closeOcorrenciaModal() { document.getElementById('ocorrenciaModal').style.display = 'none'; }
         document.addEventListener('submit', async function(e) {
-            if (e.target && e.target.id === 'ocorrenciaForm') {
-                e.preventDefault();
-                const id = document.getElementById('editingOcorrenciaId').value;
-                const doc = {
-                    morador: document.getElementById('ocorrenciaMorador').value,
-                    apto: document.getElementById('ocorrenciaApto').value,
-                    descricao: document.getElementById('ocorrenciaDescricao').value,
-                    status: document.getElementById('ocorrenciaStatus').value,
-                    dataHora: new Date()
-                };
-                try {
-                    if (id) {
-                        await db.collection('ocorrencias').doc(id).update(doc);
-                    } else {
-                        await db.collection('ocorrencias').add(doc);
-                    }
-                    closeOcorrenciaModal();
-                    await loadOcorrenciasContent();
-                } catch (err) {
-                    alert('Erro ao salvar ocorrência: ' + err.message);
-                }
+           if (e.target && e.target.id === 'ocorrenciaForm') {
+    e.preventDefault();
+    const id = document.getElementById('editingOcorrenciaId').value;
+    const fileInput = document.getElementById('ocorrenciaImagem');
+    const imagemUrlAtual = document.getElementById('ocorrenciaImagemUrl').value;
+
+    let imagemUrl = imagemUrlAtual; // mantém a imagem anterior se não for alterada
+
+    // ✅ Se o usuário escolheu uma nova imagem
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        if (!file.type.match('image.*')) {
+            alert('⚠️ Por favor, selecione uma imagem válida (JPEG, PNG, GIF).');
+            return;
+        }
+
+        try {
+            // Nome único no Storage: ocorrencias/{id}/{timestamp}.{ext}
+            const ext = file.name.split('.').pop();
+            const timestamp = Date.now();
+            const fileName = `ocorrencias/${id || 'nova'}/${timestamp}.${ext}`;
+            
+            const storageRef = firebase.storage().ref();
+            const fileRef = storageRef.child(fileName);
+            
+            // ✅ Mostra "Salvando..." no botão
+            const btnSalvar = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btnSalvar.innerHTML;
+            btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btnSalvar.disabled = true;
+
+            // ✅ Faz o upload
+            const snapshot = await fileRef.put(file);
+            imagemUrl = await snapshot.ref.getDownloadURL(); // pega o link público
+
+        } catch (err) {
+            alert('❌ Erro ao enviar imagem: ' + (err.message || err));
+            console.error('Erro upload:', err);
+            return;
+        } finally {
+            // ✅ Restaura o botão
+            const btnSalvar = e.target.querySelector('button[type="submit"]');
+            if (btnSalvar) {
+                btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                btnSalvar.disabled = false;
             }
+        }
+    }
+
+    // ✅ Documento final, agora com imagemUrl
+    const doc = {
+        morador: document.getElementById('ocorrenciaMorador').value,
+        apto: document.getElementById('ocorrenciaApto').value,
+        descricao: document.getElementById('ocorrenciaDescricao').value,
+        status: document.getElementById('ocorrenciaStatus').value,
+        dataHora: new Date(),
+        imagemUrl: imagemUrl || null  // pode ser null ou o link
+    };
+
+    try {
+        if (id) {
+            // ✅ Atualiza (mantendo demais campos)
+            await db.collection('ocorrencias').doc(id).update(doc);
+        } else {
+            // ✅ Cria nova ocorrência
+            const docRef = await db.collection('ocorrencias').add(doc);
+            // ✅ Se for nova, atualiza o nome da pasta no Storage (com ID real)
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const ext = file.name.split('.').pop();
+                const novoFileName = `ocorrencias/${docRef.id}/${Date.now()}.${ext}`;
+                const storageRef = firebase.storage().ref();
+                const novaRef = storageRef.child(novoFileName);
+                await storageRef.child(`ocorrencias/nova/${Date.now()}.${ext}`).move(novaRef);
+                // Atualiza o link
+                const novaUrl = await novaRef.getDownloadURL();
+                await docRef.update({ imagemUrl: novaUrl });
+            }
+        }
+
+        closeOcorrenciaModal();
+        await loadOcorrenciasContent();
+        alert(id ? '✅ Ocorrência atualizada!' : '✅ Ocorrência registrada com sucesso!');
+
+    } catch (err) {
+        console.error('Erro ao salvar ocorrência:', err);
+        alert('❌ Erro ao salvar ocorrência: ' + (err.message || 'tente novamente.'));
+    }
+}
             if (e.target && e.target.id === 'prestadorForm') {
                 e.preventDefault();
                 const id = document.getElementById('editingPrestadorId').value;
@@ -11141,7 +11229,34 @@ function mostrarTabTarefas(tab) {
             // ✅ Restaura cronômetro ao mudar para a aba de hoje
             if (tab === 'andamento') setTimeout(restaurarCronometrosAtivos, 300);
         }
-        
+// Função para mostrar pré-visualização da imagem localmente (antes de salvar)
+function previewImagemOcorrencia(input) {
+    const file = input.files[0];
+    const fileNameSpan = document.getElementById('imagemFileName');
+    const previewDiv = document.getElementById('imagemPreview');
+    const previewImg = document.getElementById('previewImg');
+
+    if (file) {
+        if (!file.type.match('image.*')) {
+            alert('⚠️ Apenas arquivos de imagem (JPEG, PNG, GIF) são permitidos.');
+            input.value = ''; // limpa o campo
+            previewDiv.style.display = 'none';
+            fileNameSpan.textContent = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewDiv.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+        fileNameSpan.textContent = file.name;
+    } else {
+        previewDiv.style.display = 'none';
+        fileNameSpan.textContent = '';
+    }
+}        
 </script>
 </body>
 </html>
