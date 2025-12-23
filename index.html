@@ -2473,7 +2473,7 @@
                         setupRealtimeListeners();
                         // ✅ INICIAR VERIFICAÇÃO AUTOMÁTICA DE STATUS
                 setInterval(updateOnlineCount, 10000);
-               setInterval(atualizarStatusAutomatico, 30000); // ← 30.000 ms = 30s
+               setInterval(atualizarStatusAutomatico, 10000); // ← 10.000 ms = 10s
 atualizarStatusAutomatico(); // ← executa imediatamente ao carregar
                         setInterval(updateOnlineCount, 10000);
                         return;
@@ -3996,8 +3996,7 @@ function loadDashboardContent() {
 
     // ✅ Tarefas de HOJE (filtradas e com status de conclusão)
    // ✅ Tarefas de HOJE — respeitando turno (Diurno/Noturno)
-const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
-
+const tarefasHoje = (filteredTarefas || []).filter(t => tarefaEhHoje(t) && !jaConcluiuHoje(t));
     // ⚠️ Alertas de contas/compras (vencidas ou ≤ 3 dias)
     const alertaContas = filteredContas.filter(c => {
         if (c.status === 'pago') return false;
@@ -4018,8 +4017,7 @@ const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
     { id: 'salao-social', nome: 'Salão Social', icon: 'fas fa-warehouse', cor: '#3498db' },
     { id: 'churrasqueira', nome: 'Churrasqueira', icon: 'fas fa-fire', cor: '#e74c3c' },
     { id: 'quiosque', nome: 'Quiosque', icon: 'fas fa-tree', cor: '#2ecc71' },
-    { id: 'pergolado', nome: 'Pergolado', icon: 'fas fa-umbrella', cor: '#9b59b6' }
-].map(espaco => {
+    ].map(espaco => {
 
     // Busca todos os agendamentos ativos (não só de hoje)
     const ags = filteredAgendamentos
@@ -4188,19 +4186,22 @@ const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
             </section>
             ` : ''}
 
-          <!-- ✅ TAREFAS DO DIA -->
+         <!-- ✅ TAREFAS DO DIA -->
 <section class="dashboard-section">
     <div class="section-header">
         <h2><i class="fas fa-tasks" style="color: #2ecc71;"></i> Tarefas de Hoje</h2>
-        <span class="badge">${tarefasHoje.length} tarefa${tarefasHoje.length !== 1 ? 's' : ''}</span>
+        <span class="badge">
+            ${(Array.isArray(tarefasHoje) ? tarefasHoje.length : 0)} 
+            tarefa${(Array.isArray(tarefasHoje) && tarefasHoje.length !== 1) ? 's' : ''}
+        </span>
     </div>
     <div class="section-subtitle" style="margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-    <i class="${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'fas fa-sun' : 'fas fa-moon'}"></i>
-    Turno atual: <strong>${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'Diurno (7h–19h)' : 'Noturno (19h–7h)'}</strong>
-</div>
+        <i class="${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'fas fa-sun' : 'fas fa-moon'}"></i>
+        Turno atual: <strong>${new Date().getHours() >= 7 && new Date().getHours() < 19 ? 'Diurno (7h–19h)' : 'Noturno (19h–7h)'}</strong>
+    </div>
     <div class="tasks-grid">
-        ${tarefasHoje.length > 0 ? tarefasHoje.map(t => `
-            <div class="task-card ${t.jaConcluiuHoje ? 'completed' : ''}"
+        ${(Array.isArray(tarefasHoje) && tarefasHoje.length > 0) ? tarefasHoje.map(t => `
+            <div class="task-card"
                  style="border-left: 4px solid ${t.turno === 'diurno' ? '#3498db' : '#9b59b6'}">
                 <div class="task-header">
                     <h4>${t.titulo}</h4>
@@ -4215,11 +4216,6 @@ const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
                 </div>
                 ${t.descricao ? `<p class="task-desc">${t.descricao}</p>` : ''}
                 <div class="task-actions">
-                    ${t.jaConcluiuHoje ? `
-                    <span class="task-status-completed">
-                        <i class="fas fa-check-circle"></i> Concluída hoje
-                    </span>
-                    ` : `
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn btn-info btn-sm" onclick="iniciarCronometroTarefa('${t.id}')">
                             <i class="fas fa-play"></i>
@@ -4229,7 +4225,6 @@ const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
                             <i class="fas fa-check"></i> Concluir
                         </button>
                     </div>
-                    `}
                     <div class="task-edit-group">
                         <button class="btn btn-outline-secondary btn-sm" onclick="editTarefa('${t.id}')">
                             <i class="fas fa-edit"></i>
@@ -4237,24 +4232,22 @@ const tarefasHoje = filteredTarefas.filter(t => tarefaEhHoje(t));
                         ${podeExcluirRegistros() ? `
                         <button class="btn btn-outline-danger btn-sm" onclick="deleteTarefa('${t.id}')">
                             <i class="fas fa-trash"></i>
-                        </button>
-                        ` : ''}
+                        </button>` : ''}
                     </div>
                 </div>
             </div>
         `).join('') : `
             <div class="empty-state">
                 <div class="empty-icon"><i class="fas fa-check-circle"></i></div>
-                <h4>Nenhuma tarefa pendente</h4>
-                <p>Todas as tarefas foram concluídas ou não há nenhuma cadastrada para hoje.</p>
+                <h4>Tudo pronto por hoje! 🎉</h4>
+                <p>Nenhuma tarefa pendente para este turno.</p>
                 <button class="btn btn-primary" onclick="openTarefaModal()">
-                    <i class="fas fa-plus"></i> Criar Tarefa
+                    <i class="fas fa-plus"></i> Criar Nova Tarefa
                 </button>
             </div>
         `}
     </div>
 </section>
- 
 
 <!-- 🎯 STATUS DOS ESPAÇOS -->
 <section class="dashboard-section">
@@ -8277,53 +8270,67 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
         // ✅ Função para atualizar status de agendamentos automaticamente
-// ✅ Função corrigida: atualiza status SOMENTE após o horário de término
 async function atualizarStatusAutomatico() {
     if (!currentCondominio) return;
-    const agora = new Date();
-    const dataHoje = agora.toISOString().split('T')[0]; // ex: "2025-12-19"
-    const horaAgoraStr = agora.getHours().toString().padStart(2, '0') + ':' + 
-                         agora.getMinutes().toString().padStart(2, '0');
 
-    // Converte HH:mm para minutos desde 00:00 (ex: "09:30" → 570)
+    const agora = new Date();
+    const dataHoje = agora.toISOString().split('T')[0]; // ex: "2025-12-22"
+    const horaAgoraMin = agora.getHours() * 60 + agora.getMinutes(); // ex: 14:30 = 870 minutos
+
+    // Converte HH:mm → minutos (ex: "15:00" → 900)
     function paraMinutos(hhmm) {
         if (!hhmm || hhmm.length < 5) return -1;
         const [h, m] = hhmm.split(':').map(Number);
         return h * 60 + m;
     }
 
-    const agoraEmMinutos = paraMinutos(horaAgoraStr);
-
-    // ✅ Filtra agendamentos ATIVOS de hoje
-    const agendamentosAtivos = agendamentos.filter(a => 
+    // 🧾 Filtra agendamentos ATIVOS de HOJE (só os que ainda não estão 'concluido' ou 'cancelado')
+    const agendamentosHoje = agendamentos.filter(a => 
         a.condominioId === currentCondominio.id &&
         a.data === dataHoje &&
-        ['agendado', 'em-uso'].includes(a.status) &&
-        paraMinutos(a.horaFim) > 0  // evita erro se campo estiver vazio
+        !['concluido', 'cancelado'].includes(a.status)
     );
 
-    for (const ag of agendamentosAtivos) {
-        const fimEmMinutos = paraMinutos(ag.horaFim);
+    for (const ag of agendamentosHoje) {
+        const inicioMin = paraMinutos(ag.horaInicio);
+        const fimMin = paraMinutos(ag.horaFim);
+        if (inicioMin === -1 || fimMin === -1) continue;
 
-        // ✅ Agora compara números → correto!
-        if (agoraEmMinutos >= fimEmMinutos) {
+        let novoStatus = ag.status;
+
+        // 🔹 1. 2 horas ANTES do início → "preparando"
+        if (horaAgoraMin >= inicioMin - 120 && horaAgoraMin < inicioMin && ag.status === 'agendado') {
+            novoStatus = 'preparando';
+        }
+        // 🔹 2. NA HORA do início (ou depois, mas antes do fim) → "em-uso"
+        else if (horaAgoraMin >= inicioMin && horaAgoraMin < fimMin && ag.status !== 'em-uso') {
+            novoStatus = 'em-uso';
+        }
+        // 🔹 3. NA HORA do fim (ou depois) → "concluido"
+        else if (horaAgoraMin >= fimMin && ag.status !== 'concluido') {
+            novoStatus = 'concluido';
+        }
+
+        // ✅ Só atualiza se o status realmente mudou
+        if (novoStatus !== ag.status) {
             try {
                 await db.collection('agendamentos').doc(ag.id).update({
-                    status: 'liberado',
+                    status: novoStatus,
                     dataAtualizacao: new Date().toISOString()
                 });
-                console.log(`✅ Agendamento ${ag.id} (${ag.responsavel}) atualizado para 'liberado' (agora: ${horaAgoraStr}, fim: ${ag.horaFim})`);
+                console.log(`✅ ${ag.responsavel} (${ag.unidade}) → ${ag.status} → ${novoStatus}`);
             } catch (err) {
                 console.error(`❌ Erro ao atualizar ${ag.id}:`, err);
             }
         }
     }
 
-    // Recarrega os dados para atualizar interface
+    // 🔄 Recarrega os dados para atualizar a interface (dashboard, lista de agendamentos etc.)
     await loadSystemData();
     if (currentModule === 'dashboard') loadDashboardContent();
     if (currentModule === 'agendamentos') loadAgendamentosList();
 }
+
         // ========== INICIALIZAÇÃO ==========
         document.getElementById('newPassword')?.addEventListener('input', function() {
             const password = this.value;
@@ -10582,16 +10589,20 @@ function loadTarefasContent() {
                         </button>
                     </div>
                     <table class="table">
-                        <thead><tr><th>Tarefa</th><th>Concluída em</th><th>Por</th><th>Tempo</th></tr></thead>
-                        <tbody>
+<thead><tr><th>Tarefa</th><th>Concluída em</th><th>Por</th><th>Horário</th><th>Tempo</th></tr></thead>                        <tbody>
                             ${tarefasConcluidas.map(h => `
                                 <tr>
                                     <td><strong>${h.titulo}</strong></td>
-                                    <td>${formatDate(h.dataReal)}<br>
-                                        <small>${new Date(h.dataConclusao).toLocaleTimeString()}</small>
-                                    </td>
-                                    <td>${h.concluidoPorNome}</td>
-                                    <td>${h.tempoFormatado || '—'}</td>
+                                   <td>${formatDate(h.dataReal)}<br>
+    <small>${new Date(h.dataConclusao).toLocaleTimeString('pt-BR', { hour12: false })}</small>
+</td>
+<td>${h.concluidoPorNome}</td>
+<td>
+    ${h.inicioCronometro 
+        ? `${new Date(h.inicioCronometro).toLocaleTimeString('pt-BR', { hour12: false })} - ${new Date(h.dataConclusao).toLocaleTimeString('pt-BR', { hour12: false })}`
+        : '—'}
+</td>
+<td>${h.tempoFormatado || '—'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -10825,18 +10836,24 @@ function exportarTarefasConcluidasPDF() {
             <thead>
                 <tr>
                     <th>Tarefa</th>
-                    <th>Data</th>
-                    <th>Responsável</th>
-                    <th>Tempo Gasto</th>
+<th>Data</th>
+<th>Horário</th>
+<th>Responsável</th>
+<th>Tempo Gasto</th>
                 </tr>
             </thead>
             <tbody>
                 ${registros.map(r => `
                 <tr>
                     <td>${r.titulo}</td>
-                    <td>${formatDate(r.dataReal)} ${new Date(r.dataConclusao).toLocaleTimeString().substring(0,5)}</td>
-                    <td>${r.concluidoPorNome}</td>
-                    <td>${r.tempoFormatado || '—'}</td>
+<td>${formatDate(r.dataReal)}</td>
+<td>
+${r.inicioCronometro 
+    ? `${new Date(r.inicioCronometro).toLocaleTimeString('pt-BR', { hour12: false })} - ${new Date(r.dataConclusao).toLocaleTimeString('pt-BR', { hour12: false })}`
+    : '—'}
+</td>
+<td>${r.concluidoPorNome}</td>
+<td>${r.tempoFormatado || '—'}</td>
                 </tr>
                 `).join('')}
             </tbody>
